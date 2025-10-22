@@ -1,6 +1,6 @@
-# katalog_kue_lebaran
+# katalog_kue
 
-A new Flutter project.
+Isinya Kue kering 
 
 ## Getting Started
 
