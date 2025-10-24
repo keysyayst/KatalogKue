@@ -10,7 +10,7 @@ class KueLebaranApp extends StatelessWidget {
     return MaterialApp(
       title: 'Katalog Kue Lebaran',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFE8C00)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 18, 18, 18)),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
