@@ -1,6 +1,6 @@
 # 🍪 Katalog Kue Lebaran Flutter App
 
-Aplikasi **Katalog Kue Lebaran** adalah proyek latihan pemrograman mobile berbasis **Flutter**, yang dikembangkan sebagai bagian dari pembelajaran **Modul 1–2 Pemrograman Mobile** (StatelessWidget, StatefulWidget, Navigasi, dan Responsivitas UI & Animasi).
+Aplikasi **Katalog Kue Lebaran** adalah proyek latihan pemrograman mobile berbasis **Flutter**, yang dikembangkan sebagai bagian dari pembelajaran **Pemrograman Mobile** (StatelessWidget, StatefulWidget, Navigasi, dan Responsivitas UI & Animasi).
 
 Aplikasi ini menampilkan katalog kue kering dengan desain responsif, halaman detail produk, daftar favorit, serta halaman kontak. Semua gambar diambil dari **assets lokal**, dan warna tema utama menggunakan **#FE8C00** (oranye lembut bertema hangat Lebaran).
 
@@ -38,7 +38,7 @@ Aplikasi ini menampilkan katalog kue kering dengan desain responsif, halaman det
 
 | Elemen               | Warna / Nilai        | Deskripsi                           |
 |----------------------|----------------------|-------------------------------------|
-| **Primary Color**    | `#FE8C00`            | Warna oranye khas Lebaran           |
+| **Primary Color**    | `#FE8C00`            | Warna oranye khas kue nastar          |
 | **Background Hero**  | `assets/images/bg.png` | Gambar latar atas halaman Home     |
 | **Font Style**       | `fontWeight: bold`   | Nuansa modern & bersih              |
 | **Icon Aktif**       | Warna oranye         | Konsisten dengan tema utama         |
