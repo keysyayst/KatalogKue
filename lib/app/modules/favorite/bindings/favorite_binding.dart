@@ -1,1 +1,0 @@
-// TODO: Favorite binding placeholder
