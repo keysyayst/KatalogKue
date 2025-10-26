@@ -9,12 +9,14 @@ class ContactPage extends GetView<ContactController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hubungi Kami'),
+        title: const Text('Hubungi Kami & Tes API'),
         backgroundColor: const Color(0xFFFE8C00),
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 24),
             const CircleAvatar(
@@ -25,6 +27,7 @@ class ContactPage extends GetView<ContactController> {
             const Text(
               'Kue Kering Made by Mommy',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
             const Divider(),
@@ -86,6 +89,7 @@ class ContactPage extends GetView<ContactController> {
                   ),
 
                   const SizedBox(height: 20),
+                  // Tampilkan loading indicator
                   Obx(
                     () => controller.isLoading.value
                         ? const Center(child: CircularProgressIndicator())
