@@ -9,6 +9,7 @@ import 'modules/favorite/views/favorite_page.dart';
 import 'modules/contact/views/contact_page.dart';
 import 'modules/home/controllers/home_controller.dart';
 import 'modules/favorite/controllers/favorite_controller.dart';
+import 'modules/contact/controllers/contact_controller.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -81,5 +82,6 @@ class DashboardBinding extends Bindings {
     Get.lazyPut(() => DashboardController());
     Get.lazyPut(() => HomeController());
     Get.lazyPut(() => FavoriteController());
+    Get.lazyPut(() => ContactController());
   }
 }
