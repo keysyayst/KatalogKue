@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/contact_controller.dart';
 
-// Ubah dari StatelessWidget menjadi GetView<ContactController>
 class ContactPage extends GetView<ContactController> {
   const ContactPage({super.key});
 
@@ -10,99 +9,126 @@ class ContactPage extends GetView<ContactController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hubungi Kami'),
+        title: const Text('Hubungi Kami & Tes API'),
         backgroundColor: const Color(0xFFFE8C00),
         foregroundColor: Colors.white,
       ),
-      // Gunakan SingleChildScrollView agar halaman bisa di-scroll
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- BAGIAN INFO KONTAK (ASLI) ---
-            const SizedBox(height: 24),
-            const CircleAvatar(
-              radius: 48,
-              backgroundImage: AssetImage('assets/images/logo.png'),
+            // ... (Info Kontak Anda tetap di sini) ...
+            const Center(
+              child: CircleAvatar(
+                radius: 48,
+                backgroundImage: AssetImage('assets/images/logo.png'),
+              ),
             ),
             const SizedBox(height: 12),
             const Text(
               'Kue Kering Made by Mommy',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
             const Divider(),
-            ListTile(
-              leading: const Icon(Icons.phone, color: Color(0xFFFE8C00)),
-              title: const Text('082216849581'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+
+            // ===========================================
+            // --- BAGIAN 1: EKSPERIMEN PERFORMA ---
+            // ===========================================
+            const Text(
+              'Eksperimen Performa (Tugas 1)',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              textAlign: TextAlign.center,
             ),
-            ListTile(
-              leading: const Icon(Icons.email, color: Color(0xFFFE8C00)),
-              title: const Text('kukerbymommy@gmail.com'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            const SizedBox(height: 16),
+            // --- Tes HTTP ---
+            ElevatedButton(
+              onPressed: () =>
+                  controller.isLoading.value ? null : controller.runHttpTest(),
+              child: const Text('Jalankan Tes HTTP (Sukses)'),
             ),
-            const Divider(),
-
-            // --- BAGIAN EKSPERIMEN (BARU) ---
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Eksperimen Performa (HTTP vs Dio)',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Tombol Tes HTTP
-                  ElevatedButton(
-                    // Gunakan Obx untuk men-disable tombol saat loading
-                    onPressed: () => controller.isLoading.value
-                        ? null
-                        : controller.runHttpTest(),
-                    child: const Text('Jalankan Tes HTTP'),
-                  ),
-                  const SizedBox(height: 8),
-                  // Tampilkan hasil tes HTTP secara reaktif
-                  Obx(
-                    () => Text(
-                      controller.httpResult.value,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Tombol Tes Dio
-                  ElevatedButton(
-                    onPressed: () => controller.isLoading.value
-                        ? null
-                        : controller.runDioTest(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                    ),
-                    child: const Text('Jalankan Tes DIO'),
-                  ),
-                  const SizedBox(height: 8),
-                  // Tampilkan hasil tes Dio secara reaktif
-                  Obx(
-                    () => Text(
-                      controller.dioResult.value,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-                  // Tampilkan loading indicator
-                  Obx(
-                    () => controller.isLoading.value
-                        ? const Center(child: CircularProgressIndicator())
-                        : const SizedBox.shrink(),
-                  ),
-                ],
+            const SizedBox(height: 8),
+            Obx(
+              () => Text(
+                controller.httpResult.value,
+                textAlign: TextAlign.center,
               ),
+            ),
+            const SizedBox(height: 24),
+            // --- Tes Dio ---
+            ElevatedButton(
+              onPressed: () =>
+                  controller.isLoading.value ? null : controller.runDioTest(),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              child: const Text('Jalankan Tes Dio (Sukses)'),
+            ),
+            const SizedBox(height: 8),
+            Obx(
+              () =>
+                  Text(controller.dioResult.value, textAlign: TextAlign.center),
+            ),
+
+            const Divider(height: 40),
+
+            // ===========================================
+            // --- BAGIAN 2: EKSPERIMEN ERROR & LOGGING ---
+            // ===========================================
+            const Text(
+              'Analisis Error Handling & Logging',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            // --- Tes Error HTTP ---
+            ElevatedButton(
+              onPressed: () => controller.isLoading.value
+                  ? null
+                  : controller.runHttpErrorTest(),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red[300]),
+              child: const Text('Jalankan Tes Error HTTP'),
+            ),
+            const SizedBox(height: 8),
+            Obx(
+              () => Text(
+                controller.httpErrorResult.value,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 24),
+            // --- Tes Error Dio ---
+            ElevatedButton(
+              onPressed: () => controller.isLoading.value
+                  ? null
+                  : controller.runDioErrorTest(),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red[700]),
+              child: const Text('Jalankan Tes Error Dio'),
+            ),
+            const SizedBox(height: 8),
+            Obx(
+              () => Text(
+                controller.dioErrorResult.value,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              color: Colors.grey[200],
+              child: const Text(
+                'PENTING: Cek "DEBUG CONSOLE" Anda setelah menekan tombol tes Dio. Anda akan melihat log lengkap request dan error secara otomatis.',
+                style: TextStyle(fontStyle: FontStyle.italic, fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
+            ),
+
+            // Indikator Loading Global
+            const SizedBox(height: 20),
+            Obx(
+              () => controller.isLoading.value
+                  ? const Center(child: CircularProgressIndicator())
+                  : const SizedBox.shrink(),
             ),
           ],
         ),
