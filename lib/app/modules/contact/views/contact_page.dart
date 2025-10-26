@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/contact_controller.dart';
 
-// Ubah dari StatelessWidget menjadi GetView<ContactController>
 class ContactPage extends GetView<ContactController> {
   const ContactPage({super.key});
 
@@ -14,11 +13,9 @@ class ContactPage extends GetView<ContactController> {
         backgroundColor: const Color(0xFFFE8C00),
         foregroundColor: Colors.white,
       ),
-      // Gunakan SingleChildScrollView agar halaman bisa di-scroll
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // --- BAGIAN INFO KONTAK (ASLI) ---
             const SizedBox(height: 24),
             const CircleAvatar(
               radius: 48,
@@ -43,7 +40,6 @@ class ContactPage extends GetView<ContactController> {
             ),
             const Divider(),
 
-            // --- BAGIAN EKSPERIMEN (BARU) ---
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -56,16 +52,13 @@ class ContactPage extends GetView<ContactController> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Tombol Tes HTTP
                   ElevatedButton(
-                    // Gunakan Obx untuk men-disable tombol saat loading
                     onPressed: () => controller.isLoading.value
                         ? null
                         : controller.runHttpTest(),
                     child: const Text('Jalankan Tes HTTP'),
                   ),
                   const SizedBox(height: 8),
-                  // Tampilkan hasil tes HTTP secara reaktif
                   Obx(
                     () => Text(
                       controller.httpResult.value,
@@ -75,7 +68,6 @@ class ContactPage extends GetView<ContactController> {
 
                   const SizedBox(height: 24),
 
-                  // Tombol Tes Dio
                   ElevatedButton(
                     onPressed: () => controller.isLoading.value
                         ? null
@@ -86,7 +78,6 @@ class ContactPage extends GetView<ContactController> {
                     child: const Text('Jalankan Tes DIO'),
                   ),
                   const SizedBox(height: 8),
-                  // Tampilkan hasil tes Dio secara reaktif
                   Obx(
                     () => Text(
                       controller.dioResult.value,
@@ -95,7 +86,6 @@ class ContactPage extends GetView<ContactController> {
                   ),
 
                   const SizedBox(height: 20),
-                  // Tampilkan loading indicator
                   Obx(
                     () => controller.isLoading.value
                         ? const Center(child: CircularProgressIndicator())

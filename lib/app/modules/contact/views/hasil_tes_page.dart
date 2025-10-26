@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../data/models/meal_model.dart'; // Import model yang baru kita buat
+import '../../../data/models/meal_model.dart'; 
 
 class HasilTesPage extends StatelessWidget {
   const HasilTesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Ambil semua data yang kita kirim dari controller
     final Map<String, dynamic> arguments = Get.arguments;
     final String libraryName = arguments['library'];
     final int duration = arguments['duration'];
@@ -15,7 +14,6 @@ class HasilTesPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        // Tampilkan library apa dan berapa waktunya di AppBar
         title: Text('$libraryName: $duration ms'),
         backgroundColor: libraryName == 'HTTP' ? Colors.lightGreen : Colors.orange,
       ),
@@ -23,7 +21,6 @@ class HasilTesPage extends StatelessWidget {
         itemCount: meals.length,
         itemBuilder: (context, index) {
           final meal = meals[index];
-          // Tampilkan data resep dalam bentuk list
           return ListTile(
             leading: CircleAvatar(
               backgroundImage: NetworkImage(meal.thumbnail),

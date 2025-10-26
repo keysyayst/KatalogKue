@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../widgets/product_card.dart'; // <-- Path Relatif
-import '../controllers/favorite_controller.dart'; // <-- Path Relatif
+import '../../../widgets/product_card.dart'; 
+import '../controllers/favorite_controller.dart'; 
 
 class FavoritePage extends GetView<FavoriteController> {
   const FavoritePage({super.key});

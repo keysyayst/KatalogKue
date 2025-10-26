@@ -23,8 +23,7 @@ class HeroSection extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.black.withAlpha(115), // <-- Diperbaiki (0.45 * 255)
-                Colors.transparent,
+                Colors.black.withAlpha(115),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/product_detail_controller.dart'; // <-- Path Relatif
+import '../controllers/product_detail_controller.dart'; 
 
 class ProductDetailPage extends GetView<ProductDetailController> {
   const ProductDetailPage({super.key});

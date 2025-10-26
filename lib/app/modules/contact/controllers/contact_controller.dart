@@ -53,7 +53,6 @@ class ContactController extends GetxController {
     }
   }
 
-  // --- FUNGSI TES DIO (VERSI BARU) ---
   Future<void> runDioTest() async {
     isLoading.value = true;
     dioResult.value = 'Loading...';
@@ -68,22 +67,17 @@ class ContactController extends GetxController {
       final duration = _stopwatch.elapsedMilliseconds;
 
       if (response.statusCode == 200) {
-        // 1. Dio sudah auto-decode JSON, kita tinggal pakai 'response.data'
         final Map<String, dynamic> data = response.data; 
-
-        // 2. Parse data JSON menjadi List<Meal>
         final List<Meal> meals = (data['meals'] as List)
             .map((mealJson) => Meal.fromJson(mealJson))
             .toList();
-
-        // 3. Pindah Halaman! Kirim data via 'arguments'
         Get.to(() => const HasilTesPage(), arguments: {
           'library': 'Dio',
           'duration': duration,
           'meals': meals,
         });
 
-        dioResult.value = 'Tes Dio Selesai.'; // Update status di halaman kontak
+        dioResult.value = 'Tes Dio Selesai.';
       } else {
         dioResult.value = 'Dio: Error! Status: ${response.statusCode}';
       }
