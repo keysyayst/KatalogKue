@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../routes/app_pages.dart'; // <-- Path Relatif
-import '../../../widgets/hero_section.dart'; // <-- Path Relatif
-import '../../../widgets/product_card.dart'; // <-- Path Relatif
-import '../controllers/home_controller.dart'; // <-- Path Relatif
+import '../../../routes/app_pages.dart'; 
+import '../../../widgets/hero_section.dart'; 
+import '../../../widgets/product_card.dart';
+import '../controllers/home_controller.dart'; 
 
 class HomePage extends GetView<HomeController> {
   const HomePage({super.key});
@@ -26,10 +26,6 @@ class HomePage extends GetView<HomeController> {
                 const Spacer(),
                 TextButton(
                   onPressed: () {
-                    // ===========================================
-                    // PERBAIKAN DI SINI:
-                    // Mengubah Routes.PRODUK_KAMI menjadi Routes.produkKami
-                    // ===========================================
                     Get.toNamed(Routes.produkKami);
                   },
                   child: const Text(

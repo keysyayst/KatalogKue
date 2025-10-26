@@ -90,14 +90,27 @@ class ContactController extends GetxController {
       _stopwatch.stop();
       final duration = _stopwatch.elapsedMilliseconds;
       if (response.statusCode == 200) {
+<<<<<<< HEAD
+        final Map<String, dynamic> data = response.data; 
+=======
         final Map<String, dynamic> data = response.data;
+>>>>>>> 67aada47c3caeebdc8467fbd8c40b22c06656676
         final List<Meal> meals = (data['meals'] as List)
             .map((m) => Meal.fromJson(m))
             .toList();
+<<<<<<< HEAD
+        Get.to(() => const HasilTesPage(), arguments: {
+          'library': 'Dio',
+          'duration': duration,
+          'meals': meals,
+        });
+
+=======
         Get.to(
           () => const HasilTesPage(),
           arguments: {'library': 'Dio', 'duration': duration, 'meals': meals},
         );
+>>>>>>> 67aada47c3caeebdc8467fbd8c40b22c06656676
         dioResult.value = 'Tes Dio Selesai.';
       } else {
         dioResult.value = 'Dio: Error! Status: ${response.statusCode}';

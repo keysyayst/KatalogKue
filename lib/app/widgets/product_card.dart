@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../data/models/product.dart'; // <-- Path Relatif
-import '../routes/app_pages.dart'; // <-- Path Relatif
+import '../data/models/product.dart';
+import '../routes/app_pages.dart'; 
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -12,7 +12,7 @@ class ProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Get.toNamed(
-          Routes.productDetail.replaceAll(':id', product.id), // <-- Diperbaiki
+          Routes.productDetail.replaceAll(':id', product.id), 
         );
       },
       child: Container(
@@ -21,7 +21,7 @@ class ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(13), // <-- Diperbaiki (0.05 * 255)
+              color: Colors.black.withAlpha(13), 
               blurRadius: 6,
               offset: const Offset(0, 3),
             ),
@@ -51,7 +51,7 @@ class ProductCard extends StatelessWidget {
                       child: CircleAvatar(
                         backgroundColor: Colors.white.withAlpha(
                           230,
-                        ), // <-- Diperbaiki (0.9 * 255)
+                        ), 
                         radius: 14,
                         child: Obx(
                           () => Icon(

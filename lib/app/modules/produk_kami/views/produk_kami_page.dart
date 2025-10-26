@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../widgets/product_card.dart'; // <-- Path Relatif
-import '../controllers/produk_kami_controller.dart'; // <-- Path Relatif
+import '../../../widgets/product_card.dart'; 
+import '../controllers/produk_kami_controller.dart'; 
 
 class ProdukKamiPage extends GetView<ProdukKamiController> {
   const ProdukKamiPage({super.key});

@@ -1,11 +1,7 @@
 import 'package:get/get.dart';
-import '../models/product.dart'; // <-- Path Relatif
+import '../models/product.dart'; 
 
-// =======================================================
-// DATA MENTAH
-// =======================================================
 final List<Map<String, dynamic>> allProductsData = [
-  // ... (data Anda tetap di sini) ...
   {
     'id': 'n1',
     'title': 'Nastar Classic',
@@ -64,9 +60,6 @@ final List<Map<String, dynamic>> allProductsData = [
   },
 ];
 
-// =======================================================
-// LOGIKA GLOBAL STATE (PRODUCT SERVICE)
-// =======================================================
 class ProductService extends GetxService {
   final allProducts = <Product>[].obs;
 
