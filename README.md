@@ -1,4 +1,4 @@
-# 🍪 Katalog Kue Lebaran Flutter App
+# Katalog Kue Lebaran 
 
 Aplikasi **Katalog Kue Lebaran** adalah proyek latihan pemrograman mobile berbasis **Flutter**, yang dikembangkan sebagai bagian dari pembelajaran **Pemrograman Mobile** (StatelessWidget, StatefulWidget, Navigasi, dan Responsivitas UI & Animasi).
 
@@ -6,35 +6,35 @@ Aplikasi ini menampilkan katalog kue kering dengan desain responsif, halaman det
 
 ---
 
-## 🌟 Fitur Utama
+## Fitur Utama
 
-### 🏠 Home Page
+### Home Page
 - Menampilkan **hero section** dengan background dan teks *“Rayakan Lebaran dengan cita rasa istimewa”*.
 - Section **Rekomendasi Produk** berisi 4 kue pilihan.
 - Tombol **See All** mengarahkan ke halaman *Produk Kami* dengan daftar 9 kue kering.
 
-### 🧁 Produk Kami Page
+### Produk Kami Page
 - Menampilkan semua produk dalam grid responsif.
 - Gambar diambil dari folder `assets/images/`.
 - Tiap produk bisa dibuka untuk melihat **detail**.
 
-### ❤️ Favorit Page
+### avorit Page
 - Menampilkan produk yang diberi tanda hati.
 - Data tersinkron otomatis ketika pengguna menandai/unmark favorit di halaman lain.
 
-### 📞 Contact Page
+### Contact Page
 - Menampilkan informasi kontak pembuat kue beserta foto profil dan ikon interaktif.
 
-### 📱 Responsivitas
+### Responsivitas
 - Menggunakan **MediaQuery** dan **GridView** agar layout menyesuaikan di berbagai ukuran layar.
 
-### ✨ Animasi Implisit
+### Animasi Implisit
 - Efek halus ketika toggle favorit menggunakan `AnimatedContainer`.
 - Transisi gambar antar halaman menggunakan `Hero` animation.
 
 ---
 
-## 🎨 Tampilan Warna dan Desain
+## Tampilan Warna dan Desain
 
 | Elemen               | Warna / Nilai        | Deskripsi                           |
 |----------------------|----------------------|-------------------------------------|
