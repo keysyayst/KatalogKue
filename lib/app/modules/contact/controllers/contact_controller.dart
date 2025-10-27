@@ -17,6 +17,14 @@ class ContactController extends GetxController {
       'https://www.themealdb.com/api/json/v1/1/filter.php?i=';
   final String badApiEndpoint = 'https://api.domain-salah.com/v1/data';
 
+  // 🔹 tambahan untuk chained request
+  final String apiEndpointCategories =
+      'https://www.themealdb.com/api/json/v1/1/categories.php';
+  final String apiEndpointByCategory =
+      'https://www.themealdb.com/api/json/v1/1/filter.php?c=';
+  final String apiEndpointDetail =
+      'https://www.themealdb.com/api/json/v1/1/lookup.php?i=';
+
   final Dio _dio = Dio();
   final Stopwatch _stopwatch = Stopwatch();
 
@@ -27,7 +35,9 @@ class ContactController extends GetxController {
   var dioErrorResult = 'Tekan tombol untuk tes Error Dio'.obs;
   var isLoading = false.obs;
   var asyncResult =
-      'Masukkan bahan dan tekan tombol tes Async'.obs; // <-- Pesan awal diubah
+      'Masukkan bahan dan tekan tombol tes Async'.obs; // pesan awal
+  var chainedResult =
+      'Tekan tombol untuk tes Chained Request'.obs; // 🔹 hasil chained
 
   @override
   void onInit() {
@@ -161,9 +171,7 @@ class ContactController extends GetxController {
   }
 
   // BAGIAN 3: FUNGSI TES ASYNC HANDLING (Input dari User)
-
   Future<List<String>> getRecommendationsByIngredient(String ingredient) async {
-    // Tambah validasi input kosong
     if (ingredient.trim().isEmpty) {
       return ['Silakan masukkan bahan terlebih dahulu.'];
     }
@@ -180,34 +188,29 @@ class ContactController extends GetxController {
         debugPrint('API Call: Rekomendasi ditemukan: $mealNames');
         return mealNames;
       } else {
-        debugPrint('API Call: Tidak ada resep ditemukan untuk $ingredient');
-        // Ubah pesan jika tidak ditemukan
         return ['Tidak ada rekomendasi ditemukan untuk "$ingredient"'];
       }
     } on DioException catch (e) {
-      debugPrint('API Call Error: DioException - ${e.message}');
       throw Exception('Gagal mengambil rekomendasi: ${e.message}');
     } catch (e) {
-      debugPrint('API Call Error: Exception - ${e.toString()}');
       throw Exception('Gagal mengambil rekomendasi: ${e.toString()}');
     }
   }
 
-  // --- Pendekatan 1: Async-Await (dengan parameter ingredient) ---
+  // --- Pendekatan 1: Async-Await
   Future<void> runAsyncAwaitTest(String ingredient) async {
     isLoading.value = true;
     asyncResult.value = 'Memulai tes Async/Await...';
     _stopwatch.reset();
     _stopwatch.start();
     try {
-      // Panggil API langsung dengan ingredient dari user
       final List<String> recommendations = await getRecommendationsByIngredient(
         ingredient,
       );
       _stopwatch.stop();
       asyncResult.value =
           '[Async/Await] Selesai (${_stopwatch.elapsedMilliseconds} ms):\n'
-          'Rekomendasi untuk "$ingredient":\n' // <-- Tampilkan ingredient input
+          'Rekomendasi untuk "$ingredient":\n'
           '- ${recommendations.join("\n- ")}';
     } catch (e) {
       _stopwatch.stop();
@@ -218,33 +221,69 @@ class ContactController extends GetxController {
     }
   }
 
-  // --- Pendekatan 2: .then() (Callback Chaining) (dengan parameter ingredient) ---
+  // --- Pendekatan 2: .then() Callback Chaining
   Future<void> runCallbackTest(String ingredient) async {
-    // <-- Terima ingredient
     isLoading.value = true;
     asyncResult.value = 'Memulai tes .then() Chaining...';
     _stopwatch.reset();
     _stopwatch.start();
 
-    // Panggil API langsung
     getRecommendationsByIngredient(ingredient)
         .then((recommendations) {
-          // Callback setelah API selesai
           _stopwatch.stop();
           asyncResult.value =
               '[.then()] Selesai (${_stopwatch.elapsedMilliseconds} ms):\n'
-              'Rekomendasi untuk "$ingredient":\n' // <-- Tampilkan ingredient input
+              'Rekomendasi untuk "$ingredient":\n'
               '- ${recommendations.join("\n- ")}';
         })
         .catchError((error) {
-          // Penanganan Error
           _stopwatch.stop();
           asyncResult.value =
               '[.then()] Gagal (${_stopwatch.elapsedMilliseconds} ms): ${error.toString()}';
         })
         .whenComplete(() {
-          // Selalu dijalankan
           isLoading.value = false;
         });
+  }
+
+  // --- 🔹 BAGIAN 4: CONTOH CHAINED REQUEST (Berurutan) ---
+  Future<void> runChainedRequestTest() async {
+    isLoading.value = true;
+    chainedResult.value = 'Memulai chained request...';
+    _stopwatch.reset();
+    _stopwatch.start();
+
+    try {
+      // Step 1: Ambil daftar kategori
+      final catRes = await _dio.get(apiEndpointCategories);
+      final categories = catRes.data['categories'] as List;
+      final firstCategory = categories.first['strCategory'];
+      debugPrint('Kategori pertama: $firstCategory');
+
+      // Step 2: Ambil daftar makanan berdasarkan kategori
+      final mealRes = await _dio.get('$apiEndpointByCategory$firstCategory');
+      final meals = mealRes.data['meals'] as List;
+      final firstMealId = meals.first['idMeal'];
+      final firstMealName = meals.first['strMeal'];
+      debugPrint('Makanan pertama: $firstMealName ($firstMealId)');
+
+      // Step 3: Ambil detail dari makanan pertama
+      final detailRes = await _dio.get('$apiEndpointDetail$firstMealId');
+      final detail = detailRes.data['meals'][0];
+      _stopwatch.stop();
+
+      chainedResult.value =
+          '[Chained Request] Selesai (${_stopwatch.elapsedMilliseconds} ms):\n'
+          '- Kategori: $firstCategory\n'
+          '- Makanan: $firstMealName\n'
+          '- Area: ${detail['strArea']}\n'
+          '- Instruksi: ${detail['strInstructions'].toString().substring(0, 80)}...';
+    } catch (e) {
+      _stopwatch.stop();
+      chainedResult.value =
+          '[Chained Request] Gagal (${_stopwatch.elapsedMilliseconds} ms): ${e.toString()}';
+    } finally {
+      isLoading.value = false;
+    }
   }
 }
