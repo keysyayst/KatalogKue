@@ -1,14 +1,23 @@
 class Meal {
-  final String id;
-  final String name;
-  final String thumbnail;
+  final String idMeal;
+  final String strMeal;
+  final String strMealThumb;
 
-  Meal({required this.id, required this.name, required this.thumbnail});
+  Meal({
+    required this.idMeal,
+    required this.strMeal,
+    required this.strMealThumb,
+  });
+
   factory Meal.fromJson(Map<String, dynamic> json) {
     return Meal(
-      id: json['idMeal'],
-      name: json['strMeal'],
-      thumbnail: json['strMealThumb'] ?? '',
+      idMeal: json['idMeal'] ?? '',
+      strMeal: json['strMeal'] ?? 'Unknown',
+      strMealThumb: json['strMealThumb'] ?? '',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'idMeal': idMeal, 'strMeal': strMeal, 'strMealThumb': strMealThumb};
   }
 }
