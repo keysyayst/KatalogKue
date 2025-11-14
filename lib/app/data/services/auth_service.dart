@@ -5,7 +5,7 @@ import 'dart:io';
 
 class AuthService extends GetxService {
   final SupabaseClient _supabase = Supabase.instance.client;
-  
+
   Rx<User?> currentUser = Rx<User?>(null);
   Rx<ProfileModel?> currentProfile = Rx<ProfileModel?>(null);
 
@@ -20,7 +20,7 @@ class AuthService extends GetxService {
         currentProfile.value = null;
       }
     });
-    
+
     currentUser.value = _supabase.auth.currentUser;
     if (currentUser.value != null) {
       loadProfile();
@@ -44,7 +44,7 @@ class AuthService extends GetxService {
           .maybeSingle();
 
       if (response == null) {
-        print('⚠️ Profile not found, creating new one');
+        print('⚠ Profile not found, creating new one');
         await _createProfile(userId);
         return;
       }
@@ -59,7 +59,7 @@ class AuthService extends GetxService {
   Future<void> _createProfile(String userId) async {
     try {
       final email = currentUser.value?.email ?? '';
-      
+
       await _supabase.from('profiles').insert({
         'id': userId,
         'email': email,
@@ -81,14 +81,11 @@ class AuthService extends GetxService {
   }) async {
     try {
       print('📝 Signing up user: $email');
-      
+
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        data: {
-          'full_name': fullName ?? '',
-          'phone': phone ?? '',
-        },
+        data: {'full_name': fullName ?? '', 'phone': phone ?? ''},
       );
 
       print('✅ Sign up response: ${response.user?.id}');
@@ -111,7 +108,7 @@ class AuthService extends GetxService {
   }) async {
     try {
       print('🔐 Attempting login for: $email');
-      
+
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
@@ -150,13 +147,11 @@ class AuthService extends GetxService {
         if (oldAvatarUrl != null && oldAvatarUrl.isNotEmpty) {
           final uri = Uri.parse(oldAvatarUrl);
           final oldFileName = uri.pathSegments.last;
-          await _supabase.storage
-              .from('avatars')
-              .remove([oldFileName]);
-          print('🗑️ Deleted old avatar');
+          await _supabase.storage.from('avatars').remove([oldFileName]);
+          print('🗑 Deleted old avatar');
         }
       } catch (e) {
-        print('⚠️ Could not delete old avatar: $e');
+        print('⚠ Could not delete old avatar: $e');
       }
 
       final fileName = '${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -168,10 +163,7 @@ class AuthService extends GetxService {
           .upload(
             fileName,
             imageFile,
-            fileOptions: const FileOptions(
-              cacheControl: '3600',
-              upsert: true,
-            ),
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
           );
 
       final avatarUrl = _supabase.storage
