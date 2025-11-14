@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../data/models/product.dart';
-import '../routes/app_pages.dart'; 
+import '../routes/app_pages.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -11,9 +11,7 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Get.toNamed(
-          Routes.productDetail.replaceAll(':id', product.id), 
-        );
+        Get.toNamed(Routes.productDetail.replaceAll(':id', product.id));
       },
       child: Container(
         decoration: BoxDecoration(
@@ -21,7 +19,7 @@ class ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(13), 
+              color: Colors.black.withAlpha(13),
               blurRadius: 6,
               offset: const Offset(0, 3),
             ),
@@ -37,11 +35,7 @@ class ProductCard extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(14),
                     ),
-                    child: Image.asset(
-                      product.image,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+                    child: _buildProductImage(),
                   ),
                   Positioned(
                     right: 8,
@@ -49,9 +43,7 @@ class ProductCard extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () => product.isFavorite.toggle(),
                       child: CircleAvatar(
-                        backgroundColor: Colors.white.withAlpha(
-                          230,
-                        ), 
+                        backgroundColor: Colors.white.withAlpha(230),
                         radius: 14,
                         child: Obx(
                           () => Icon(
@@ -112,5 +104,37 @@ class ProductCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildProductImage() {
+    final isUrl = product.image.startsWith('http');
+
+    if (isUrl) {
+      return Image.network(
+        product.image,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Image.asset(
+            'assets/images/placeholder.png',
+            width: double.infinity,
+            fit: BoxFit.cover,
+          );
+        },
+      );
+    } else {
+      return Image.asset(
+        product.image,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Image.asset(
+            'assets/images/placeholder.png',
+            width: double.infinity,
+            fit: BoxFit.cover,
+          );
+        },
+      );
+    }
   }
 }

@@ -7,9 +7,11 @@ import 'theme/app_theme.dart';
 import 'modules/home/views/home_page.dart';
 import 'modules/favorite/views/favorite_page.dart';
 import 'modules/contact/views/contact_page.dart';
+import 'modules/eksperimen/views/eksperimen_view.dart';
 import 'modules/home/controllers/home_controller.dart';
 import 'modules/favorite/controllers/favorite_controller.dart';
 import 'modules/contact/controllers/contact_controller.dart';
+import 'modules/eksperimen/controllers/eksperimen_controller.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -20,7 +22,7 @@ class App extends StatelessWidget {
       title: 'Katalog Kue Lebaran',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      initialRoute: AppPages.initial, // <-- Diperbaiki (lowerCamelCase)
+      initialRoute: AppPages.initial,
       getPages: AppPages.routes,
     );
   }
@@ -47,6 +49,7 @@ class DashboardPage extends GetView<DashboardController> {
       const HomePage(),
       const FavoritePage(),
       const ContactPage(),
+      const EksperimenView(),
     ];
 
     return Scaffold(
@@ -69,6 +72,10 @@ class DashboardPage extends GetView<DashboardController> {
               icon: Icon(Icons.chat_bubble_outline),
               label: 'Contact',
             ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.science_outlined),
+              label: 'Eksperimen',
+            ),
           ],
         ),
       ),
@@ -83,5 +90,6 @@ class DashboardBinding extends Bindings {
     Get.lazyPut(() => HomeController());
     Get.lazyPut(() => FavoriteController());
     Get.lazyPut(() => ContactController());
+    Get.lazyPut(() => EksperimenController());
   }
 }

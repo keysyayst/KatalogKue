@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/product_detail_controller.dart'; 
+import '../controllers/product_detail_controller.dart';
 
 class ProductDetailPage extends GetView<ProductDetailController> {
   const ProductDetailPage({super.key});
@@ -14,11 +14,38 @@ class ProductDetailPage extends GetView<ProductDetailController> {
         elevation: 0,
       ),
       body: Obx(() {
-        if (controller.product.value == null) {
+        if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final p = controller.product.value!;
+        final localProduct = controller.product.value;
+        final apiProduct = controller.apiProductDetail.value;
+
+        if (localProduct == null && apiProduct == null) {
+          return const Center(child: Text('Produk tidak ditemukan.'));
+        }
+
+        final bool isLocal = localProduct != null;
+
+        // Ekstrak informasi dari sumber data
+        final String imageUrl;
+        final String title;
+        final String price;
+        final String description;
+
+        if (isLocal) {
+          imageUrl = localProduct.image;
+          title = localProduct.title;
+          price = 'Rp. ${localProduct.price}';
+          description =
+              'Kue kering khas lebaran dengan cita rasa gurih, renyah, dan manis yang seimbang. Dibuat dengan bahan pilihan terbaik tanpa pengawet.';
+        } else {
+          imageUrl = apiProduct!['strMealThumb'] ?? '';
+          title = apiProduct['strMeal'] ?? 'Nama Tidak Tersedia';
+          price = 'Harga Spesial';
+          description =
+              apiProduct['strInstructions'] ?? 'Deskripsi tidak tersedia.';
+        }
 
         return Column(
           children: [
@@ -26,12 +53,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
               borderRadius: const BorderRadius.vertical(
                 bottom: Radius.circular(24),
               ),
-              child: Image.asset(
-                p.image,
-                height: 250,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              child: _buildImage(imageUrl),
             ),
             Expanded(
               child: Padding(
@@ -41,7 +63,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        p.title,
+                        title,
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -49,24 +71,15 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Rp. ${p.price}',
+                        price,
                         style: const TextStyle(
                           fontSize: 18,
                           color: Color(0xFFFE8C00),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        children: const [
-                          Icon(Icons.delivery_dining, size: 18),
-                          SizedBox(width: 6),
-                          Text('Free Delivery'),
-                          SizedBox(width: 16),
-                          Icon(Icons.timer, size: 18),
-                          SizedBox(width: 6),
-                          Text('20 - 30 min'),
-                        ],
-                      ),
+                      if (isLocal) _buildLocalProductInfo(),
+                      if (!isLocal) _buildApiProductInfo(apiProduct!),
                       const SizedBox(height: 16),
                       const Text(
                         'Description',
@@ -76,10 +89,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Kue kering khas lebaran dengan cita rasa gurih, renyah, dan manis yang seimbang. Dibuat dengan bahan pilihan terbaik tanpa pengawet.',
-                        textAlign: TextAlign.justify,
-                      ),
+                      Text(description, textAlign: TextAlign.justify),
                     ],
                   ),
                 ),
@@ -89,17 +99,16 @@ class ProductDetailPage extends GetView<ProductDetailController> {
         );
       }),
       bottomNavigationBar: Obx(() {
-        if (controller.product.value == null) {
+        final localProduct = controller.product.value;
+        if (localProduct == null) {
+          // Sembunyikan tombol favorit untuk produk API untuk saat ini
           return const SizedBox.shrink();
         }
-
-        final p = controller.product.value!;
-
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: ElevatedButton.icon(
-              onPressed: () => p.isFavorite.toggle(),
+              onPressed: () => localProduct.isFavorite.toggle(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFE8C00),
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -108,10 +117,12 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                 ),
               ),
               icon: Icon(
-                p.isFavorite.value ? Icons.favorite : Icons.favorite_border,
+                localProduct.isFavorite.value
+                    ? Icons.favorite
+                    : Icons.favorite_border,
               ),
               label: Text(
-                p.isFavorite.value
+                localProduct.isFavorite.value
                     ? 'Hapus dari Favorit'
                     : 'Tambahkan ke Favorit',
               ),
@@ -119,6 +130,57 @@ class ProductDetailPage extends GetView<ProductDetailController> {
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildImage(String imageUrl) {
+    bool isUrl = imageUrl.startsWith('http');
+    return isUrl
+        ? Image.network(
+            imageUrl,
+            height: 250,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Image.asset(
+              'assets/images/placeholder.png', // Gambar placeholder jika URL error
+              height: 250,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          )
+        : Image.asset(
+            imageUrl,
+            height: 250,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          );
+  }
+
+  Widget _buildLocalProductInfo() {
+    return Row(
+      children: const [
+        Icon(Icons.delivery_dining, size: 18),
+        SizedBox(width: 6),
+        Text('Free Delivery'),
+        SizedBox(width: 16),
+        Icon(Icons.timer, size: 18),
+        SizedBox(width: 6),
+        Text('20 - 30 min'),
+      ],
+    );
+  }
+
+  Widget _buildApiProductInfo(Map<String, dynamic> data) {
+    return Row(
+      children: [
+        const Icon(Icons.public, size: 18, color: Colors.blue),
+        const SizedBox(width: 6),
+        Text('Asal: ${data['strArea'] ?? 'N/A'}'),
+        const SizedBox(width: 16),
+        const Icon(Icons.category, size: 18, color: Colors.green),
+        const SizedBox(width: 6),
+        Text('Kategori: ${data['strCategory'] ?? 'N/A'}'),
+      ],
     );
   }
 }

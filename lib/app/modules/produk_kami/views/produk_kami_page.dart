@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../widgets/product_card.dart'; 
-import '../controllers/produk_kami_controller.dart'; 
+import '../../../widgets/product_card.dart';
+import '../controllers/produk_kami_controller.dart';
 
 class ProdukKamiPage extends GetView<ProdukKamiController> {
   const ProdukKamiPage({super.key});
@@ -14,11 +14,14 @@ class ProdukKamiPage extends GetView<ProdukKamiController> {
         backgroundColor: const Color(0xFFFE8C00),
         foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Obx(
-          () => GridView.builder(
-            itemCount: controller.allProducts.length,
+      body: Obx(() {
+        if (controller.isLoading.value && controller.combinedProducts.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: GridView.builder(
+            itemCount: controller.combinedProducts.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 14,
@@ -26,11 +29,12 @@ class ProdukKamiPage extends GetView<ProdukKamiController> {
               childAspectRatio: 0.75,
             ),
             itemBuilder: (context, index) {
-              return ProductCard(product: controller.allProducts[index]);
+              final product = controller.combinedProducts[index];
+              return ProductCard(product: product);
             },
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 }
