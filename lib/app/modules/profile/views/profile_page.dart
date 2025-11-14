@@ -8,7 +8,7 @@ class ProfilePage extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil Saya'),
@@ -16,40 +16,44 @@ class ProfilePage extends GetView<ProfileController> {
         foregroundColor: Colors.white,
         actions: [
           // ✅ ICON TOGGLE TEMA DI APPBAR
-          Obx(() => IconButton(
-            icon: Icon(
-              controller.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+          Obx(
+            () => IconButton(
+              icon: Icon(
+                controller.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              ),
+              onPressed: controller.toggleTheme,
+              tooltip: controller.isDarkMode ? 'Mode Terang' : 'Mode Gelap',
             ),
-            onPressed: controller.toggleTheme,
-            tooltip: controller.isDarkMode ? 'Mode Terang' : 'Mode Gelap',
-          )),
-          
+          ),
+
           // Edit/Save Button
-          Obx(() => controller.isEditing.value
-              ? Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: controller.toggleEdit,
-                      tooltip: 'Batal',
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.check),
-                      onPressed: controller.updateProfile,
-                      tooltip: 'Simpan',
-                    ),
-                  ],
-                )
-              : IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: controller.toggleEdit,
-                  tooltip: 'Edit Profil',
-                )),
+          Obx(
+            () => controller.isEditing.value
+                ? Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: controller.toggleEdit,
+                        tooltip: 'Batal',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.check),
+                        onPressed: controller.updateProfile,
+                        tooltip: 'Simpan',
+                      ),
+                    ],
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: controller.toggleEdit,
+                    tooltip: 'Edit Profil',
+                  ),
+          ),
         ],
       ),
       body: Obx(() {
         final profile = controller.profile;
-        
+
         if (profile == null) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -62,36 +66,41 @@ class ProfilePage extends GetView<ProfileController> {
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  Obx(() => CircleAvatar(
-                    radius: 70,
-                    backgroundColor: const Color(0xFFFE8C00),
-                    child: controller.isUploadingAvatar.value
-                        ? const CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          )
-                        : profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
-                            ? ClipOval(
-                                child: Image.network(
-                                  profile.avatarUrl!,
-                                  width: 140,
-                                  height: 140,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.person,
-                                      size: 70,
-                                      color: Colors.white,
-                                    );
-                                  },
-                                ),
-                              )
-                            : const Icon(
-                                Icons.person,
-                                size: 70,
-                                color: Colors.white,
+                  Obx(
+                    () => CircleAvatar(
+                      radius: 70,
+                      backgroundColor: const Color(0xFFFE8C00),
+                      child: controller.isUploadingAvatar.value
+                          ? const CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
                               ),
-                  )),
-                  
+                            )
+                          : profile.avatarUrl != null &&
+                                profile.avatarUrl!.isNotEmpty
+                          ? ClipOval(
+                              child: Image.network(
+                                profile.avatarUrl!,
+                                width: 140,
+                                height: 140,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.person,
+                                    size: 70,
+                                    color: Colors.white,
+                                  );
+                                },
+                              ),
+                            )
+                          : const Icon(
+                              Icons.person,
+                              size: 70,
+                              color: Colors.white,
+                            ),
+                    ),
+                  ),
+
                   Positioned(
                     bottom: 0,
                     right: 0,
@@ -103,7 +112,9 @@ class ProfilePage extends GetView<ProfileController> {
                           color: const Color(0xFFFE8C00),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isDark ? const Color(0xFF121212) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF121212)
+                                : Colors.white,
                             width: 3,
                           ),
                         ),
@@ -117,14 +128,17 @@ class ProfilePage extends GetView<ProfileController> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Role Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: controller.isAdmin 
+                  color: controller.isAdmin
                       ? Colors.red.withOpacity(0.2)
                       : Colors.blue.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -137,7 +151,9 @@ class ProfilePage extends GetView<ProfileController> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      controller.isAdmin ? Icons.admin_panel_settings : Icons.person,
+                      controller.isAdmin
+                          ? Icons.admin_panel_settings
+                          : Icons.person,
                       color: controller.isAdmin ? Colors.red : Colors.blue,
                       size: 20,
                     ),
@@ -153,15 +169,15 @@ class ProfilePage extends GetView<ProfileController> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Email (read-only)
               TextField(
+                controller: controller.emailController,
                 enabled: false,
                 decoration: InputDecoration(
                   labelText: 'Email',
-                  hintText: profile.email,
                   prefixIcon: const Icon(Icons.email, color: Colors.grey),
                   filled: true,
                   fillColor: isDark ? Colors.grey[800] : Colors.grey[200],
@@ -170,62 +186,76 @@ class ProfilePage extends GetView<ProfileController> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Full Name
-              Obx(() => TextField(
-                controller: controller.fullNameController,
-                enabled: controller.isEditing.value,
-                decoration: InputDecoration(
-                  labelText: 'Nama Lengkap',
-                  prefixIcon: Icon(
-                    Icons.person,
-                    color: controller.isEditing.value ? const Color(0xFFFE8C00) : Colors.grey,
-                  ),
-                  filled: true,
-                  fillColor: controller.isEditing.value
-                      ? (isDark ? const Color(0xFF1E1E1E) : Colors.white)
-                      : (isDark ? Colors.grey[800] : Colors.grey[200]),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFFE8C00), width: 2),
+              Obx(
+                () => TextField(
+                  controller: controller.fullNameController,
+                  enabled: controller.isEditing.value,
+                  decoration: InputDecoration(
+                    labelText: 'Nama Lengkap',
+                    prefixIcon: Icon(
+                      Icons.person,
+                      color: controller.isEditing.value
+                          ? const Color(0xFFFE8C00)
+                          : Colors.grey,
+                    ),
+                    filled: true,
+                    fillColor: controller.isEditing.value
+                        ? (isDark ? const Color(0xFF1E1E1E) : Colors.white)
+                        : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFFE8C00),
+                        width: 2,
+                      ),
+                    ),
                   ),
                 ),
-              )),
-              
+              ),
+
               const SizedBox(height: 16),
-              
+
               // Phone
-              Obx(() => TextField(
-                controller: controller.phoneController,
-                enabled: controller.isEditing.value,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  labelText: 'No. Telepon',
-                  prefixIcon: Icon(
-                    Icons.phone,
-                    color: controller.isEditing.value ? const Color(0xFFFE8C00) : Colors.grey,
-                  ),
-                  filled: true,
-                  fillColor: controller.isEditing.value
-                      ? (isDark ? const Color(0xFF1E1E1E) : Colors.white)
-                      : (isDark ? Colors.grey[800] : Colors.grey[200]),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFFE8C00), width: 2),
+              Obx(
+                () => TextField(
+                  controller: controller.phoneController,
+                  enabled: controller.isEditing.value,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    labelText: 'No. Telepon',
+                    prefixIcon: Icon(
+                      Icons.phone,
+                      color: controller.isEditing.value
+                          ? const Color(0xFFFE8C00)
+                          : Colors.grey,
+                    ),
+                    filled: true,
+                    fillColor: controller.isEditing.value
+                        ? (isDark ? const Color(0xFF1E1E1E) : Colors.white)
+                        : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFFE8C00),
+                        width: 2,
+                      ),
+                    ),
                   ),
                 ),
-              )),
-              
+              ),
+
               const SizedBox(height: 24),
-              
+
               // Info Card
               Container(
                 padding: const EdgeInsets.all(16),
@@ -238,7 +268,11 @@ class ProfilePage extends GetView<ProfileController> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.info_outline, color: Color(0xFFFE8C00), size: 20),
+                        const Icon(
+                          Icons.info_outline,
+                          color: Color(0xFFFE8C00),
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Informasi Akun',
@@ -267,9 +301,9 @@ class ProfilePage extends GetView<ProfileController> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Admin Panel Button
               if (controller.isAdmin) ...[
                 SizedBox(
@@ -296,7 +330,7 @@ class ProfilePage extends GetView<ProfileController> {
                 ),
                 const SizedBox(height: 16),
               ],
-              
+
               // Logout Button
               SizedBox(
                 width: double.infinity,
@@ -320,7 +354,7 @@ class ProfilePage extends GetView<ProfileController> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 32),
             ],
           ),
@@ -368,8 +402,18 @@ class ProfilePage extends GetView<ProfileController> {
 
   String _formatDate(DateTime date) {
     final months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }

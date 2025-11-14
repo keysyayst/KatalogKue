@@ -9,13 +9,14 @@ import '../modules/produk/views/detail_produk_page.dart';
 import '../modules/produk/views/produk_page.dart';
 import '../modules/admin/bindings/admin_binding.dart';
 import '../modules/admin/views/admin_products_page.dart';
+import '../middlewares/auth_middleware.dart';
 
 part 'app_routes.dart';
 
 class AppPages {
   AppPages._();
 
-  static const initial = Routes.auth;
+  static const initial = Routes.dashboard;
 
   static final routes = [
     GetPage(
@@ -27,13 +28,13 @@ class AppPages {
       name: _Paths.dashboard,
       page: () => const DashboardPage(),
       binding: DashboardBinding(),
-      middlewares: [GetMiddleware()],
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.profile,
       page: () => const ProfilePage(),
       binding: ProfileBinding(),
-      middlewares: [GetMiddleware()],
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.produkKami,
@@ -54,10 +55,7 @@ class AppPages {
       name: _Paths.adminProducts,
       page: () => const AdminProductsPage(),
       binding: AdminBinding(),
-      middlewares: [
-        GetMiddleware(),
-        GetMiddleware(),
-      ],
+      middlewares: [AuthMiddleware(), AdminMiddleware()],
     ),
   ];
 }
