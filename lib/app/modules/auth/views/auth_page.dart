@@ -25,7 +25,7 @@ class AuthPage extends GetView<AuthController> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Katalog Kue Lebaran',
+                  'Katalog Kue',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
