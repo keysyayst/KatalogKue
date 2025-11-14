@@ -17,7 +17,7 @@ class ProductCard extends StatefulWidget {
 
 class _ProductCardState extends State<ProductCard> {
   late ProductService productService;
-
+  
   @override
   void initState() {
     super.initState();
@@ -28,7 +28,7 @@ class _ProductCardState extends State<ProductCard> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final authService = Get.find<AuthService>();
-
+    
     return GestureDetector(
       onTap: () {
         try {
@@ -41,7 +41,9 @@ class _ProductCardState extends State<ProductCard> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          color: isDark 
+              ? const Color(0xFF1E1E1E)
+              : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
@@ -64,17 +66,14 @@ class _ProductCardState extends State<ProductCard> {
                     ),
                     child: _buildProductImage(),
                   ),
-
+                  
                   // ✅ ADMIN BUTTONS - KIRI ATAS
                   if (authService.isAdmin)
                     Positioned(
                       left: 8,
                       top: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.red.withOpacity(0.9),
                           borderRadius: BorderRadius.circular(12),
@@ -121,7 +120,7 @@ class _ProductCardState extends State<ProductCard> {
                         ),
                       ),
                     ),
-
+                  
                   // Favorite Button - KANAN ATAS
                   Positioned(
                     right: 8,
@@ -210,7 +209,10 @@ class _ProductCardState extends State<ProductCard> {
         title: const Text('Hapus Produk'),
         content: Text('Yakin ingin menghapus "${widget.product.title}"?'),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Batal'),
+          ),
           ElevatedButton(
             onPressed: () {
               Get.back();
@@ -279,7 +281,11 @@ class _ProductCardState extends State<ProductCard> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.cake, size: 48, color: Color(0xFFFE8C00)),
+          const Icon(
+            Icons.cake,
+            size: 48,
+            color: Color(0xFFFE8C00),
+          ),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

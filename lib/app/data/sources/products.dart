@@ -1,94 +1,104 @@
 import 'package:get/get.dart';
-import '../models/product.dart'; 
-
-final List<Map<String, dynamic>> allProductsData = [
-  {
-    'id': 'n1',
-    'title': 'Nastar Classic',
-    'location': 'Malang',
-    'price': 70000,
-    'image': 'assets/images/nastar.png',
-  },
-  {
-    'id': 'k1',
-    'title': 'Kastengel',
-    'location': 'Malang',
-    'price': 65000,
-    'image': 'assets/images/kastengel.png',
-  },
-  {
-    'id': 'l1',
-    'title': 'Lidah Kucing',
-    'location': 'Malang',
-    'price': 50000,
-    'image': 'assets/images/lidahkucing.png',
-  },
-  {
-    'id': 's1',
-    'title': 'Sagu Keju',
-    'location': 'Malang',
-    'price': 45000,
-    'image': 'assets/images/sagukeju.png',
-  },
-  {
-    'id': 'p1',
-    'title': 'Putri Salju',
-    'location': 'Malang',
-    'price': 55000,
-    'image': 'assets/images/putrisalju.png',
-  },
-  {
-    'id': 'c1',
-    'title': 'Brownies Cup',
-    'location': 'Malang',
-    'price': 60000,
-    'image': 'assets/images/browniescup.png',
-  },
-  {
-    'id': 'p2',
-    'title': 'Palm Cheese',
-    'location': 'Malang',
-    'price': 50000,
-    'image': 'assets/images/palmcheese.png',
-  },
-  {
-    'id': 'b1',
-    'title': 'Thumbrint',
-    'location': 'Malang',
-    'price': 48000,
-    'image': 'assets/images/thumbrin.png',
-  },
-];
+import '../models/product.dart';
+import '../services/favorite_hive_service.dart';
 
 class ProductService extends GetxService {
-  final allProducts = <Product>[].obs;
+  final FavoriteHiveService _favoriteService = Get.find<FavoriteHiveService>();
+  final RxList<Product> _products = <Product>[].obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-    loadProducts();
+  ProductService() {
+    _initializeProducts();
   }
 
-  void loadProducts() {
-    allProducts.value = allProductsData.map((data) {
-      return Product(
-        id: data['id'],
-        title: data['title'],
-        location: data['location'],
-        price: data['price'],
-        image: data['image'],
-        isFavorite: false,
-      );
-    }).toList();
+  void _initializeProducts() {
+    _products.value = [
+      Product(
+        id: '1',
+        title: 'Nastar',
+        price: '50.000/toples',
+        location: 'Malang',
+        image: 'assets/images/nastar.png',
+      ),
+      Product(
+        id: '2',
+        title: 'Kastengel',
+        price: '55.000/toples',
+        location: 'Malang',
+        image: 'assets/images/kastengel.png',
+      ),
+      Product(
+        id: '3',
+        title: 'Putri Salju',
+        price: '50.000/toples',
+        location: 'Malang',
+        image: 'assets/images/putrisalju.png',
+      ),
+      Product(
+        id: '4',
+        title: 'Lidah Kucing',
+        price: '45.000/toples',
+        location: 'Malang',
+        image: 'assets/images/lidahkucing.png',
+      ),
+      Product(
+        id: '5',
+        title: 'Sagu Keju',
+        price: '48.000/toples',
+        location: 'Malang',
+        image: 'assets/images/sagukeju.png',
+      ),
+      Product(
+        id: '6',
+        title: 'Palm Cheese',
+        price: '52.000/toples',
+        location: 'Malang',
+        image: 'assets/images/palmcheese.png',
+      ),
+      Product(
+        id: '7',
+        title: 'Thumbprint',
+        price: '50.000/toples',
+        location: 'Malang',
+        image: 'assets/images/thumbrin.png',
+      ),
+      Product(
+        id: '8',
+        title: 'Brownies Cup',
+        price: '60.000/box',
+        location: 'Malang',
+        image: 'assets/images/browniescup.png',
+      ),
+    ];
   }
 
-  List<Product> get favoriteProducts {
-    return allProducts.where((product) => product.isFavorite.value).toList();
+  // Get all products
+  List<Product> getAllProducts() {
+    return _products.toList();
   }
 
+  // Get favorite products (dari Hive)
+  List<Product> getFavoriteProducts() {
+    final favoriteIds = _favoriteService.getFavoriteIds();
+    return _products
+        .where((product) => favoriteIds.contains(product.id))
+        .toList();
+  }
+
+  // Toggle favorite
+  Future<void> toggleFavorite(String productId) async {
+    await _favoriteService.toggleFavorite(productId);
+    _products.refresh(); // Trigger UI update
+  }
+
+  // Check if favorite
+  bool isFavorite(String productId) {
+    return _favoriteService.isFavorite(productId);
+  }
+
+  // Get product by ID
   Product? getProductById(String id) {
     try {
-      return allProducts.firstWhere((p) => p.id == id);
+      return _products.firstWhere((product) => product.id == id);
     } catch (e) {
       return null;
     }

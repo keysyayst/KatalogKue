@@ -1,11 +1,11 @@
 import 'package:get/get.dart';
-import '../controllers/product_detail_controller.dart'; 
-import '../controllers/produk_kami_controller.dart';
+import '../controllers/produk_controller.dart';
+import '../../../data/services/nutrition_service.dart';
 
-class ProdukKamiBinding extends Bindings {
+class ProdukBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => ProdukKamiController());
-    Get.lazyPut(() => ProductDetailController());
+    Get.lazyPut(() => NutritionService());
+    Get.lazyPut(() => ProdukController());
   }
 }

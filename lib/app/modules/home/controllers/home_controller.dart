@@ -6,6 +6,6 @@ class HomeController extends GetxController {
   final ProductService _productService = Get.find<ProductService>();
 
   List<Product> get rekomendasiProducts {
-    return _productService.allProducts.take(4).toList();
+    return _productService.getAllProducts().take(4).toList();
   }
 }

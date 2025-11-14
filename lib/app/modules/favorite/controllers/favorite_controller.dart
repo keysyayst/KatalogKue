@@ -6,6 +6,11 @@ class FavoriteController extends GetxController {
   final ProductService _productService = Get.find<ProductService>();
 
   List<Product> get favoriteProducts {
-    return _productService.favoriteProducts;
+    return _productService.getFavoriteProducts();
+  }
+  
+  // Method untuk manual refresh (dipanggil dari UI jika perlu)
+  void refreshFavorites() {
+    update();
   }
 }
