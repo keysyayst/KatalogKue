@@ -8,13 +8,12 @@ import '../../../theme/theme_controller.dart'; // ← TAMBAH INI
 
 class ProfileController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
-  final ThemeController _themeController =
-      Get.find<ThemeController>(); // ← TAMBAH INI
-
+  final ThemeController _themeController = Get.find<ThemeController>(); // ← TAMBAH INI
+  
   // Form controllers
   final fullNameController = TextEditingController();
   final phoneController = TextEditingController();
-
+  
   var isEditing = false.obs;
   var isLoading = false.obs;
   var isUploadingAvatar = false.obs;
@@ -35,7 +34,7 @@ class ProfileController extends GetxController {
 
   // ← TAMBAH GETTER INI
   bool get isDarkMode => _themeController.isDarkMode.value;
-
+  
   void toggleTheme() {
     _themeController.toggleTheme();
   }
@@ -65,7 +64,7 @@ class ProfileController extends GetxController {
         maxHeight: 512,
         imageQuality: 85,
       );
-
+      
       if (image != null) {
         selectedAvatar.value = File(image.path);
         await uploadAvatar();
@@ -90,7 +89,7 @@ class ProfileController extends GetxController {
         maxHeight: 512,
         imageQuality: 85,
       );
-
+      
       if (image != null) {
         selectedAvatar.value = File(image.path);
         await uploadAvatar();
@@ -111,12 +110,12 @@ class ProfileController extends GetxController {
 
     try {
       isUploadingAvatar.value = true;
-
+      
       final avatarUrl = await _authService.uploadAvatar(selectedAvatar.value!);
-
+      
       if (avatarUrl != null) {
         await _authService.updateProfile(avatarUrl: avatarUrl);
-
+        
         Get.snackbar(
           'Berhasil',
           'Foto profil berhasil diperbarui',
@@ -124,7 +123,7 @@ class ProfileController extends GetxController {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-
+        
         selectedAvatar.value = null;
       } else {
         Get.snackbar(
@@ -161,14 +160,14 @@ class ProfileController extends GetxController {
           children: [
             const Text(
               'Pilih Foto Profil',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 20),
             ListTile(
-              leading: const Icon(
-                Icons.photo_library,
-                color: Color(0xFFFE8C00),
-              ),
+              leading: const Icon(Icons.photo_library, color: Color(0xFFFE8C00)),
               title: const Text('Pilih dari Galeri'),
               onTap: () {
                 Get.back();
@@ -197,7 +196,7 @@ class ProfileController extends GetxController {
   Future<void> updateProfile() async {
     try {
       isLoading.value = true;
-
+      
       await _authService.updateProfile(
         fullName: fullNameController.text.trim(),
         phone: phoneController.text.trim(),
@@ -231,14 +230,20 @@ class ProfileController extends GetxController {
         title: const Text('Konfirmasi'),
         content: const Text('Apakah Anda yakin ingin keluar?'),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Batal'),
+          ),
           TextButton(
             onPressed: () async {
               Get.back();
               await _authService.signOut();
               Get.offAllNamed(Routes.auth);
             },
-            child: const Text('Keluar', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Keluar',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),

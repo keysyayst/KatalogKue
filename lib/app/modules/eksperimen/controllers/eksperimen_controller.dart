@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 import '../../../data/models/meal_model.dart';
-import '../../contact/views/hasil_tes_page.dart';
+import '../../profile/views/hasil_tes_page.dart';
 
 class EksperimenController extends GetxController {
   // --- API ENDPOINTS ---

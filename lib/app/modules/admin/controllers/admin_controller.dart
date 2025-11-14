@@ -5,12 +5,12 @@ import '../../../data/sources/products.dart';
 
 class AdminController extends GetxController {
   final ProductService _productService = Get.find<ProductService>();
-
+  
   // Form controllers
   final titleController = TextEditingController();
   final priceController = TextEditingController();
   final locationController = TextEditingController();
-
+  
   var editingProduct = Rx<Product?>(null);
 
   @override
@@ -43,7 +43,10 @@ class AdminController extends GetxController {
         title: const Text('Konfirmasi'),
         content: Text('Hapus produk "${product.title}"?'),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Batal'),
+          ),
           TextButton(
             onPressed: () {
               Get.back();

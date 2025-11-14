@@ -1,26 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-// Import file-file yang dibutuhkan (PATH RELATIF)
+// Import semua yang dibutuhkan
 import 'routes/app_pages.dart';
 import 'theme/app_theme.dart';
+import 'theme/theme_controller.dart';
 import 'modules/home/views/home_page.dart';
 import 'modules/favorite/views/favorite_page.dart';
-import 'modules/contact/views/contact_page.dart';
-import 'modules/eksperimen/views/eksperimen_view.dart';
+import 'modules/produk/views/produk_page.dart';
+import 'modules/profile/views/profile_page.dart'; // ← PASTIKAN ADA
 import 'modules/home/controllers/home_controller.dart';
 import 'modules/favorite/controllers/favorite_controller.dart';
-import 'modules/contact/controllers/contact_controller.dart';
-import 'modules/eksperimen/controllers/eksperimen_controller.dart';
+import 'modules/produk/controllers/produk_controller.dart';
+import 'modules/profile/controllers/profile_controller.dart'; // ← TAMBAH INI
+import 'data/services/nutrition_service.dart';
+import 'data/services/auth_service.dart'; // ← TAMBAH INI
+
+// ========================================================
+// APP WIDGET
+// ========================================================
 
 class App extends StatelessWidget {
   const App({super.key});
 
   @override
   Widget build(BuildContext context) {
+    Get.put(ThemeController());
+
     return GetMaterialApp(
-      title: 'Katalog Kue Lebaran',
+      title: 'Katalog Kue',
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
@@ -29,7 +40,7 @@ class App extends StatelessWidget {
 }
 
 // =======================================================
-// LOGIKA DASHBOARD
+// DASHBOARD
 // =======================================================
 
 class DashboardController extends GetxController {
@@ -47,9 +58,9 @@ class DashboardPage extends GetView<DashboardController> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       const HomePage(),
+      const ProdukPage(),
       const FavoritePage(),
-      const ContactPage(),
-      const EksperimenView(),
+      const ProfilePage(),
     ];
 
     return Scaffold(
@@ -62,20 +73,12 @@ class DashboardPage extends GetView<DashboardController> {
           selectedItemColor: const Color(0xFFFE8C00),
           unselectedItemColor: Colors.grey,
           onTap: controller.changeTabIndex,
+          type: BottomNavigationBarType.fixed,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.favorite),
-              label: 'Favorit',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline),
-              label: 'Contact',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.science_outlined),
-              label: 'Eksperimen',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Produk'),
+            BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorit'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
           ],
         ),
       ),
@@ -86,10 +89,15 @@ class DashboardPage extends GetView<DashboardController> {
 class DashboardBinding extends Bindings {
   @override
   void dependencies() {
+    // Services
+    Get.lazyPut(() => AuthService());
+    Get.lazyPut(() => NutritionService());
+    
+    // Controllers
     Get.lazyPut(() => DashboardController());
     Get.lazyPut(() => HomeController());
     Get.lazyPut(() => FavoriteController());
-    Get.lazyPut(() => ContactController());
-    Get.lazyPut(() => EksperimenController());
+    Get.lazyPut(() => ProdukController());
+    Get.lazyPut(() => ProfileController()); // ← TAMBAH INI
   }
 }
