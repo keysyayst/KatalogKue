@@ -1,16 +1,35 @@
 import 'package:get/get.dart';
 import '../models/product.dart';
+import '../providers/product_api_provider.dart';
 import '../services/favorite_hive_service.dart';
 
 class ProductService extends GetxService {
   final FavoriteHiveService _favoriteService = Get.find<FavoriteHiveService>();
+  final ProductApiProvider _apiProvider = ProductApiProvider();
   final RxList<Product> _products = <Product>[].obs;
+  final RxBool isLoading = false.obs;
 
   ProductService() {
-    _initializeProducts();
+    loadProducts();
   }
 
-  void _initializeProducts() {
+  // Load products from database
+  Future<void> loadProducts() async {
+    try {
+      isLoading.value = true;
+      final products = await _apiProvider.getAllProducts();
+      _products.value = products;
+      print('✅ Loaded ${products.length} products from database');
+    } catch (e) {
+      print('❌ Error loading products: $e');
+      // Fallback ke produk lokal jika gagal
+      _initializeLocalProducts();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void _initializeLocalProducts() {
     _products.value = [
       Product(
         id: '1',
@@ -101,6 +120,42 @@ class ProductService extends GetxService {
       return _products.firstWhere((product) => product.id == id);
     } catch (e) {
       return null;
+    }
+  }
+
+  // Create product
+  Future<Product?> createProduct(Product product, String userId) async {
+    try {
+      final newProduct = await _apiProvider.createProduct(product, userId);
+      await loadProducts(); // Reload list
+      return newProduct;
+    } catch (e) {
+      print('❌ Error creating product: $e');
+      return null;
+    }
+  }
+
+  // Update product
+  Future<Product?> updateProduct(String id, Product product) async {
+    try {
+      final updatedProduct = await _apiProvider.updateProduct(id, product);
+      await loadProducts(); // Reload list
+      return updatedProduct;
+    } catch (e) {
+      print('❌ Error updating product: $e');
+      return null;
+    }
+  }
+
+  // Delete product
+  Future<bool> deleteProduct(String id) async {
+    try {
+      await _apiProvider.deleteProduct(id);
+      await loadProducts(); // Reload list
+      return true;
+    } catch (e) {
+      print('❌ Error deleting product: $e');
+      return false;
     }
   }
 }

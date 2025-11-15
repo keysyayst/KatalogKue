@@ -6,6 +6,7 @@ class Product {
   final String image;
   final String? description;
   final String? composition;
+  final Map<String, dynamic>? nutrition;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -17,6 +18,7 @@ class Product {
     required this.image,
     this.description,
     this.composition,
+    this.nutrition,
     this.createdAt,
     this.updatedAt,
   });
@@ -27,14 +29,15 @@ class Product {
       title: json['title'] ?? '',
       price: json['price'] ?? '',
       location: json['location'] ?? '',
-      image: json['image_url'] ?? '',
+      image: json['product_url'] ?? '',
       description: json['description'],
       composition: json['composition'],
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      nutrition: json['nutrition'] as Map<String, dynamic>?,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at']) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : null,
     );
   }
@@ -45,9 +48,10 @@ class Product {
       'title': title,
       'price': price,
       'location': location,
-      'image_url': image,
+      'product_url': image,
       'description': description,
       'composition': composition,
+      'nutrition': nutrition,
     };
   }
 
@@ -57,9 +61,19 @@ class Product {
       'title': title,
       'price': price,
       'location': location,
-      'image_url': image,
+      'product_url': image,
       'description': description,
       'composition': composition,
+      'nutrition': nutrition,
     };
+  }
+
+  // Helper untuk parse composition string ke list
+  List<String> get compositionList {
+    if (composition == null || composition!.isEmpty) return [];
+    return composition!
+        .split('\n')
+        .where((item) => item.trim().isNotEmpty)
+        .toList();
   }
 }

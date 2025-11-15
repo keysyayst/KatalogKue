@@ -1,18 +1,24 @@
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
 import '../../../data/models/product.dart';
 import '../../../data/sources/products.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/models/nutrition_model.dart';
-
+import '../../../data/services/search_history_hive_service.dart';
 
 class ProdukController extends GetxController {
   final ProductService productService = Get.find<ProductService>();
   final NutritionService nutritionService = Get.find<NutritionService>();
-  
+  final SearchHistoryHiveService searchHistoryService =
+      Get.find<SearchHistoryHiveService>();
+
+  final searchController = TextEditingController();
+
   var products = <Product>[].obs;
   var filteredProducts = <Product>[].obs;
   var searchQuery = ''.obs;
-  
+  var searchHistory = <String>[].obs;
+
   // Untuk detail produk
   var selectedProduct = Rx<Product?>(null);
   var nutritionData = Rx<NutritionData?>(null);
@@ -23,6 +29,14 @@ class ProdukController extends GetxController {
   void onInit() {
     super.onInit();
     loadProducts();
+    loadSearchHistory();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    // Reload products saat controller ready
+    refreshProducts();
   }
 
   void loadProducts() {
@@ -30,27 +44,68 @@ class ProdukController extends GetxController {
     filteredProducts.value = products;
   }
 
+  Future<void> refreshProducts() async {
+    // Clear search saat refresh
+    clearSearch();
+    await productService.loadProducts();
+    loadProducts();
+  }
+
   void searchProducts(String query) {
     searchQuery.value = query;
-    
+
     if (query.isEmpty) {
       filteredProducts.value = products;
     } else {
       filteredProducts.value = products.where((product) {
         return product.title.toLowerCase().contains(query.toLowerCase()) ||
-               product.location.toLowerCase().contains(query.toLowerCase());
+            product.location.toLowerCase().contains(query.toLowerCase());
       }).toList();
     }
+  }
+
+  void clearSearch() {
+    searchController.clear();
+    searchProducts('');
+  }
+
+  void saveSearchToHistory(String query) {
+    if (query.trim().isNotEmpty) {
+      searchHistoryService.addSearch(query);
+      loadSearchHistory();
+    }
+  }
+
+  void loadSearchHistory() {
+    searchHistory.value = searchHistoryService.getSearchHistory();
+  }
+
+  void removeSearchHistory(String query) {
+    searchHistoryService.removeSearch(query);
+    loadSearchHistory();
+  }
+
+  void clearSearchHistory() {
+    searchHistoryService.clearHistory();
+    loadSearchHistory();
+  }
+
+  void applySearchFromHistory(String query) {
+    searchController.text = query;
+    searchQuery.value = query;
+    searchProducts(query);
+    // Pindahkan query yang diklik ke paling atas history
+    saveSearchToHistory(query);
   }
 
   Future<void> loadNutritionData(String productName) async {
     try {
       isLoadingNutrition(true);
       //debugPrint('🍰 Loading nutrition for: $productName');
-      
+
       final data = await nutritionService.getNutritionData(productName);
       nutritionData.value = data;
-      
+
       //print('✅ Nutrition loaded successfully');
     } catch (e) {
       //print('❌ Error loading nutrition: $e');
@@ -67,10 +122,18 @@ class ProdukController extends GetxController {
 
   void changeTab(int index) {
     currentTabIndex.value = index;
-    
+
     // Load nutrition data saat tab nutrisi dibuka
-    if (index == 2 && selectedProduct.value != null && nutritionData.value == null) {
+    if (index == 2 &&
+        selectedProduct.value != null &&
+        nutritionData.value == null) {
       loadNutritionData(selectedProduct.value!.title);
     }
+  }
+
+  @override
+  void onClose() {
+    searchController.dispose();
+    super.onClose();
   }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../routes/app_pages.dart'; 
-import '../../../widgets/hero_section.dart'; 
+import '../../../app.dart';
+import '../../../widgets/hero_section.dart';
 import '../../../widgets/product_card.dart';
-import '../controllers/home_controller.dart'; 
+import '../controllers/home_controller.dart';
 
 class HomePage extends GetView<HomeController> {
   const HomePage({super.key});
@@ -26,7 +26,9 @@ class HomePage extends GetView<HomeController> {
                 const Spacer(),
                 TextButton(
                   onPressed: () {
-                    Get.toNamed(Routes.produkKami);
+                    // Pindah ke tab Produk (index 1)
+                    final dashboardController = Get.find<DashboardController>();
+                    dashboardController.changeTabIndex(1);
                   },
                   child: const Text(
                     'See All',

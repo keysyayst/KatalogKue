@@ -6,6 +6,7 @@ import 'app/app.dart';
 import 'app/data/services/auth_service.dart';
 import 'app/data/sources/products.dart';
 import 'app/data/services/favorite_hive_service.dart';
+import 'app/data/services/search_history_hive_service.dart';
 
 Future<void> initServices() async {
   // Ambil variabel environment
@@ -24,10 +25,15 @@ Future<void> initServices() async {
   // Initialize Supabase menggunakan variabel .env
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
-  // Initialize Hive
+  // Initialize Hive for favorites
   final favoriteService = FavoriteHiveService();
   await favoriteService.init();
   Get.put(favoriteService);
+
+  // Initialize Hive for search history
+  final searchHistoryService = SearchHistoryHiveService();
+  await searchHistoryService.init();
+  Get.put(searchHistoryService);
 
   Get.put(AuthService());
 
