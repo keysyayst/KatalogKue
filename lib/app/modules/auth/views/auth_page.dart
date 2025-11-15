@@ -18,10 +18,10 @@ class AuthPage extends GetView<AuthController> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Logo
-                Icon(
+                const Icon(
                   Icons.cake,
                   size: 80,
-                  color: const Color(0xFFFE8C00),
+                  color: Color(0xFFFE8C00),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -34,7 +34,7 @@ class AuthPage extends GetView<AuthController> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  controller.isLoginMode.value ? 'Masuk ke akun Anda' : 'Buat akun baru',
+                  controller.isLogin.value ? 'Masuk ke akun Anda' : 'Buat akun baru',
                   style: TextStyle(
                     fontSize: 14,
                     color: isDark ? Colors.white70 : Colors.grey[600],
@@ -43,32 +43,87 @@ class AuthPage extends GetView<AuthController> {
                 
                 const SizedBox(height: 32),
                 
+                // ✅ ERROR MESSAGE BANNER
+                if (controller.errorMessage.value.isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade300),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red.shade700,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            controller.errorMessage.value,
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                
                 // Form
-                if (!controller.isLoginMode.value) ...[
-                  // Full Name field (hanya untuk register)
+                if (!controller.isLogin.value) ...[
+                  // Full Name field
                   TextField(
-                    controller: controller.fullNameController,
+                    controller: controller.nameController,
                     decoration: InputDecoration(
                       labelText: 'Nama Lengkap',
-                      prefixIcon: const Icon(Icons.person),
+                      prefixIcon: const Icon(Icons.person, color: Color(0xFFFE8C00)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFFE8C00), width: 2),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red, width: 1),
+                      ),
                     ),
+                    onChanged: (_) {
+                      if (controller.errorMessage.value.isNotEmpty) {
+                        controller.errorMessage.value = '';
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
                   
-                  // Phone field (hanya untuk register)
+                  // Phone field
                   TextField(
                     controller: controller.phoneController,
                     keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
-                      labelText: 'No. Telepon (opsional)',
-                      prefixIcon: const Icon(Icons.phone),
+                      labelText: 'No. Telepon',
+                      prefixIcon: const Icon(Icons.phone, color: Color(0xFFFE8C00)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFFE8C00), width: 2),
+                      ),
                     ),
+                    onChanged: (_) {
+                      if (controller.errorMessage.value.isNotEmpty) {
+                        controller.errorMessage.value = '';
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -79,11 +134,20 @@ class AuthPage extends GetView<AuthController> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: const Icon(Icons.email),
+                    prefixIcon: const Icon(Icons.email, color: Color(0xFFFE8C00)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFFE8C00), width: 2),
+                    ),
                   ),
+                  onChanged: (_) {
+                    if (controller.errorMessage.value.isNotEmpty) {
+                      controller.errorMessage.value = '';
+                    }
+                  },
                 ),
                 const SizedBox(height: 16),
                 
@@ -93,20 +157,64 @@ class AuthPage extends GetView<AuthController> {
                   obscureText: controller.obscurePassword.value,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock),
+                    prefixIcon: const Icon(Icons.lock, color: Color(0xFFFE8C00)),
                     suffixIcon: IconButton(
                       icon: Icon(
                         controller.obscurePassword.value
                             ? Icons.visibility_off
                             : Icons.visibility,
+                        color: Colors.grey,
                       ),
                       onPressed: controller.togglePasswordVisibility,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFFE8C00), width: 2),
+                    ),
                   ),
+                  onChanged: (_) {
+                    if (controller.errorMessage.value.isNotEmpty) {
+                      controller.errorMessage.value = '';
+                    }
+                  },
                 ),
+                
+                // Confirm Password (hanya untuk register)
+                if (!controller.isLogin.value) ...[
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller.confirmPasswordController,
+                    obscureText: controller.obscureConfirmPassword.value,
+                    decoration: InputDecoration(
+                      labelText: 'Konfirmasi Password',
+                      prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFFFE8C00)),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          controller.obscureConfirmPassword.value
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: controller.toggleConfirmPasswordVisibility,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFFE8C00), width: 2),
+                      ),
+                    ),
+                    onChanged: (_) {
+                      if (controller.errorMessage.value.isNotEmpty) {
+                        controller.errorMessage.value = '';
+                      }
+                    },
+                  ),
+                ],
                 
                 const SizedBox(height: 24),
                 
@@ -117,20 +225,32 @@ class AuthPage extends GetView<AuthController> {
                   child: ElevatedButton(
                     onPressed: controller.isLoading.value
                         ? null
-                        : controller.isLoginMode.value
-                            ? controller.signIn
-                            : controller.signUp,
+                        : () {
+                            if (controller.isLogin.value) {
+                              controller.login();
+                            } else {
+                              controller.register();
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFE8C00),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      disabledBackgroundColor: Colors.grey[400],
                     ),
                     child: controller.isLoading.value
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : Text(
-                            controller.isLoginMode.value ? 'Masuk' : 'Daftar',
+                            controller.isLogin.value ? 'Masuk' : 'Daftar',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -143,9 +263,9 @@ class AuthPage extends GetView<AuthController> {
                 
                 // Toggle login/register
                 TextButton(
-                  onPressed: controller.toggleMode,
+                  onPressed: controller.toggleAuthMode,
                   child: Text(
-                    controller.isLoginMode.value
+                    controller.isLogin.value
                         ? 'Belum punya akun? Daftar'
                         : 'Sudah punya akun? Masuk',
                     style: const TextStyle(
