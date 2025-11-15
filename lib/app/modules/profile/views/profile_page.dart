@@ -173,16 +173,19 @@ class ProfilePage extends GetView<ProfileController> {
               const SizedBox(height: 32),
 
               // Email (read-only)
-              TextField(
-                controller: controller.emailController,
-                enabled: false,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: const Icon(Icons.email, color: Colors.grey),
-                  filled: true,
-                  fillColor: isDark ? Colors.grey[800] : Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+              Obx(
+                () => TextField(
+                  key: ValueKey(controller.emailText.value),
+                  controller: controller.emailController,
+                  enabled: false,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email, color: Colors.grey),
+                    filled: true,
+                    fillColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -192,6 +195,7 @@ class ProfilePage extends GetView<ProfileController> {
               // Full Name
               Obx(
                 () => TextField(
+                  key: ValueKey(controller.fullNameText.value),
                   controller: controller.fullNameController,
                   enabled: controller.isEditing.value,
                   decoration: InputDecoration(
@@ -225,6 +229,7 @@ class ProfilePage extends GetView<ProfileController> {
               // Phone
               Obx(
                 () => TextField(
+                  key: ValueKey(controller.phoneText.value),
                   controller: controller.phoneController,
                   enabled: controller.isEditing.value,
                   keyboardType: TextInputType.phone,

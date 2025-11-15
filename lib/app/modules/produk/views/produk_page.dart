@@ -29,199 +29,245 @@ class ProdukPage extends GetView<ProdukController> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return Column(
-          children: [
-            // Search Bar
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                controller: controller.searchController,
-                onChanged: controller.searchProducts,
-                onSubmitted: (query) {
-                  controller.saveSearchToHistory(query);
-                },
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  hintText: 'Cari produk...',
-                  prefixIcon: const Icon(
-                    Icons.search,
-                    color: Color(0xFFFE8C00),
-                  ),
-                  suffixIcon: Obx(
-                    () => controller.searchQuery.value.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: controller.clearSearch,
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  filled: true,
-                  fillColor: isDark
-                      ? const Color(0xFF1E1E1E)
-                      : Colors.grey[100],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+        // Empty state
+        if (controller.filteredProducts.isEmpty) {
+          return CustomScrollView(
+            slivers: [
+              // Search Bar
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: controller.searchController,
+                    onChanged: controller.searchProducts,
+                    onSubmitted: (query) {
+                      controller.saveSearchToHistory(query);
+                    },
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Cari produk...',
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFFFE8C00),
+                      ),
+                      suffixIcon: Obx(
+                        () => controller.searchQuery.value.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: controller.clearSearch,
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                      filled: true,
+                      fillColor: isDark
+                          ? const Color(0xFF1E1E1E)
+                          : Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-
-            // Search History
-            Obx(() {
-              if (controller.searchHistory.isEmpty) {
-                return const SizedBox.shrink();
-              }
-
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Riwayat Pencarian',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => controller.clearSearchHistory(),
-                          child: const Text(
-                            'Hapus Semua',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFFFE8C00),
-                            ),
+              // Empty State
+              SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      Text(
+                        controller.searchQuery.value.isEmpty
+                            ? 'Belum ada produk'
+                            : 'Produk tidak ditemukan',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                      if (controller.searchQuery.value.isEmpty) ...[
+                        const SizedBox(height: 8),
+                        ElevatedButton.icon(
+                          onPressed: () => controller.refreshProducts(),
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Refresh'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFE8C00),
+                            foregroundColor: Colors.white,
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: controller.searchHistory.map((query) {
-                        return InkWell(
-                          onTap: () => controller.applySearchFromHistory(query),
-                          child: Chip(
-                            label: Text(query),
-                            labelStyle: TextStyle(
-                              fontSize: 13,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                            backgroundColor: isDark
-                                ? const Color(0xFF2A2A2A)
-                                : Colors.grey[200],
-                            deleteIcon: Icon(
-                              Icons.close,
-                              size: 18,
-                              color: isDark ? Colors.white70 : Colors.black54,
-                            ),
-                            onDeleted: () =>
-                                controller.removeSearchHistory(query),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            avatar: Icon(
-                              Icons.history,
-                              size: 16,
-                              color: isDark ? Colors.white70 : Colors.black54,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
+                    ],
+                  ),
                 ),
-              );
-            }),
+              ),
+            ],
+          );
+        }
 
-            // Product Count
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Obx(
-                () => Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    '${controller.filteredProducts.length} Produk Tersedia',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.white70 : Colors.grey[600],
-                      fontWeight: FontWeight.w500,
+        // Content with products
+        return RefreshIndicator(
+          onRefresh: controller.refreshProducts,
+          child: CustomScrollView(
+            slivers: [
+              // Search Bar
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: controller.searchController,
+                    onChanged: controller.searchProducts,
+                    onSubmitted: (query) {
+                      controller.saveSearchToHistory(query);
+                    },
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Cari produk...',
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFFFE8C00),
+                      ),
+                      suffixIcon: Obx(
+                        () => controller.searchQuery.value.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: controller.clearSearch,
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                      filled: true,
+                      fillColor: isDark
+                          ? const Color(0xFF1E1E1E)
+                          : Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 8),
+              // Search History
+              SliverToBoxAdapter(
+                child: Obx(() {
+                  if (controller.searchHistory.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
 
-            // Product Grid
-            Expanded(
-              child: Obx(() {
-                if (controller.filteredProducts.isEmpty) {
-                  return Center(
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.search_off,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          controller.searchQuery.value.isEmpty
-                              ? 'Belum ada produk'
-                              : 'Produk tidak ditemukan',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        if (controller.searchQuery.value.isEmpty) ...[
-                          const SizedBox(height: 8),
-                          ElevatedButton.icon(
-                            onPressed: () => controller.refreshProducts(),
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Refresh'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFE8C00),
-                              foregroundColor: Colors.white,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Riwayat Pencarian',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
                             ),
-                          ),
-                        ],
+                            TextButton(
+                              onPressed: () => controller.clearSearchHistory(),
+                              child: const Text(
+                                'Hapus Semua',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFFFE8C00),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: controller.searchHistory.map((query) {
+                            return InkWell(
+                              onTap: () =>
+                                  controller.applySearchFromHistory(query),
+                              child: Chip(
+                                label: Text(query),
+                                labelStyle: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                                backgroundColor: isDark
+                                    ? const Color(0xFF2A2A2A)
+                                    : Colors.grey[200],
+                                deleteIcon: Icon(
+                                  Icons.close,
+                                  size: 18,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black54,
+                                ),
+                                onDeleted: () =>
+                                    controller.removeSearchHistory(query),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                avatar: Icon(
+                                  Icons.history,
+                                  size: 16,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black54,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 8),
                       ],
                     ),
                   );
-                }
+                }),
+              ),
 
-                return RefreshIndicator(
-                  onRefresh: controller.refreshProducts,
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.75,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
+              // Product Count
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Obx(
+                    () => Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '${controller.filteredProducts.length} Produk Tersedia',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark ? Colors.white70 : Colors.grey[600],
+                          fontWeight: FontWeight.w500,
                         ),
-                    itemCount: controller.filteredProducts.length,
-                    itemBuilder: (context, index) {
-                      final product = controller.filteredProducts[index];
-                      return ProductCard(product: product);
-                    },
+                      ),
+                    ),
                   ),
-                );
-              }),
-            ),
-          ],
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
+              // Product Grid
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.75,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final product = controller.filteredProducts[index];
+                    return ProductCard(product: product);
+                  }, childCount: controller.filteredProducts.length),
+                ),
+              ),
+            ],
+          ),
         );
       }),
     );

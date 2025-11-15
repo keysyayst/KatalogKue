@@ -706,20 +706,23 @@ class AdminController extends GetxController {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.cake, color: Colors.white),
+                      const Icon(Icons.cake, color: Colors.white, size: 22),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Pilih Dessert dari TheMealDB',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      const Expanded(
+                        child: Text(
+                          'Pilih Dessert dari TheMealDB',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.close, color: Colors.white),
                         onPressed: () => Get.back(),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
                     ],
                   ),
@@ -896,7 +899,6 @@ class AdminController extends GetxController {
         child: Container(
           constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               // Header
               Container(
@@ -912,15 +914,16 @@ class AdminController extends GetxController {
                   children: [
                     const Icon(Icons.check_circle, color: Colors.white),
                     const SizedBox(width: 8),
-                    const Text(
-                      'Konfirmasi Produk',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    const Expanded(
+                      child: Text(
+                        'Konfirmasi Produk',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.white),
                       onPressed: () {
@@ -932,7 +935,7 @@ class AdminController extends GetxController {
                 ),
               ),
               // Content
-              Flexible(
+              Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -970,6 +973,7 @@ class AdminController extends GetxController {
                               const Icon(
                                 Icons.check_circle,
                                 color: Colors.green,
+                                size: 20,
                               ),
                               const SizedBox(width: 12),
                               const Expanded(
@@ -978,6 +982,7 @@ class AdminController extends GetxController {
                                   style: TextStyle(
                                     color: Colors.green,
                                     fontWeight: FontWeight.w500,
+                                    fontSize: 13,
                                   ),
                                 ),
                               ),
@@ -997,6 +1002,7 @@ class AdminController extends GetxController {
                               const Icon(
                                 Icons.info_outline,
                                 color: Colors.orange,
+                                size: 20,
                               ),
                               const SizedBox(width: 12),
                               const Expanded(
@@ -1005,6 +1011,7 @@ class AdminController extends GetxController {
                                   style: TextStyle(
                                     color: Colors.orange,
                                     fontWeight: FontWeight.w500,
+                                    fontSize: 13,
                                   ),
                                 ),
                               ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../data/models/product.dart';
 import '../data/sources/products.dart';
-import '../data/services/auth_service.dart';
 import '../modules/produk/controllers/produk_controller.dart';
 import '../modules/produk/views/detail_produk_page.dart';
 import '../modules/favorite/controllers/favorite_controller.dart';
@@ -17,7 +16,7 @@ class ProductCard extends StatefulWidget {
 
 class _ProductCardState extends State<ProductCard> {
   late ProductService productService;
-  
+
   @override
   void initState() {
     super.initState();
@@ -27,8 +26,7 @@ class _ProductCardState extends State<ProductCard> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final authService = Get.find<AuthService>();
-    
+
     return GestureDetector(
       onTap: () {
         try {
@@ -41,9 +39,7 @@ class _ProductCardState extends State<ProductCard> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: isDark 
-              ? const Color(0xFF1E1E1E)
-              : Colors.white,
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
@@ -66,61 +62,9 @@ class _ProductCardState extends State<ProductCard> {
                     ),
                     child: _buildProductImage(),
                   ),
-                  
-                  // ✅ ADMIN BUTTONS - KIRI ATAS
-                  if (authService.isAdmin)
-                    Positioned(
-                      left: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(50),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                // TODO: Navigate to edit product
-                                Get.snackbar(
-                                  'Edit',
-                                  'Edit produk: ${widget.product.title}',
-                                  snackPosition: SnackPosition.BOTTOM,
-                                );
-                                print('Edit product: ${widget.product.id}');
-                              },
-                              child: const Icon(
-                                Icons.edit,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: () {
-                                // TODO: Delete product
-                                _showDeleteConfirmation();
-                              },
-                              child: const Icon(
-                                Icons.delete,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  
+
+                  // Admin action buttons removed from public cards
+
                   // Favorite Button - KANAN ATAS
                   Positioned(
                     right: 8,
@@ -203,36 +147,7 @@ class _ProductCardState extends State<ProductCard> {
     );
   }
 
-  void _showDeleteConfirmation() {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Hapus Produk'),
-        content: Text('Yakin ingin menghapus "${widget.product.title}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Get.back();
-              // TODO: Implement delete
-              Get.snackbar(
-                'Terhapus',
-                'Produk "${widget.product.title}" telah dihapus',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.red,
-                colorText: Colors.white,
-              );
-              print('Delete product: ${widget.product.id}');
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
-    );
-  }
+  // Admin delete confirmation removed since admin actions are in AdminProductsPage
 
   Widget _buildProductImage() {
     if (widget.product.image.isEmpty) {
@@ -281,11 +196,7 @@ class _ProductCardState extends State<ProductCard> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.cake,
-            size: 48,
-            color: Color(0xFFFE8C00),
-          ),
+          const Icon(Icons.cake, size: 48, color: Color(0xFFFE8C00)),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
