@@ -16,6 +16,11 @@ class ProfileController extends GetxController {
   final phoneController = TextEditingController();
   final emailController = TextEditingController();
 
+  // Reactive text values untuk force rebuild
+  var fullNameText = ''.obs;
+  var phoneText = ''.obs;
+  var emailText = ''.obs;
+
   var isEditing = false.obs;
   var isLoading = false.obs;
   var isUploadingAvatar = false.obs;
@@ -24,6 +29,20 @@ class ProfileController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    print('🎯 ProfileController onInit called');
+    loadProfile();
+    // Listen to profile changes
+    ever(_authService.currentProfile, (profile) {
+      print('🔄 Profile changed detected: ${profile?.email}');
+      loadProfile();
+    });
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    print('✅ ProfileController onReady called');
+    // Load lagi saat view sudah siap, untuk memastikan data tampil
     loadProfile();
   }
 
@@ -48,6 +67,17 @@ class ProfileController extends GetxController {
       fullNameController.text = profile.fullName ?? '';
       phoneController.text = profile.phone ?? '';
       emailController.text = profile.email;
+
+      // Update reactive variables untuk trigger rebuild
+      fullNameText.value = profile.fullName ?? '';
+      phoneText.value = profile.phone ?? '';
+      emailText.value = profile.email;
+
+      print(
+        '📝 Profile loaded to controllers: ${profile.email}, ${profile.fullName}, ${profile.phone}',
+      );
+    } else {
+      print('⚠ Profile is null in loadProfile()');
     }
   }
 

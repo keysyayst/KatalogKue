@@ -7,7 +7,7 @@ class AdminMiddleware extends GetMiddleware {
   @override
   RouteSettings? redirect(String? route) {
     final authService = Get.find<AuthService>();
-    
+
     if (!authService.isAdmin) {
       Get.snackbar(
         'Akses Ditolak',
@@ -18,7 +18,7 @@ class AdminMiddleware extends GetMiddleware {
       );
       return const RouteSettings(name: Routes.dashboard);
     }
-    
+
     return null;
   }
 }
