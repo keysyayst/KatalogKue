@@ -54,83 +54,93 @@ class AuthController extends GetxController {
     errorMessage.value = '';
   }
 
-  // ========================================
-  // LOGIN
-  // ========================================
-  Future<void> login() async {
-    errorMessage.value = '';
-    
-    if (!_validateLoginForm()) return;
+// ========================================
+// LOGIN - SIMPLIFIED
+// ========================================
+Future<void> login() async {
+  errorMessage.value = '';
+  
+  if (!_validateLoginForm()) return;
 
-    try {
-      isLoading.value = true;
+  try {
+    isLoading.value = true;
 
-      final response = await _authService.signIn(
-        email: emailController.text.trim(),
-        password: passwordController.text,
+    final response = await _authService.signIn(
+      email: emailController.text.trim(),
+      password: passwordController.text,
+    );
+
+    if (response.user != null) {
+      Get.offAllNamed(Routes.dashboard);
+      Get.snackbar(
+        'Berhasil',
+        'Selamat datang kembali!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        icon: const Icon(Icons.check_circle, color: Colors.white),
       );
-
-      if (response.user != null) {
-        Get.offAllNamed(Routes.dashboard);
-        Get.snackbar(
-          'Berhasil',
-          'Selamat datang kembali!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          icon: const Icon(Icons.check_circle, color: Colors.white),
-        );
-      }
-    } on AuthException catch (e) {
+    }
+  } on AuthException catch (e) {
+    // ✅ Semua error (termasuk network) sudah di-convert ke AuthException
+    if (e.statusCode == 'NETWORK_ERROR' || e.statusCode == 'TIMEOUT') {
+      errorMessage.value = e.message;
+    } else {
       _handleAuthException(e, isLogin: true);
-    } catch (e) {
-      errorMessage.value = 'Terjadi kesalahan: ${e.toString()}';
-    } finally {
-      isLoading.value = false;
     }
+  } catch (e) {
+    errorMessage.value = '❌ Terjadi kesalahan. Silakan coba lagi.';
+  } finally {
+    isLoading.value = false;
   }
+}
 
-  // ========================================
-  // REGISTER
-  // ========================================
-  Future<void> register() async {
-    errorMessage.value = '';
-    
-    if (!_validateRegisterForm()) return;
+// ========================================
+// REGISTER - SIMPLIFIED
+// ========================================
+Future<void> register() async {
+  errorMessage.value = '';
+  
+  if (!_validateRegisterForm()) return;
 
-    try {
-      isLoading.value = true;
+  try {
+    isLoading.value = true;
 
-      final response = await _authService.signUp(
-        email: emailController.text.trim(),
-        password: passwordController.text,
-        fullName: nameController.text.trim(),
-        phone: phoneController.text.trim(),
+    final response = await _authService.signUp(
+      email: emailController.text.trim(),
+      password: passwordController.text,
+      fullName: nameController.text.trim(),
+      phone: phoneController.text.trim(),
+    );
+
+    if (response.user != null) {
+      Get.snackbar(
+        'Berhasil',
+        'Akun berhasil dibuat! Silakan login.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        icon: const Icon(Icons.check_circle, color: Colors.white),
+        duration: const Duration(seconds: 3),
       );
-
-      if (response.user != null) {
-        Get.snackbar(
-          'Berhasil',
-          'Akun berhasil dibuat! Silakan login.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          icon: const Icon(Icons.check_circle, color: Colors.white),
-          duration: const Duration(seconds: 3),
-        );
-        
-        isLogin.value = true;
-        passwordController.clear();
-        confirmPasswordController.clear();
-      }
-    } on AuthException catch (e) {
-      _handleAuthException(e, isLogin: false);
-    } catch (e) {
-      errorMessage.value = 'Terjadi kesalahan: ${e.toString()}';
-    } finally {
-      isLoading.value = false;
+      
+      isLogin.value = true;
+      passwordController.clear();
+      confirmPasswordController.clear();
     }
+  } on AuthException catch (e) {
+    if (e.statusCode == 'NETWORK_ERROR' || e.statusCode == 'TIMEOUT') {
+      errorMessage.value = e.message;
+    } else {
+      _handleAuthException(e, isLogin: false);
+    }
+  } catch (e) {
+    errorMessage.value = '❌ Terjadi kesalahan. Silakan coba lagi.';
+  } finally {
+    isLoading.value = false;
   }
+}
+
 
   // ========================================
   // VALIDATION
