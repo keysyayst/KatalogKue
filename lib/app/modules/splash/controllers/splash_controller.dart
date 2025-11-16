@@ -14,7 +14,7 @@ class SplashController extends GetxController {
   Future<void> _checkAuthStatus() async {
     // Beri sedikit waktu agar Supabase selesai memuat sesi
     await Future.delayed(const Duration(seconds: 2));
-
+    
     if (_authService.isLoggedIn) {
       Get.offAllNamed(Routes.dashboard);
     } else {
