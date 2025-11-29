@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/produk_controller.dart';
+import '../../../data/models/product.dart';
+import '../../delivery_checker/controllers/delivery_checker_controller.dart';
 
 class DetailProdukPage extends GetView<ProdukController> {
   const DetailProdukPage({super.key});
@@ -468,7 +470,7 @@ class DetailProdukPage extends GetView<ProdukController> {
     );
   }
 
-  Widget _buildBottomBar(product) {
+  Widget _buildBottomBar(Product product) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -483,13 +485,17 @@ class DetailProdukPage extends GetView<ProdukController> {
       ),
       child: SafeArea(
         child: ElevatedButton.icon(
-          onPressed: () {
-            // TODO: Implement WhatsApp order
-            Get.snackbar(
-              'Info',
-              'Fitur pemesanan akan segera hadir',
-              snackPosition: SnackPosition.BOTTOM,
-            );
+          onPressed: () async {
+            try {
+              final deliveryC = Get.find<DeliveryCheckerController>();
+              await deliveryC.openWhatsAppWithProduct(product);
+            } catch (e) {
+              Get.snackbar(
+                'Error',
+                'Gagal membuka WhatsApp',
+                snackPosition: SnackPosition.BOTTOM,
+              );
+            }
           },
           icon: const Icon(Icons.shopping_cart),
           label: const Text('Pesan via WhatsApp'),
