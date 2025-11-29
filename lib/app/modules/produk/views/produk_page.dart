@@ -11,28 +11,25 @@ class ProdukPage extends GetView<ProdukController> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Semua Produk'),
-        backgroundColor: const Color(0xFFFE8C00),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => controller.refreshProducts(),
-            tooltip: 'Refresh',
-          ),
-        ],
-      ),
       body: Obx(() {
         // Tampilkan loading saat data sedang dimuat
         if (controller.productService.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFFFE8C00),
+            ),
+          );
         }
 
         // Empty state
         if (controller.filteredProducts.isEmpty) {
           return CustomScrollView(
             slivers: [
+              // ========================================
+              // SLIVER APP BAR (KE KIRI)
+              // ========================================
+              _buildSliverAppBar(),
+
               // Search Bar
               SliverToBoxAdapter(
                 child: Padding(
@@ -70,6 +67,7 @@ class ProdukPage extends GetView<ProdukController> {
                   ),
                 ),
               ),
+
               // Empty State
               SliverFillRemaining(
                 child: Center(
@@ -107,8 +105,14 @@ class ProdukPage extends GetView<ProdukController> {
         // Content with products
         return RefreshIndicator(
           onRefresh: controller.refreshProducts,
+          color: const Color(0xFFFE8C00),
           child: CustomScrollView(
             slivers: [
+              // ========================================
+              // SLIVER APP BAR (KE KIRI)
+              // ========================================
+              _buildSliverAppBar(),
+
               // Search Bar
               SliverToBoxAdapter(
                 child: Padding(
@@ -260,16 +264,94 @@ class ProdukPage extends GetView<ProdukController> {
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final product = controller.filteredProducts[index];
-                    return ProductCard(product: product);
-                  }, childCount: controller.filteredProducts.length),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final product = controller.filteredProducts[index];
+                      return ProductCard(product: product);
+                    },
+                    childCount: controller.filteredProducts.length,
+                  ),
                 ),
               ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 20)),
             ],
           ),
         );
       }),
+    );
+  }
+
+  // ========================================
+  // SLIVER APP BAR (KE KIRI)
+  // ========================================
+
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 80,
+      floating: false,
+      pinned: true,
+      backgroundColor: const Color(0xFFFE8C00),
+      foregroundColor: Colors.white,
+      automaticallyImplyLeading: false, // Hilangkan back button
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 16, bottom: 16), // ← KE KIRI
+        title: const Text(
+          'Semua Produk',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                const Color(0xFFFE8C00),
+                const Color(0xFFFF6B00),
+              ],
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -50,
+                top: -50,
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.1),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -30,
+                bottom: -30,
+                child: Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.1),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh, color: Colors.white),
+          onPressed: () => controller.refreshProducts(),
+          tooltip: 'Refresh',
+        ),
+      ],
     );
   }
 }
