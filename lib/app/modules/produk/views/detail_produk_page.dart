@@ -1,514 +1,349 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/produk_controller.dart';
-import '../../../data/models/product.dart';
-import '../../delivery_checker/controllers/delivery_checker_controller.dart';
+import '../../../widgets/product_card.dart';
 
-class DetailProdukPage extends GetView<ProdukController> {
-  const DetailProdukPage({super.key});
+class ProdukPage extends GetView<ProdukController> {
+  const ProdukPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final product = controller.selectedProduct.value!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(product.title),
-          backgroundColor: const Color(0xFFFE8C00),
-          foregroundColor: Colors.white,
-          bottom: TabBar(
-            onTap: controller.changeTab,
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: const [
-              Tab(text: 'Deskripsi'),
-              Tab(text: 'Komposisi'),
-              Tab(text: 'Nutrisi'),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            _buildDescriptionTab(product, isDark),
-            _buildCompositionTab(product, isDark),
-            _buildNutritionTab(isDark),
-          ],
-        ),
-        bottomNavigationBar: _buildBottomBar(product),
-      ),
-    );
-  }
+    return Scaffold(
+      body: Obx(() {
+        // Tampilkan loading saat data sedang dimuat
+        if (controller.productService.isLoading.value) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFFFE8C00)),
+          );
+        }
 
-  Widget _buildDescriptionTab(product, bool isDark) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product Image
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: product.image.startsWith('http')
-                ? Image.network(
-                    product.image,
-                    width: double.infinity,
-                    height: 250,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: double.infinity,
-                        height: 250,
-                        color: Colors.grey[300],
-                        child: const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.broken_image,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 8),
-                            Text('Gambar tidak tersedia'),
-                          ],
-                        ),
-                      );
+        // Empty state
+        if (controller.filteredProducts.isEmpty) {
+          return CustomScrollView(
+            slivers: [
+              // ========================================
+              // SLIVER APP BAR (KE KIRI)
+              // ========================================
+              _buildSliverAppBar(),
+
+              // Search Bar
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: controller.searchController,
+                    onChanged: controller.searchProducts,
+                    onSubmitted: (query) {
+                      controller.saveSearchToHistory(query);
                     },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        width: double.infinity,
-                        height: 250,
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFFFE8C00),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                : Image.asset(
-                    product.image,
-                    width: double.infinity,
-                    height: 250,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: double.infinity,
-                        height: 250,
-                        color: Colors.grey[300],
-                        child: const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.broken_image,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 8),
-                            Text('Gambar tidak tersedia'),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Price
-          Text(
-            'Rp. ${product.price}',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFFE8C00),
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // Location
-          Row(
-            children: [
-              const Icon(Icons.location_on, size: 16, color: Color(0xFFFE8C00)),
-              const SizedBox(width: 4),
-              Text(
-                product.location,
-                style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-
-          const Divider(height: 32),
-
-          // Description
-          Text(
-            'Deskripsi Produk',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          if (product.description != null && product.description!.isNotEmpty)
-            Text(
-              product.description!,
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.5,
-                color: isDark ? Colors.white70 : Colors.grey[700],
-              ),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.grey[400]),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Deskripsi produk belum tersedia',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white70 : Colors.grey[600],
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Cari produk...',
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFFFE8C00),
+                      ),
+                      suffixIcon: Obx(
+                        () => controller.searchQuery.value.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: controller.clearSearch,
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                      filled: true,
+                      fillColor: isDark
+                          ? const Color(0xFF1E1E1E)
+                          : Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildCompositionTab(product, bool isDark) {
-    final List<String> ingredients = product.compositionList;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Komposisi Bahan',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          if (ingredients.isNotEmpty)
-            ...ingredients
-                .map(
-                  (ingredient) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.check_circle,
-                          size: 20,
-                          color: Color(0xFFFE8C00),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            ingredient,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark ? Colors.white70 : Colors.grey[700],
-                            ),
+              // Empty State
+              SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      Text(
+                        controller.searchQuery.value.isEmpty
+                            ? 'Belum ada produk'
+                            : 'Produk tidak ditemukan',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                      if (controller.searchQuery.value.isEmpty) ...[
+                        const SizedBox(height: 8),
+                        ElevatedButton.icon(
+                          onPressed: () => controller.refreshProducts(),
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Refresh'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFE8C00),
+                            foregroundColor: Colors.white,
                           ),
                         ),
                       ],
-                    ),
+                    ],
                   ),
-                )
-                .toList()
-          else
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.grey[400]),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Komposisi bahan belum tersedia',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white70 : Colors.grey[600],
+            ],
+          );
+        }
+
+        // Content with products
+        return RefreshIndicator(
+          onRefresh: controller.refreshProducts,
+          color: const Color(0xFFFE8C00),
+          child: CustomScrollView(
+            slivers: [
+              // ========================================
+              // SLIVER APP BAR (KE KIRI)
+              // ========================================
+              _buildSliverAppBar(),
+
+              // Search Bar
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: controller.searchController,
+                    onChanged: controller.searchProducts,
+                    onSubmitted: (query) {
+                      controller.saveSearchToHistory(query);
+                    },
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Cari produk...',
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFFFE8C00),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          if (ingredients.isNotEmpty) const SizedBox(height: 16),
-
-          if (ingredients.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.orange[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Color(0xFFFE8C00)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Dibuat dengan bahan berkualitas dan proses higienis',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? Colors.white70 : Colors.grey[700],
+                      suffixIcon: Obx(
+                        () => controller.searchQuery.value.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: controller.clearSearch,
+                              )
+                            : const SizedBox.shrink(),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNutritionTab(bool isDark) {
-    final product = controller.selectedProduct.value!;
-    final nutrition = product.nutrition;
-
-    if (nutrition == null || nutrition.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.info_outline, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              'Informasi nutrisi belum tersedia',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Data nutrisi akan ditambahkan segera',
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Informasi Nilai Gizi',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          Text(
-            'Per 100 gram',
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark ? Colors.white70 : Colors.grey[600],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          if (nutrition['calories'] != null)
-            _buildNutritionItem(
-              'Kalori',
-              '${nutrition['calories']} kcal',
-              Icons.local_fire_department,
-              isDark,
-            ),
-          if (nutrition['protein'] != null)
-            _buildNutritionItem(
-              'Protein',
-              '${nutrition['protein']} g',
-              Icons.fitness_center,
-              isDark,
-            ),
-          if (nutrition['fat'] != null)
-            _buildNutritionItem(
-              'Lemak',
-              '${nutrition['fat']} g',
-              Icons.opacity,
-              isDark,
-            ),
-          if (nutrition['carbs'] != null)
-            _buildNutritionItem(
-              'Karbohidrat',
-              '${nutrition['carbs']} g',
-              Icons.grain,
-              isDark,
-            ),
-          if (nutrition['sugar'] != null)
-            _buildNutritionItem(
-              'Gula',
-              '${nutrition['sugar']} g',
-              Icons.water_drop,
-              isDark,
-            ),
-          if (nutrition['fiber'] != null)
-            _buildNutritionItem(
-              'Serat',
-              '${nutrition['fiber']} g',
-              Icons.eco,
-              isDark,
-            ),
-
-          const SizedBox(height: 16),
-
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Informasi nutrisi dapat bervariasi tergantung cara pengolahan',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? Colors.white70 : Colors.grey[700],
+                      filled: true,
+                      fillColor: isDark
+                          ? const Color(0xFF1E1E1E)
+                          : Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNutritionItem(
-    String label,
-    String value,
-    IconData icon,
-    bool isDark,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFE8C00).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: const Color(0xFFFE8C00), size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: isDark ? Colors.white : Colors.black87,
               ),
-            ),
+
+              // Search History
+              SliverToBoxAdapter(
+                child: Obx(() {
+                  if (controller.searchHistory.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Riwayat Pencarian',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => controller.clearSearchHistory(),
+                              child: const Text(
+                                'Hapus Semua',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFFFE8C00),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: controller.searchHistory.map((query) {
+                            return InkWell(
+                              onTap: () =>
+                                  controller.applySearchFromHistory(query),
+                              child: Chip(
+                                label: Text(query),
+                                labelStyle: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                                backgroundColor: isDark
+                                    ? const Color(0xFF2A2A2A)
+                                    : Colors.grey[200],
+                                deleteIcon: Icon(
+                                  Icons.close,
+                                  size: 18,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black54,
+                                ),
+                                onDeleted: () =>
+                                    controller.removeSearchHistory(query),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                avatar: Icon(
+                                  Icons.history,
+                                  size: 16,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black54,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+
+              // Product Count
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Obx(
+                    () => Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '${controller.filteredProducts.length} Produk Tersedia',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark ? Colors.white70 : Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
+              // Product Grid
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.75,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final product = controller.filteredProducts[index];
+                    return ProductCard(product: product);
+                  }, childCount: controller.filteredProducts.length),
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            ],
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
-            ),
-          ),
-        ],
-      ),
+        );
+      }),
     );
   }
 
-  Widget _buildBottomBar(Product product) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -3),
+  // ========================================
+  // SLIVER APP BAR (KE KIRI)
+  // ========================================
+
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 80,
+      floating: false,
+      pinned: true,
+      backgroundColor: const Color(0xFFFE8C00),
+      foregroundColor: Colors.white,
+      automaticallyImplyLeading: false, // Hilangkan back button
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 16, bottom: 16), // ← KE KIRI
+        title: const Text(
+          'Semua Produk',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
           ),
-        ],
-      ),
-      child: SafeArea(
-        child: ElevatedButton.icon(
-          onPressed: () async {
-            try {
-              final deliveryC = Get.find<DeliveryCheckerController>();
-              await deliveryC.openWhatsAppWithProduct(product);
-            } catch (e) {
-              Get.snackbar(
-                'Error',
-                'Gagal membuka WhatsApp',
-                snackPosition: SnackPosition.BOTTOM,
-              );
-            }
-          },
-          icon: const Icon(Icons.shopping_cart),
-          label: const Text('Pesan via WhatsApp'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFE8C00),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        ),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [const Color(0xFFFE8C00), const Color(0xFFFF6B00)],
             ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -50,
+                top: -50,
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.1),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -30,
+                bottom: -30,
+                child: Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.1),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh, color: Colors.white),
+          onPressed: () => controller.refreshProducts(),
+          tooltip: 'Refresh',
+        ),
+      ],
     );
   }
 }
