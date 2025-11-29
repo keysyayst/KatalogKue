@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import '../controllers/delivery_checker_controller.dart';
-import '../../../../../data/services/location_service.dart';
+import '../../../data/services/location_service.dart';
 
 class DeliveryCheckerBinding extends Bindings {
   @override
