@@ -1,10 +1,11 @@
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
 import '../../../data/models/product.dart';
-import '../../../data/sources/products.dart';
-import '../../../data/services/nutrition_service.dart';
 import '../../../data/models/nutrition_model.dart';
+import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/search_history_hive_service.dart';
+import '../../../data/sources/products.dart';
 
 class ProdukController extends GetxController {
   final ProductService productService = Get.find<ProductService>();
@@ -12,18 +13,22 @@ class ProdukController extends GetxController {
   final SearchHistoryHiveService searchHistoryService =
       Get.find<SearchHistoryHiveService>();
 
-  final searchController = TextEditingController();
+  // Controller untuk text field pencarian
+  final TextEditingController searchController = TextEditingController();
 
-  var products = <Product>[].obs;
-  var filteredProducts = <Product>[].obs;
-  var searchQuery = ''.obs;
-  var searchHistory = <String>[].obs;
+  // List produk
+  final RxList<Product> products = <Product>[].obs;
+  final RxList<Product> filteredProducts = <Product>[].obs;
+
+  // State pencarian
+  final RxString searchQuery = ''.obs;
+  final RxList<String> searchHistory = <String>[].obs;
 
   // Untuk detail produk
-  var selectedProduct = Rx<Product?>(null);
-  var nutritionData = Rx<NutritionData?>(null);
-  var isLoadingNutrition = false.obs;
-  var currentTabIndex = 0.obs;
+  final Rx<Product?> selectedProduct = Rx<Product?>(null);
+  final Rx<NutritionData?> nutritionData = Rx<NutritionData?>(null);
+  final RxBool isLoadingNutrition = false.obs;
+  final RxInt currentTabIndex = 0.obs;
 
   @override
   void onInit() {
@@ -39,6 +44,8 @@ class ProdukController extends GetxController {
     refreshProducts();
   }
 
+  // ================== PRODUK ==================
+
   void loadProducts() {
     products.value = productService.getAllProducts();
     filteredProducts.value = products;
@@ -51,13 +58,15 @@ class ProdukController extends GetxController {
     loadProducts();
   }
 
+  // ================== PENCARIAN ==================
+
   void searchProducts(String query) {
     searchQuery.value = query;
 
     if (query.isEmpty) {
       filteredProducts.value = products;
     } else {
-      filteredProducts.value = products.where((product) {
+      filteredProducts.value = products.where((Product product) {
         return product.title.toLowerCase().contains(query.toLowerCase()) ||
             product.location.toLowerCase().contains(query.toLowerCase());
       }).toList();
@@ -98,32 +107,38 @@ class ProdukController extends GetxController {
     saveSearchToHistory(query);
   }
 
+  // ================== NUTRISI & DETAIL ==================
+
   Future<void> loadNutritionData(String productName) async {
     try {
       isLoadingNutrition(true);
-      //debugPrint('🍰 Loading nutrition for: $productName');
 
       final data = await nutritionService.getNutritionData(productName);
-      nutritionData.value = data;
 
-      //print('✅ Nutrition loaded successfully');
+      // data bertipe NutritionData? → handle null
+      if (data != null) {
+        nutritionData.value = data;
+      } else {
+        nutritionData.value = NutritionData.dummy();
+      }
     } catch (e) {
-      //print('❌ Error loading nutrition: $e');
       nutritionData.value = NutritionData.dummy();
     } finally {
       isLoadingNutrition(false);
     }
   }
 
+  /// Dipanggil ketika user memilih sebuah produk (dari grid atau dari tempat lain)
   void selectProduct(Product product) {
     selectedProduct.value = product;
     loadNutritionData(product.title);
   }
 
+  /// Mengatur tab pada DetailProdukPage (Deskripsi / Komposisi / Nutrisi)
   void changeTab(int index) {
     currentTabIndex.value = index;
 
-    // Load nutrition data saat tab nutrisi dibuka
+    // Load nutrition data saat tab nutrisi dibuka pertama kali
     if (index == 2 &&
         selectedProduct.value != null &&
         nutritionData.value == null) {
