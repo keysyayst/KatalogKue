@@ -7,6 +7,7 @@ import 'app/data/services/auth_service.dart';
 import 'app/data/sources/products.dart';
 import 'app/data/services/favorite_hive_service.dart';
 import 'app/data/services/search_history_hive_service.dart';
+import 'app/data/services/location_service.dart';
 
 Future<void> initServices() async {
   // Ambil variabel environment
@@ -39,6 +40,7 @@ Future<void> initServices() async {
 
   // Initialize ProductService
   Get.put(ProductService());
+  Get.put(LocationService());
 }
 
 void main() async {
