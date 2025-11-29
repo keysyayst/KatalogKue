@@ -1,15 +1,18 @@
 import 'package:get/get.dart';
+
 import '../app.dart';
+import '../middlewares/auth_middleware.dart';
+import '../modules/admin/bindings/admin_binding.dart';
+import '../modules/admin/views/admin_products_page.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/auth_page.dart';
-import '../modules/profile/bindings/profile_binding.dart';
-import '../modules/profile/views/profile_page.dart';
+import '../modules/delivery_checker/bindings/delivery_checker_binding.dart';
+import '../modules/delivery_checker/views/delivery_checker_view.dart';
 import '../modules/produk/bindings/produk_binding.dart';
 import '../modules/produk/views/detail_produk_page.dart';
 import '../modules/produk/views/produk_page.dart';
-import '../modules/admin/bindings/admin_binding.dart';
-import '../modules/admin/views/admin_products_page.dart';
-import '../middlewares/auth_middleware.dart';
+import '../modules/profile/bindings/profile_binding.dart';
+import '../modules/profile/views/profile_page.dart';
 
 part 'app_routes.dart';
 
@@ -56,6 +59,11 @@ class AppPages {
       page: () => const AdminProductsPage(),
       binding: AdminBinding(),
       middlewares: [AuthMiddleware(), AdminMiddleware()],
+    ),
+    GetPage(
+      name: _Paths.DELIVERY_CHECKER,
+      page: () => const DeliveryCheckerView(),
+      binding: DeliveryCheckerBinding(),
     ),
   ];
 }

@@ -10,6 +10,7 @@ abstract class Routes {
   static const produk = _Paths.produk;
   static const adminProducts = _Paths.adminProducts; // ← TAMBAHAN
   static const productDetail = '/product/:id';
+  static const DELIVERY_CHECKER = _Paths.DELIVERY_CHECKER;
 }
 
 abstract class _Paths {
@@ -21,4 +22,5 @@ abstract class _Paths {
   static const produkKami = '/produk-kami';
   static const produk = '/produk';
   static const adminProducts = '/admin/products'; // ← TAMBAHAN
+  static const DELIVERY_CHECKER = '/delivery-checker';
 }
