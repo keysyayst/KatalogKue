@@ -319,7 +319,7 @@ packages:
     source: hosted
     version: "5.0.0"
   flutter_map:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_map
       sha256: "2ecb34619a4be19df6f40c2f8dce1591675b4eff7a6857bd8f533706977385da"
@@ -369,7 +369,7 @@ packages:
     source: hosted
     version: "2.5.0"
   geolocator:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: geolocator
       sha256: "6cb9fb6e5928b58b9a84bdf85012d757fd07aab8215c5205337021c4999bad27"
@@ -609,7 +609,7 @@ packages:
     source: hosted
     version: "0.3.1"
   latlong2:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: latlong2
       sha256: "98227922caf49e6056f91b6c56945ea1c7b166f28ffcd5fb8e72fc0b453cc8fe"
@@ -657,7 +657,7 @@ packages:
     source: hosted
     version: "1.0.1"
   location:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: location
       sha256: "37ffdadcd4b1498b769824f45ebb4de8ed46663a4a67ac27b33a590ee486579f"
@@ -801,7 +801,7 @@ packages:
     source: hosted
     version: "2.3.0"
   permission_handler:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: permission_handler
       sha256: "59adad729136f01ea9e35a48f5d1395e25cba6cea552249ddbe9cf950f5d7849"
@@ -1134,7 +1134,7 @@ packages:
     source: hosted
     version: "0.3.1"
   url_launcher:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: url_launcher
       sha256: f6a7e5c4835bb4e3026a04793a4199ca2d14c739ec378fdfe23fc8075d0439f8
