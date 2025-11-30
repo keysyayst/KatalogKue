@@ -14,6 +14,9 @@ import '../modules/produk/views/produk_page.dart';
 import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_page.dart';
 
+// --- IMPORT VIEW TESTING BARU ---
+import '../modules/location/views/location_experiment_view.dart';
+
 part 'app_routes.dart';
 
 class AppPages {
@@ -64,6 +67,13 @@ class AppPages {
       name: _Paths.DELIVERY_CHECKER,
       page: () => const DeliveryCheckerView(),
       binding: DeliveryCheckerBinding(),
+    ),
+
+    // --- PAGE TESTING (MODUL 5) ---
+    GetPage(
+      name: Routes.locationExperiment,
+      page: () => const LocationExperimentView(),
+      // Tidak butuh binding khusus karena controller di-put di dalam view atau bisa lazyPut di sini jika mau
     ),
   ];
 }

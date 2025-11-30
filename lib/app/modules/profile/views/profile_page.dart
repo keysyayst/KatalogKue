@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
+import '../../../routes/app_pages.dart';
 
 class ProfilePage extends GetView<ProfileController> {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Cek mode gelap/terang dari theme context
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -23,7 +25,10 @@ class ProfilePage extends GetView<ProfileController> {
             foregroundColor: Colors.white,
             automaticallyImplyLeading: false, // Hilangkan back button
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 16, bottom: 16), // ← KE KIRI
+              titlePadding: const EdgeInsets.only(
+                left: 16,
+                bottom: 16,
+              ), // ← KE KIRI
               title: const Text(
                 'Profil Saya',
                 style: TextStyle(
@@ -33,14 +38,11 @@ class ProfilePage extends GetView<ProfileController> {
                 ),
               ),
               background: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topRight,
                     end: Alignment.bottomLeft,
-                    colors: [
-                      const Color(0xFFFE8C00),
-                      const Color(0xFFFF6B00),
-                    ],
+                    colors: [Color(0xFFFE8C00), Color(0xFFFF6B00)],
                   ),
                 ),
                 child: Stack(
@@ -74,7 +76,7 @@ class ProfilePage extends GetView<ProfileController> {
               ),
             ),
             actions: [
-              // Toggle Dark Mode
+              // 1. ICON TOGGLE TEMA
               Obx(
                 () => IconButton(
                   icon: Icon(
@@ -86,7 +88,7 @@ class ProfilePage extends GetView<ProfileController> {
                 ),
               ),
 
-              // Edit/Save Button
+              // 2. TOMBOL EDIT / SIMPAN
               Obx(
                 () => controller.isEditing.value
                     ? Row(
@@ -110,6 +112,29 @@ class ProfilePage extends GetView<ProfileController> {
                         tooltip: 'Edit Profil',
                       ),
               ),
+
+              // 3. (BARU) TITIK TIGA -> MENU TESTING (MODUL 5)
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, color: Colors.white),
+                onSelected: (value) {
+                  if (value == 'testing') {
+                    // Arahkan ke halaman Testing
+                    Get.toNamed(Routes.locationExperiment);
+                  }
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'testing',
+                    child: Row(
+                      children: [
+                        Icon(Icons.science, color: Colors.black54),
+                        SizedBox(width: 8),
+                        Text('Testing (Modul 5)'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
 
@@ -124,9 +149,7 @@ class ProfilePage extends GetView<ProfileController> {
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(
-                      color: Color(0xFFFE8C00),
-                    ),
+                    child: CircularProgressIndicator(color: Color(0xFFFE8C00)),
                   ),
                 );
               }
@@ -150,20 +173,21 @@ class ProfilePage extends GetView<ProfileController> {
                                     ),
                                   )
                                 : profile.avatarUrl != null &&
-                                    profile.avatarUrl!.isNotEmpty
+                                      profile.avatarUrl!.isNotEmpty
                                 ? ClipOval(
                                     child: Image.network(
                                       profile.avatarUrl!,
                                       width: 140,
                                       height: 140,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return const Icon(
-                                          Icons.person,
-                                          size: 70,
-                                          color: Colors.white,
-                                        );
-                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return const Icon(
+                                              Icons.person,
+                                              size: 70,
+                                              color: Colors.white,
+                                            );
+                                          },
                                     ),
                                   )
                                 : const Icon(
@@ -227,14 +251,18 @@ class ProfilePage extends GetView<ProfileController> {
                             controller.isAdmin
                                 ? Icons.admin_panel_settings
                                 : Icons.person,
-                            color: controller.isAdmin ? Colors.red : Colors.blue,
+                            color: controller.isAdmin
+                                ? Colors.red
+                                : Colors.blue,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             controller.isAdmin ? 'Administrator' : 'User',
                             style: TextStyle(
-                              color: controller.isAdmin ? Colors.red : Colors.blue,
+                              color: controller.isAdmin
+                                  ? Colors.red
+                                  : Colors.blue,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -253,9 +281,14 @@ class ProfilePage extends GetView<ProfileController> {
                         enabled: false,
                         decoration: InputDecoration(
                           labelText: 'Email',
-                          prefixIcon: const Icon(Icons.email, color: Colors.grey),
+                          prefixIcon: const Icon(
+                            Icons.email,
+                            color: Colors.grey,
+                          ),
                           filled: true,
-                          fillColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                          fillColor: isDark
+                              ? Colors.grey[800]
+                              : Colors.grey[200],
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -281,7 +314,9 @@ class ProfilePage extends GetView<ProfileController> {
                           ),
                           filled: true,
                           fillColor: controller.isEditing.value
-                              ? (isDark ? const Color(0xFF1E1E1E) : Colors.white)
+                              ? (isDark
+                                    ? const Color(0xFF1E1E1E)
+                                    : Colors.white)
                               : (isDark ? Colors.grey[800] : Colors.grey[200]),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -316,7 +351,9 @@ class ProfilePage extends GetView<ProfileController> {
                           ),
                           filled: true,
                           fillColor: controller.isEditing.value
-                              ? (isDark ? const Color(0xFF1E1E1E) : Colors.white)
+                              ? (isDark
+                                    ? const Color(0xFF1E1E1E)
+                                    : Colors.white)
                               : (isDark ? Colors.grey[800] : Colors.grey[200]),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -338,7 +375,9 @@ class ProfilePage extends GetView<ProfileController> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[100],
+                        color: isDark
+                            ? const Color(0xFF1E1E1E)
+                            : Colors.grey[100],
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -382,7 +421,7 @@ class ProfilePage extends GetView<ProfileController> {
 
                     const SizedBox(height: 24),
 
-                    // Admin Panel Button
+                    // Admin Panel Button (Hanya jika admin)
                     if (controller.isAdmin) ...[
                       SizedBox(
                         width: double.infinity,
