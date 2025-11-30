@@ -157,10 +157,7 @@ class LocationService extends GetxService {
   // SMART LOCATION (GPS FIRST, FALLBACK TO NETWORK)
 
   Future<Position?> getCurrentLocation() async {
-    // Try GPS first
     Position? position = await getGPSLocation();
-
-    // Fallback to Network if GPS fails
     position ??= await getNetworkLocation();
 
     return position;
