@@ -3,7 +3,7 @@ class CateringInfo {
     'name': 'Catering Kue Made by Mommy',
     'owner': 'Ekky Santi',
     'address': 'Gg. Makam No.54, Pandanwangi, Kec. Blimbing, Kota Malang, Jawa Timur 65126',
-    'lat': -7.9517177, // ← Ganti dengan koordinat real catering
+    'lat': -7.9517177, 
     'lng': 112.6600066,
     'phone': '085282483177',
     'whatsapp': '6285282483177',
@@ -15,8 +15,8 @@ class CateringInfo {
     },
     'deliveryRadius': 10.0, // km
     'freeDeliveryRadius': 5.0, // km
-    'deliveryCostPerKm': 2000, // Rp/km setelah radius gratis
-    'minOrder': 50000, // Minimum pemesanan
+    'deliveryCostPerKm': 2000, 
+    'minOrder': 50000, 
   };
 
   static const List<String> deliveryAreas = [
