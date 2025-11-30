@@ -1,4 +1,3 @@
-```markdown
 # 🍪 Katalog Kue Lebaran
 
 Aplikasi **Katalog Kue Lebaran** adalah aplikasi mobile berbasis **Flutter** untuk bisnis katering kue dengan fitur lengkap mulai dari katalog produk, autentikasi pengguna, manajemen favorit, hingga pengecekan jarak pengiriman menggunakan geolokasi.
