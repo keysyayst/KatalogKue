@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import '../controllers/location_experiment_controller.dart';
 
 class LocationExperimentView extends StatelessWidget {
