@@ -4,6 +4,7 @@ import '../app.dart';
 import '../middlewares/auth_middleware.dart';
 import '../modules/admin/bindings/admin_binding.dart';
 import '../modules/admin/views/admin_products_page.dart';
+import '../modules/admin/views/admin_delivery_stores_page.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/auth_page.dart';
 import '../modules/delivery_checker/bindings/delivery_checker_binding.dart';
@@ -67,6 +68,12 @@ class AppPages {
       name: _Paths.DELIVERY_CHECKER,
       page: () => const DeliveryCheckerView(),
       binding: DeliveryCheckerBinding(),
+    ),
+    GetPage(
+      name: _Paths.adminDeliveryStores,
+      page: () => const AdminDeliveryStoresPage(),
+      binding: AdminBinding(),
+      middlewares: [AuthMiddleware()],
     ),
 
     // --- PAGE TESTING (MODUL 5) ---

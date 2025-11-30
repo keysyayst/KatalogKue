@@ -31,6 +31,8 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildDeliveryToggle(),
+                    _buildStoreSelector(),
+                    _buildStoreInfoCard(),
                     _buildMapSection(),
                     _buildAddressCard(),
                     _buildDeliveryInfoCard(),
@@ -45,7 +47,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ================= APP BAR (Simple & Clean) =================
+  // ========= APP BAR ==================
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.white,
@@ -71,7 +73,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ================= DELIVERY TOGGLE (McD Style) =================
+  // ========= DELIVERY TOGGLE ==================
   Widget _buildDeliveryToggle() {
     return Container(
       margin: const EdgeInsets.all(20),
@@ -87,7 +89,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
               label: 'Ambil di Tempat',
               isSelected: false,
               onTap: () {
-                // NAVIGASI KE HALAMAN PICKUP
                 Get.to(() => const PickupMapView());
               },
             ),
@@ -96,7 +97,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
             child: _toggleButton(
               label: 'Pengiriman',
               isSelected: true,
-              onTap: () {}, // Sudah di halaman ini
+              onTap: () {},
             ),
           ),
         ],
@@ -130,11 +131,250 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
+  //STORE SELECTOR
+  Widget _buildStoreSelector() {
+    return Obx(() {
+      if (controller.storesLoading.value) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: const SizedBox(
+            height: 50,
+            child: Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFFFE8C00),
+                strokeWidth: 2,
+              ),
+            ),
+          ),
+        );
+      }
+
+      if (controller.availableStores.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFFFE8C00).withOpacity(0.3)),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: DropdownButton<String>(
+                value: controller.selectedStore.value?.id,
+                isExpanded: true,
+                underline: const SizedBox.shrink(),
+                hint: const Text('Pilih Toko'),
+                items: controller.availableStores.map((store) {
+                  return DropdownMenuItem<String>(
+                    value: store.id,
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.store,
+                          size: 18,
+                          color: Color(0xFFFE8C00),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                store.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                store.address,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (storeId) {
+                  if (storeId != null) {
+                    final store = controller.availableStores.firstWhere(
+                      (s) => s.id == storeId,
+                    );
+                    controller.selectStore(store);
+                  }
+                },
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Color(0xFFFE8C00)),
+              tooltip: 'Refresh Toko',
+              onPressed: controller.refreshStores,
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  //STORE INFO CARD
+  Widget _buildStoreInfoCard() {
+    return Obx(() {
+      final store = controller.selectedStore.value;
+      if (store == null) {
+        return const SizedBox.shrink();
+      }
+
+      return Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFFFE8C00).withOpacity(0.1),
+              const Color(0xFFFE8C00).withOpacity(0.05),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFFE8C00).withOpacity(0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFE8C00), Color(0xFFFF6B00)],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.store_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        store.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Color(0xFFFE8C00),
+                        ),
+                      ),
+                      Text(
+                        'Pemilik: ${store.owner}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildStoreInfoRow(
+              icon: Icons.location_on_rounded,
+              label: 'Alamat',
+              value: store.address,
+            ),
+            const SizedBox(height: 8),
+            if (store.phone.isNotEmpty)
+              _buildStoreInfoRow(
+                icon: Icons.phone_rounded,
+                label: 'Telepon',
+                value: store.phone,
+              ),
+            if (store.phone.isNotEmpty) const SizedBox(height: 8),
+            if (store.whatsapp.isNotEmpty)
+              _buildStoreInfoRow(
+                icon: Icons.chat_rounded,
+                label: 'WhatsApp',
+                value: store.whatsapp,
+              ),
+            if (store.whatsapp.isNotEmpty) const SizedBox(height: 8),
+            if (store.email.isNotEmpty)
+              _buildStoreInfoRow(
+                icon: Icons.email_rounded,
+                label: 'Email',
+                value: store.email,
+              ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildStoreInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFE8C00).withOpacity(0.2),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(icon, size: 16, color: const Color(0xFFFE8C00)),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   // ================= MAP SECTION (Full Width) =================
   Widget _buildMapSection() {
+    final selected = controller.selectedStore.value;
     final storeLatLng = LatLng(
-      CateringInfo.store['lat'],
-      CateringInfo.store['lng'],
+      selected?.latitude ?? CateringInfo.store['lat'],
+      selected?.longitude ?? CateringInfo.store['lng'],
     );
     final customerLatLng = LatLng(
       controller.customerLocation.value!.latitude,
@@ -163,7 +403,10 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                 circles: [
                   CircleMarker(
                     point: storeLatLng,
-                    radius: CateringInfo.store['deliveryRadius'] * 1000,
+                    radius:
+                        (selected?.deliveryRadius ??
+                            CateringInfo.store['deliveryRadius']) *
+                        1000,
                     useRadiusInMeter: true,
                     color: const Color(0xFFFE8C00).withOpacity(0.1),
                     borderColor: const Color(0xFFFE8C00),
@@ -319,7 +562,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ================= ADDRESS CARD (McD Style) =================
+  // ================= ADDRESS CARD =================
   Widget _buildAddressCard() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),

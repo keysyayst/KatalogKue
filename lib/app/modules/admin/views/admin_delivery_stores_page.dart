@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../data/models/delivery_store_model.dart';
 import '../../../data/repositories/delivery_store_repository.dart';
+import '../../delivery_checker/controllers/delivery_checker_controller.dart';
 import 'map_picker_page.dart';
 
 class AdminDeliveryStoresPage extends StatefulWidget {
@@ -174,8 +176,8 @@ class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
                     freeDeliveryRadius: double.parse(
                       freeDeliveryRadiusCtrl.text,
                     ),
-                    deliveryCostPerKm: double.parse(costPerKmCtrl.text),
-                    minOrder: double.parse(minOrderCtrl.text),
+                    deliveryCostPerKm: int.parse(costPerKmCtrl.text),
+                    minOrder: int.parse(minOrderCtrl.text),
                     isActive: true,
                     createdAt: store?.createdAt ?? DateTime.now(),
                     updatedAt: DateTime.now(),
@@ -193,6 +195,10 @@ class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
                   if (mounted) {
                     Navigator.pop(ctx);
                     _loadStores();
+                    // Refresh dropdown di halaman delivery jika controller sudah terdaftar
+                    if (Get.isRegistered<DeliveryCheckerController>()) {
+                      Get.find<DeliveryCheckerController>().refreshStores();
+                    }
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
@@ -270,6 +276,10 @@ class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
                         onTap: () async {
                           await _repository.deleteStore(store.id);
                           _loadStores();
+                          if (Get.isRegistered<DeliveryCheckerController>()) {
+                            Get.find<DeliveryCheckerController>()
+                                .refreshStores();
+                          }
                         },
                       ),
                     ],

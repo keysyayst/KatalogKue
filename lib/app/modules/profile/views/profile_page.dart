@@ -423,6 +423,32 @@ class ProfilePage extends GetView<ProfileController> {
 
                     // Admin Panel Button (Hanya jika admin)
                     if (controller.isAdmin) ...[
+                      // Kelola Toko Delivery (NEW)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: () =>
+                              Get.toNamed(Routes.adminDeliveryStores),
+                          icon: const Icon(Icons.store),
+                          label: const Text(
+                            'Kelola Toko Delivery',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFE8C00),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Kelola Produk (NEW)
                       SizedBox(
                         width: double.infinity,
                         height: 50,

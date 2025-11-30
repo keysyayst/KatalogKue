@@ -24,6 +24,7 @@ class HeroSection extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 Colors.black.withAlpha(115),
+                Colors.black.withAlpha(0),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,

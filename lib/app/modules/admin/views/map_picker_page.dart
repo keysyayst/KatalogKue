@@ -9,8 +9,8 @@ class MapPickerPage extends StatefulWidget {
 
   const MapPickerPage({
     Key? key,
-    this.initialLat = -6.2088,
-    this.initialLng = 106.8456,
+    this.initialLat = -7.959770,
+    this.initialLng = 112.636911,
   }) : super(key: key);
 
   @override

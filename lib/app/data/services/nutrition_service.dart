@@ -6,7 +6,6 @@ class NutritionService extends GetxService {
   final NutritionApiProvider _provider = NutritionApiProvider();
 
   Future<NutritionData?> getNutritionData(String productName) async {
-    // Langsung teruskan nama produk ke provider; mapping dilakukan di layer pemanggil bila perlu.
     return _provider.searchNutrition(productName);
   }
 }
