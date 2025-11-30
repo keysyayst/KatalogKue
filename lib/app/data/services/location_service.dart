@@ -2,6 +2,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as loc;
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:developer' as developer;
 
 class LocationService extends GetxService {
   final Rx<Position?> currentPosition = Rx<Position?>(null);
@@ -16,9 +17,7 @@ class LocationService extends GetxService {
     checkLocationPermission();
   }
 
-  // ========================================
   // PERMISSION HANDLING
-  // ========================================
 
   Future<bool> checkLocationPermission() async {
     PermissionStatus status = await Permission.location.status;
@@ -31,16 +30,13 @@ class LocationService extends GetxService {
     isLocationPermissionGranted.value = status.isGranted;
     
     if (status.isPermanentlyDenied) {
-      // Buka settings jika permanently denied
       await openAppSettings();
     }
     
     return status.isGranted;
   }
 
-  // ========================================
   // GPS LOCATION (HIGH ACCURACY)
-  // ========================================
 
   Future<Position?> getGPSLocation() async {
     try {
@@ -84,12 +80,14 @@ class LocationService extends GetxService {
       currentPosition.value = position;
       isGPSEnabled.value = true;
 
-      print('✅ GPS Location: ${position.latitude}, ${position.longitude}');
-      print('   Accuracy: ${position.accuracy}m');
+      developer.log(
+        'GPS Location: ${position.latitude}, ${position.longitude} | Accuracy: ${position.accuracy}m',
+        name: 'LocationService',
+      );
 
       return position;
     } catch (e) {
-      print('❌ GPS Error: $e');
+      developer.log('GPS Error: $e', name: 'LocationService', error: e);
       Get.snackbar(
         'GPS Error',
         'Tidak dapat mengakses GPS: ${e.toString()}',
@@ -99,9 +97,7 @@ class LocationService extends GetxService {
     }
   }
 
-  // ========================================
   // NETWORK LOCATION (LOWER ACCURACY)
-  // ========================================
 
   Future<Position?> getNetworkLocation() async {
     try {
@@ -146,35 +142,28 @@ class LocationService extends GetxService {
       currentPosition.value = position;
       isGPSEnabled.value = false;
 
-      print('✅ Network Location: ${position.latitude}, ${position.longitude}');
-      print('   Accuracy: ${position.accuracy}m');
+      developer.log(
+        'Network Location: ${position.latitude}, ${position.longitude} | Accuracy: ${position.accuracy}m',
+        name: 'LocationService',
+      );
 
       return position;
     } catch (e) {
-      print('❌ Network Location Error: $e');
+      developer.log('Network Location Error: $e', name: 'LocationService', error: e);
       return null;
     }
   }
 
-  // ========================================
   // SMART LOCATION (GPS FIRST, FALLBACK TO NETWORK)
-  // ========================================
 
   Future<Position?> getCurrentLocation() async {
-    // Try GPS first
     Position? position = await getGPSLocation();
-
-    // Fallback to Network if GPS fails
-    if (position == null) {
-      position = await getNetworkLocation();
-    }
+    position ??= await getNetworkLocation();
 
     return position;
   }
 
-  // ========================================
   // LIVE LOCATION STREAM
-  // ========================================
 
   Stream<Position> getLiveLocationStream() {
     const LocationSettings locationSettings = LocationSettings(
@@ -185,9 +174,7 @@ class LocationService extends GetxService {
     return Geolocator.getPositionStream(locationSettings: locationSettings);
   }
 
-  // ========================================
   // CALCULATE DISTANCE
-  // ========================================
 
   double calculateDistance(
     double startLat,
@@ -198,9 +185,7 @@ class LocationService extends GetxService {
     return Geolocator.distanceBetween(startLat, startLng, endLat, endLng);
   }
 
-  // ========================================
   // FORMAT DISTANCE
-  // ========================================
 
   String formatDistance(double meters) {
     if (meters < 1000) {
@@ -210,9 +195,7 @@ class LocationService extends GetxService {
     }
   }
 
-  // ========================================
   // CALCULATE BEARING (DIRECTION)
-  // ========================================
 
   double calculateBearing(
     double startLat,
