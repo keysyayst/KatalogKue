@@ -8,8 +8,11 @@ class LocationExperimentView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Inject controller saat halaman ini dibuka
+    // 1. Inject Controller
     final controller = Get.put(LocationExperimentController());
+
+    // 2. Cek apakah sedang Mode Gelap
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -22,21 +25,35 @@ class LocationExperimentView extends StatelessWidget {
           // PANEL KONTROL
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.white,
+            // 3. PERBAIKAN: Background menyesuaikan tema
+            // Jika gelap pakai warna abu gelap, jika terang pakai putih
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
             child: Column(
               children: [
+                // Teks Koordinat, Akurasi, Waktu
                 Obx(
                   () => Text(
                     controller.address.value,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      // 4. PERBAIKAN: Warna teks menyesuaikan tema
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
+
+                // Switch Provider
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text("Provider: Network"),
+                    Text(
+                      "Provider: Network",
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
                     Obx(
                       () => Switch(
                         value: controller.isGpsMode.value,
@@ -45,9 +62,16 @@ class LocationExperimentView extends StatelessWidget {
                         activeColor: Colors.white,
                       ),
                     ),
-                    const Text("GPS"),
+                    Text(
+                      "GPS",
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
                   ],
                 ),
+
+                // Tombol Action
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -78,6 +102,7 @@ class LocationExperimentView extends StatelessWidget {
               ],
             ),
           ),
+
           // MAPS SECTION
           Expanded(
             child: Obx(
@@ -116,7 +141,8 @@ class LocationExperimentView extends StatelessWidget {
                           point: controller.currentPosition.value!,
                           radius: controller.accuracy.value,
                           useRadiusInMeter: true,
-                          color: Colors.blue.withOpacity(0.3),
+                          // Opacity disesuaikan agar terlihat bagus di peta
+                          color: Colors.blue.withValues(alpha: 0.3),
                           borderColor: Colors.blue,
                           borderStrokeWidth: 2,
                         ),
