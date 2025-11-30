@@ -1,287 +1,138 @@
-import 'package:flutter/material.dart';
-import '../../../data/models/delivery_store_model.dart';
-import '../../../data/repositories/delivery_store_repository.dart';
-import 'map_picker_page.dart';
+// Model data DeliveryStore
+class DeliveryStore {
+  final String id;
+  final String name;
+  final String owner;
+  final String address;
+  final double latitude;
+  final double longitude;
+  final String phone;
+  final String whatsapp;
+  final String email;
+  final double deliveryRadius; 
+  final double freeDeliveryRadius; 
+  final int
+  deliveryCostPerKm; 
+  final int minOrder; 
+  final bool isActive;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
-class AdminDeliveryStoresPage extends StatefulWidget {
-  const AdminDeliveryStoresPage({Key? key}) : super(key: key);
+  DeliveryStore({
+    required this.id,
+    required this.name,
+    required this.owner,
+    required this.address,
+    required this.latitude,
+    required this.longitude,
+    required this.phone,
+    required this.whatsapp,
+    required this.email,
+    required this.deliveryRadius,
+    required this.freeDeliveryRadius,
+    required this.deliveryCostPerKm,
+    required this.minOrder,
+    required this.isActive,
+    required this.createdAt,
+    required this.updatedAt,
+  });
 
-  @override
-  State<AdminDeliveryStoresPage> createState() =>
-      _AdminDeliveryStoresPageState();
-}
-
-class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
-  final DeliveryStoreRepository _repository = DeliveryStoreRepository();
-  final List<DeliveryStore> _stores = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStores();
-  }
-
-  Future<void> _loadStores() async {
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      final stores = await _repository.getAllStores();
-      setState(() {
-        _stores.clear();
-        _stores.addAll(stores);
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
-  void _showAddStoreDialog({DeliveryStore? store}) {
-    final isEdit = store != null;
-    final formKey = GlobalKey<FormState>();
-    final nameCtrl = TextEditingController(text: store?.name ?? '');
-    final ownerCtrl = TextEditingController(text: store?.owner ?? '');
-    final addressCtrl = TextEditingController(text: store?.address ?? '');
-    double selectedLat = store?.latitude ?? -6.2088;
-    double selectedLng = store?.longitude ?? 106.8456;
-    final phoneCtrl = TextEditingController(text: store?.phone ?? '');
-    final whatsappCtrl = TextEditingController(text: store?.whatsapp ?? '');
-    final emailCtrl = TextEditingController(text: store?.email ?? '');
-    final deliveryRadiusCtrl = TextEditingController(
-      text: store?.deliveryRadius.toString() ?? '10.0',
-    );
-    final freeDeliveryRadiusCtrl = TextEditingController(
-      text: store?.freeDeliveryRadius.toString() ?? '5.0',
-    );
-    final costPerKmCtrl = TextEditingController(
-      text: store?.deliveryCostPerKm.toString() ?? '2000',
-    );
-    final minOrderCtrl = TextEditingController(
-      text: store?.minOrder.toString() ?? '50000',
-    );
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(isEdit ? 'Edit Toko' : 'Tambah Toko Baru'),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildTextField('Nama Toko', nameCtrl),
-                  _buildTextField('Pemilik', ownerCtrl),
-                  _buildTextField('Alamat', addressCtrl),
-                  const SizedBox(height: 12),
-                  // Info lokasi
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFFE8C00)),
-                      borderRadius: BorderRadius.circular(8),
-                      color: const Color(0xFFFE8C00).withOpacity(0.05),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '📍 Lokasi Toko',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Lat: ${selectedLat.toStringAsFixed(4)}, Lng: ${selectedLng.toStringAsFixed(4)}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              final result = await Navigator.push(
-                                ctx,
-                                MaterialPageRoute(
-                                  builder: (context) => MapPickerPage(
-                                    initialLat: selectedLat,
-                                    initialLng: selectedLng,
-                                  ),
-                                ),
-                              );
-                              if (result != null) {
-                                setDialogState(() {
-                                  selectedLat = result.latitude;
-                                  selectedLng = result.longitude;
-                                });
-                              }
-                            },
-                            icon: const Icon(Icons.map),
-                            label: const Text('Pilih di Map'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildTextField('Telepon', phoneCtrl),
-                  _buildTextField('WhatsApp', whatsappCtrl),
-                  _buildTextField('Email', emailCtrl),
-                  _buildTextField('Radius Pengiriman (km)', deliveryRadiusCtrl),
-                  _buildTextField('Radius Gratis (km)', freeDeliveryRadiusCtrl),
-                  _buildTextField('Biaya per KM (Rp)', costPerKmCtrl),
-                  _buildTextField('Min Order (Rp)', minOrderCtrl),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-
-                try {
-                  // Generate ID untuk toko baru
-                  final storeId =
-                      store?.id ??
-                      '${DateTime.now().millisecondsSinceEpoch}-${nameCtrl.text.hashCode}';
-
-                  final newStore = DeliveryStore(
-                    id: storeId,
-                    name: nameCtrl.text,
-                    owner: ownerCtrl.text,
-                    address: addressCtrl.text,
-                    latitude: selectedLat,
-                    longitude: selectedLng,
-                    phone: phoneCtrl.text,
-                    whatsapp: whatsappCtrl.text,
-                    email: emailCtrl.text,
-                    deliveryRadius: double.parse(deliveryRadiusCtrl.text),
-                    freeDeliveryRadius: double.parse(
-                      freeDeliveryRadiusCtrl.text,
-                    ),
-                    deliveryCostPerKm: double.parse(costPerKmCtrl.text),
-                    minOrder: double.parse(minOrderCtrl.text),
-                    isActive: true,
-                    createdAt: store?.createdAt ?? DateTime.now(),
-                    updatedAt: DateTime.now(),
-                  );
-
-                  if (isEdit) {
-                    await _repository.updateStore(store.id, newStore);
-                  } else {
-                    final result = await _repository.addStore(newStore);
-                    if (result == null) {
-                      throw Exception('Gagal menambah toko ke database');
-                    }
-                  }
-
-                  if (mounted) {
-                    Navigator.pop(ctx);
-                    _loadStores();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          isEdit ? 'Toko diupdate' : 'Toko ditambah',
-                        ),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: Text(isEdit ? 'Update' : 'Tambah'),
-            ),
-          ],
-        ),
-      ),
+  factory DeliveryStore.fromJson(Map<String, dynamic> json) {
+    return DeliveryStore(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      owner: json['owner']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
+      latitude: _toDouble(json['latitude']),
+      longitude: _toDouble(json['longitude']),
+      phone: json['phone']?.toString() ?? '',
+      whatsapp: json['whatsapp']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      deliveryRadius: _toDouble(json['delivery_radius']),
+      freeDeliveryRadius: _toDouble(json['free_delivery_radius']),
+      deliveryCostPerKm: _toInt(json['delivery_cost_per_km']),
+      minOrder: _toInt(json['min_order']),
+      isActive: json['is_active'] == true || json['is_active'] == 1,
+      createdAt: _toDate(json['created_at']),
+      updatedAt: _toDate(json['updated_at']),
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return '$label tidak boleh kosong';
-          }
-          return null;
-        },
-      ),
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'owner': owner,
+      'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
+      'phone': phone,
+      'whatsapp': whatsapp,
+      'email': email,
+      'delivery_radius': deliveryRadius,
+      'free_delivery_radius': freeDeliveryRadius,
+      'delivery_cost_per_km': deliveryCostPerKm,
+      'min_order': minOrder,
+      'is_active': isActive,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+    };
+  }
+
+  DeliveryStore copyWith({
+    String? id,
+    String? name,
+    String? owner,
+    String? address,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    String? whatsapp,
+    String? email,
+    double? deliveryRadius,
+    double? freeDeliveryRadius,
+    int? deliveryCostPerKm,
+    int? minOrder,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return DeliveryStore(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      owner: owner ?? this.owner,
+      address: address ?? this.address,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      phone: phone ?? this.phone,
+      whatsapp: whatsapp ?? this.whatsapp,
+      email: email ?? this.email,
+      deliveryRadius: deliveryRadius ?? this.deliveryRadius,
+      freeDeliveryRadius: freeDeliveryRadius ?? this.freeDeliveryRadius,
+      deliveryCostPerKm: deliveryCostPerKm ?? this.deliveryCostPerKm,
+      minOrder: minOrder ?? this.minOrder,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kelola Toko Delivery'),
-        backgroundColor: const Color(0xFFFE8C00),
-        foregroundColor: Colors.white,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _stores.isEmpty
-          ? const Center(child: Text('Belum ada toko'))
-          : ListView.builder(
-              itemCount: _stores.length,
-              itemBuilder: (context, index) {
-                final store = _stores[index];
-                return ListTile(
-                  title: Text(store.name),
-                  subtitle: Text(store.address),
-                  trailing: PopupMenuButton(
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        child: const Text('Edit'),
-                        onTap: () => _showAddStoreDialog(store: store),
-                      ),
-                      PopupMenuItem(
-                        child: const Text('Hapus'),
-                        onTap: () async {
-                          await _repository.deleteStore(store.id);
-                          _loadStores();
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddStoreDialog(),
-        backgroundColor: const Color(0xFFFE8C00),
-        child: const Icon(Icons.add),
-      ),
-    );
+  static double _toDouble(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString()) ?? 0.0;
+  }
+
+  static int _toInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    return int.tryParse(v.toString()) ?? 0;
+  }
+
+  static DateTime _toDate(dynamic v) {
+    if (v == null) return DateTime.now();
+    if (v is DateTime) return v;
+    return DateTime.tryParse(v.toString()) ?? DateTime.now();
   }
 }

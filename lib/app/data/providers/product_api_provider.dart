@@ -90,7 +90,7 @@ class ProductApiProvider {
     }
   }
 
-  // Upload product image (optional untuk fitur upload gambar)
+  // Upload product image
   Future<String?> uploadProductImage(
     String productId,
     Uint8List imageBytes,

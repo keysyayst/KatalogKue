@@ -14,35 +14,29 @@ class SearchHistoryHiveService {
   }
 
   /// Simpan query pencarian ke history
-  /// Query akan ditambahkan ke awal list (paling baru)
   Future<void> addSearch(String query) async {
     if (_box == null) {
       throw Exception('SearchHistoryHiveService belum diinisialisasi');
     }
 
-    // Abaikan query kosong atau hanya spasi
     if (query.trim().isEmpty) return;
 
     final trimmedQuery = query.trim().toLowerCase();
 
-    // Hapus query yang sama jika sudah ada (untuk memindahkan ke paling atas)
     final existingIndex = _box!.values.toList().indexOf(trimmedQuery);
     if (existingIndex != -1) {
       await _box!.deleteAt(existingIndex);
     }
 
-    // Tambahkan query baru di awal (index 0)
     await _box!.add(trimmedQuery);
 
     // Batasi history maksimal 20 item
-    // Hapus item terlama jika melebihi batas
     while (_box!.length > 20) {
       await _box!.deleteAt(0);
     }
   }
 
   /// Ambil semua riwayat pencarian
-  /// Diurutkan dari yang terbaru (terakhir ditambahkan)
   List<String> getSearchHistory() {
     if (_box == null) {
       throw Exception('SearchHistoryHiveService belum diinisialisasi');

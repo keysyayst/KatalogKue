@@ -11,6 +11,7 @@ abstract class Routes {
   static const adminProducts = _Paths.adminProducts;
   static const productDetail = '/product/:id';
   static const DELIVERY_CHECKER = _Paths.DELIVERY_CHECKER;
+  static const adminDeliveryStores = _Paths.adminDeliveryStores;
 
   // --- TAMBAHAN UNTUK TESTING ---
   static const locationExperiment = _Paths.locationExperiment;
@@ -25,6 +26,7 @@ abstract class _Paths {
   static const produkKami = '/produk-kami';
   static const produk = '/produk';
   static const adminProducts = '/admin/products';
+  static const adminDeliveryStores = '/admin/delivery-stores';
   static const DELIVERY_CHECKER = '/delivery-checker';
 
   // --- TAMBAHAN UNTUK TESTING ---
