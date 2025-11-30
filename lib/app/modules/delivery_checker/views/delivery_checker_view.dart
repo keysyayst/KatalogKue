@@ -73,37 +73,36 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
 
   // ================= DELIVERY TOGGLE (McD Style) =================
   Widget _buildDeliveryToggle() {
-  return Container(
-    margin: const EdgeInsets.all(20),
-    padding: const EdgeInsets.all(4),
-    decoration: BoxDecoration(
-      color: const Color(0xFFF5F5F5),
-      borderRadius: BorderRadius.circular(100),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: _toggleButton(
-            label: 'Ambil di Tempat',
-            isSelected: false,
-            onTap: () {
-              // NAVIGASI KE HALAMAN PICKUP
-              Get.to(() => const PickupMapView());
-            },
+    return Container(
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _toggleButton(
+              label: 'Ambil di Tempat',
+              isSelected: false,
+              onTap: () {
+                // NAVIGASI KE HALAMAN PICKUP
+                Get.to(() => const PickupMapView());
+              },
+            ),
           ),
-        ),
-        Expanded(
-          child: _toggleButton(
-            label: 'Pengiriman',
-            isSelected: true,
-            onTap: () {}, // Sudah di halaman ini
+          Expanded(
+            child: _toggleButton(
+              label: 'Pengiriman',
+              isSelected: true,
+              onTap: () {}, // Sudah di halaman ini
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 
   Widget _toggleButton({
     required String label,
@@ -148,6 +147,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
       child: Stack(
         children: [
           FlutterMap(
+            mapController: controller.mapController,
             options: MapOptions(
               initialCenter: storeLatLng,
               initialZoom: 12.5,
@@ -273,6 +273,47 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
               ),
             ),
           ),
+
+          // My Location floating button (Google Maps style)
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: Column(
+              children: [
+                FloatingActionButton(
+                  heroTag: 'centerMe',
+                  onPressed: () async {
+                    await controller.centerOnUser();
+                  },
+                  backgroundColor: Colors.white,
+                  elevation: 3,
+                  child: const Icon(
+                    Icons.my_location,
+                    color: Color(0xFFFE8C00),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Obx(
+                  () => FloatingActionButton(
+                    heroTag: 'liveToggle',
+                    onPressed: controller.isLiveTracking.value
+                        ? controller.stopLiveTracking
+                        : controller.startLiveTracking,
+                    backgroundColor: controller.isLiveTracking.value
+                        ? Colors.red
+                        : const Color(0xFFFE8C00),
+                    elevation: 3,
+                    child: Icon(
+                      controller.isLiveTracking.value
+                          ? Icons.pause_circle_filled
+                          : Icons.play_circle_fill,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -320,15 +361,11 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                 const SizedBox(height: 6),
                 Text(
                   'Pengiriman dalam ${controller.estimatedTime.value} menit',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
           ),
-          
         ],
       ),
     );
@@ -337,17 +374,17 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   // ================= DELIVERY INFO CARD =================
   Widget _buildDeliveryInfoCard() {
     final inZone = controller.isInDeliveryZone.value;
-    
+
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: inZone 
+        color: inZone
             ? const Color(0xFFFE8C00).withOpacity(0.08)
             : Colors.red.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: inZone 
+          color: inZone
               ? const Color(0xFFFE8C00).withOpacity(0.3)
               : Colors.red.withOpacity(0.3),
         ),
@@ -403,10 +440,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                     label: 'Biaya Ongkir',
                     value: controller.isFreeDelivery.value
                         ? 'GRATIS 🎉'
-                        : 'Rp ${controller.deliveryCost.value.toString().replaceAllMapped(
-                              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                              (m) => '${m[1]}.',
-                            )}',
+                        : 'Rp ${controller.deliveryCost.value.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}',
                   ),
                 ],
               ],
@@ -444,10 +478,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
               icon: const Icon(Icons.directions, size: 22),
               label: const Text(
                 'Buka Petunjuk Arah',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFE8C00),
@@ -471,19 +502,12 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   }) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 22,
-          color: const Color(0xFFFE8C00),
-        ),
+        Icon(icon, size: 22, color: const Color(0xFFFE8C00)),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
           ),
         ),
         Text(
@@ -511,17 +535,12 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
         icon: Icon(icon, size: 20),
         label: Text(
           label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
         style: OutlinedButton.styleFrom(
           foregroundColor: color,
           side: BorderSide(color: color, width: 2),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );
@@ -533,17 +552,11 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            color: Color(0xFFFE8C00),
-            strokeWidth: 3,
-          ),
+          CircularProgressIndicator(color: Color(0xFFFE8C00), strokeWidth: 3),
           SizedBox(height: 20),
           Text(
             'Mencari lokasi Anda...',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black54,
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.black54),
           ),
         ],
       ),

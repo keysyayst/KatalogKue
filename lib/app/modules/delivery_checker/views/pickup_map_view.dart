@@ -44,6 +44,7 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
     );
 
     return FlutterMap(
+      mapController: controller.mapController,
       options: MapOptions(
         initialCenter: storeLatLng,
         initialZoom: 13,
@@ -318,10 +319,7 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
                 Expanded(
                   child: Text(
                     CateringInfo.store['address'],
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                    ),
+                    style: const TextStyle(fontSize: 13, color: Colors.grey),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -331,18 +329,11 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
             const SizedBox(height: 12),
             const Row(
               children: [
-                Icon(
-                  Icons.access_time,
-                  color: Color(0xFFFE8C00),
-                  size: 20,
-                ),
+                Icon(Icons.access_time, color: Color(0xFFFE8C00), size: 20),
                 SizedBox(width: 8),
                 Text(
                   'Buka • Tutup pukul 22:00',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
                 ),
               ],
             ),
@@ -442,17 +433,11 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(
-              color: Color(0xFFFE8C00),
-              strokeWidth: 3,
-            ),
+            CircularProgressIndicator(color: Color(0xFFFE8C00), strokeWidth: 3),
             SizedBox(height: 20),
             Text(
               'Memuat peta...',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black54,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.black54),
             ),
           ],
         ),

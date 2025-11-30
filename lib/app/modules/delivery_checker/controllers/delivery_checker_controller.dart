@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../data/services/location_service.dart';
 import '../../../data/sources/catering_info.dart';
@@ -10,6 +13,9 @@ import '../../../data/models/product.dart';
 
 class DeliveryCheckerController extends GetxController {
   final LocationService locationService = Get.find<LocationService>();
+
+  // Map controller to control camera programmatically
+  final MapController mapController = MapController();
 
   // Observables lokasi & ongkir
   final Rx<Position?> customerLocation = Rx<Position?>(null);
@@ -31,10 +37,20 @@ class DeliveryCheckerController extends GetxController {
   // Lokasi terakhir sebagai URL Google Maps
   final RxString lastLocationUrl = ''.obs;
 
+  // Live tracking state & subscription
+  final RxBool isLiveTracking = false.obs;
+  StreamSubscription<Position>? _positionStream;
+
   @override
   void onInit() {
     super.onInit();
     checkCustomerLocation();
+  }
+
+  @override
+  void onClose() {
+    stopLiveTracking();
+    super.onClose();
   }
 
   // ================= TEXT UNTUK WHATSAPP =================
@@ -43,11 +59,8 @@ class DeliveryCheckerController extends GetxController {
     final jarak = distanceToStore.value.toStringAsFixed(2);
     final ongkir = isInDeliveryZone.value
         ? (isFreeDelivery.value
-            ? 'GRATIS'
-            : 'Rp ${deliveryCost.value.toString().replaceAllMapped(
-                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                  (m) => '${m[1]}.',
-                )}')
+              ? 'GRATIS'
+              : 'Rp ${deliveryCost.value.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}')
         : 'Di luar jangkauan';
 
     String lokasiText = '';
@@ -120,6 +133,9 @@ class DeliveryCheckerController extends GetxController {
 
       if (customerLocation.value != null) {
         calculateDeliveryInfo();
+
+        // Center map on initial location without enabling live
+        _moveCameraTo(customerLocation.value!);
       }
     } catch (e) {
       Get.snackbar(
@@ -212,6 +228,56 @@ class DeliveryCheckerController extends GetxController {
   }
 
   // ========================================
+  // LIVE TRACKING CONTROL
+  // ========================================
+
+  void startLiveTracking() {
+    if (isLiveTracking.value) return;
+    isLiveTracking.value = true;
+
+    _positionStream = locationService.getLiveLocationStream().listen((pos) {
+      customerLocation.value = pos;
+      calculateDeliveryInfo();
+      _moveCameraTo(pos);
+    });
+
+    Get.snackbar(
+      'Live Location Aktif',
+      'Peta mengikuti pergerakan Anda',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
+  }
+
+  void stopLiveTracking() {
+    isLiveTracking.value = false;
+    _positionStream?.cancel();
+    _positionStream = null;
+  }
+
+  Future<void> centerOnUser() async {
+    // If we don't have a location yet, fetch once
+    if (customerLocation.value == null) {
+      await checkCustomerLocation();
+    }
+    final pos = customerLocation.value;
+    if (pos != null) {
+      _moveCameraTo(pos);
+    }
+  }
+
+  void _moveCameraTo(Position pos) {
+    try {
+      mapController.move(
+        LatLng(pos.latitude, pos.longitude),
+        mapController.camera.zoom,
+      );
+    } catch (_) {
+      // Map might not be ready yet; ignore
+    }
+  }
+
+  // ========================================
   // GET DELIVERY MESSAGE UNTUK CARD
   // ========================================
 
@@ -221,10 +287,7 @@ class DeliveryCheckerController extends GetxController {
     } else if (isFreeDelivery.value) {
       return 'Selamat! Lokasi Anda mendapat GRATIS ONGKIR!';
     } else {
-      return 'Ongkir: Rp ${deliveryCost.value.toString().replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-        (Match m) => '${m[1]}.',
-      )}';
+      return 'Ongkir: Rp ${deliveryCost.value.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';
     }
   }
 
@@ -244,11 +307,9 @@ class DeliveryCheckerController extends GetxController {
 
     String productInfo;
     if (selectedProduct != null) {
-      productInfo = """Produk: ${selectedProduct.title}
-Harga: Rp ${selectedProduct.price.toString().replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-        (Match m) => '${m[1]}.',
-      )}
+      productInfo =
+          """Produk: ${selectedProduct.title}
+Harga: Rp ${selectedProduct.price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}
 Jumlah: 1 pcs
 
 """;
@@ -259,11 +320,8 @@ Jumlah: 1 pcs
     final jarak = distanceToStore.value.toStringAsFixed(2);
     final ongkir = isInDeliveryZone.value
         ? (isFreeDelivery.value
-            ? 'GRATIS'
-            : 'Rp ${deliveryCost.value.toString().replaceAllMapped(
-                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                  (m) => '${m[1]}.',
-                )}')
+              ? 'GRATIS'
+              : 'Rp ${deliveryCost.value.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}')
         : 'Di luar jangkauan';
 
     String lokasiText = '';
@@ -271,14 +329,12 @@ Jumlah: 1 pcs
       lokasiText = '\nLokasi saya: ${lastLocationUrl.value}';
     }
 
-    final message = Uri.encodeComponent(
-      """Halo, saya ingin memesan kue.
+    final message = Uri.encodeComponent("""Halo, saya ingin memesan kue.
 
 $productInfo dari catering: $jarak km
 Ongkir: $ongkir$lokasiText
 
-Mohon konfirmasi ketersediaan dan total harga. Terima kasih.""",
-    );
+Mohon konfirmasi ketersediaan dan total harga. Terima kasih.""");
 
     final url = 'https://wa.me/$phone?text=$message';
     final uri = Uri.parse(url);
