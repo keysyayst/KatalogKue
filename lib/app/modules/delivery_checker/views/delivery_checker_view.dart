@@ -11,9 +11,38 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: _buildAppBar(),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: Theme.of(context).appBarTheme.foregroundColor,
+          ),
+          onPressed: () => Get.back(),
+        ),
+        title: Text(
+          'Pesanan',
+          style: TextStyle(
+            color: Theme.of(context).appBarTheme.foregroundColor,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.refresh,
+              color: Theme.of(context).appBarTheme.foregroundColor,
+            ),
+            onPressed: controller.refreshLocation,
+          ),
+        ],
+      ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return _buildLoadingState();
@@ -30,12 +59,12 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDeliveryToggle(),
-                    _buildStoreSelector(),
+                    _buildDeliveryToggle(isDark),
+                    _buildStoreSelector(isDark),
                     _buildStoreInfoCard(),
                     _buildMapSection(),
-                    _buildAddressCard(),
-                    _buildDeliveryInfoCard(),
+                    _buildAddressCard(isDark),
+                    _buildDeliveryInfoCard(isDark),
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -47,45 +76,20 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ========= APP BAR ==================
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-        onPressed: () => Get.back(),
-      ),
-      title: const Text(
-        'Pesanan',
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.refresh, color: Colors.black),
-          onPressed: controller.refreshLocation,
-        ),
-      ],
-    );
-  }
-
   // ========= DELIVERY TOGGLE ==================
-  Widget _buildDeliveryToggle() {
+  Widget _buildDeliveryToggle(bool isDark) {
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(100),
       ),
       child: Row(
         children: [
           Expanded(
             child: _toggleButton(
+              isDark: isDark,
               label: 'Ambil di Tempat',
               isSelected: false,
               onTap: () {
@@ -95,6 +99,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
           ),
           Expanded(
             child: _toggleButton(
+              isDark: isDark,
               label: 'Pengiriman',
               isSelected: true,
               onTap: () {},
@@ -106,6 +111,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   }
 
   Widget _toggleButton({
+    required bool isDark,
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
@@ -124,7 +130,9 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: isSelected ? Colors.white : Colors.black,
+            color: isSelected
+                ? Colors.white
+                : (isDark ? Colors.white : Colors.black),
           ),
         ),
       ),
@@ -132,7 +140,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   }
 
   //STORE SELECTOR
-  Widget _buildStoreSelector() {
+  Widget _buildStoreSelector(bool isDark) {
     return Obx(() {
       if (controller.storesLoading.value) {
         return Container(
@@ -159,7 +167,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
         decoration: BoxDecoration(
           border: Border.all(color: const Color(0xFFFE8C00).withOpacity(0.3)),
           borderRadius: BorderRadius.circular(12),
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         ),
         child: Row(
           children: [
@@ -563,14 +571,16 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   }
 
   // ================= ADDRESS CARD =================
-  Widget _buildAddressCard() {
+  Widget _buildAddressCard(bool isDark) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(
+          color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+        ),
       ),
       child: Row(
         children: [
@@ -593,10 +603,10 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
               children: [
                 Text(
                   controller.locationMethod.value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -604,7 +614,9 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                 const SizedBox(height: 6),
                 Text(
                   'Pengiriman dalam ${controller.estimatedTime.value} menit',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white70 : Colors.grey[600]),
                 ),
               ],
             ),
@@ -615,7 +627,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   }
 
   // ================= DELIVERY INFO CARD =================
-  Widget _buildDeliveryInfoCard() {
+  Widget _buildDeliveryInfoCard(bool isDark) {
     final inZone = controller.isInDeliveryZone.value;
 
     return Container(
@@ -645,7 +657,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: inZone ? Colors.black : Colors.red[900],
+              color: inZone ? (isDark ? Colors.white : Colors.black) : Colors.red[900],
             ),
           ),
           const SizedBox(height: 8),
@@ -654,7 +666,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[700],
+              color: isDark ? Colors.white70 : Colors.grey[700],
               height: 1.5,
             ),
           ),
@@ -663,12 +675,13 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
               children: [
                 _infoRow(
+                  isDark: isDark,
                   icon: Icons.access_time,
                   label: 'Estimasi Waktu',
                   value: '~${controller.estimatedTime.value} menit',
@@ -679,6 +692,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                     child: Divider(height: 1),
                   ),
                   _infoRow(
+                    isDark: isDark,
                     icon: Icons.local_shipping,
                     label: 'Biaya Ongkir',
                     value: controller.isFreeDelivery.value
@@ -739,6 +753,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   }
 
   Widget _infoRow({
+    required bool isDark,
     required IconData icon,
     required String label,
     required String value,
@@ -755,10 +770,10 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
         ),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: isDark ? Colors.white : Colors.black87,
           ),
         ),
       ],
@@ -795,11 +810,15 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: Color(0xFFFE8C00), strokeWidth: 3),
+          CircularProgressIndicator(
+              color: Color(0xFFFE8C00), strokeWidth: 3),
           SizedBox(height: 20),
           Text(
             'Mencari lokasi Anda...',
-            style: TextStyle(fontSize: 16, color: Colors.black54),
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
+            ),
           ),
         ],
       ),
