@@ -15,6 +15,7 @@ abstract class Routes {
 
   // --- TAMBAHAN UNTUK TESTING ---
   static const locationExperiment = _Paths.locationExperiment;
+  static const NOTIFICATION = _Paths.NOTIFICATION;
 }
 
 abstract class _Paths {
@@ -31,4 +32,5 @@ abstract class _Paths {
 
   // --- TAMBAHAN UNTUK TESTING ---
   static const locationExperiment = '/location-experiment';
+  static const NOTIFICATION = '/notification';
 }
