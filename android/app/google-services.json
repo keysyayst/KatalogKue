@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "183950402704",
+    "project_id": "katalog-kue",
+    "storage_bucket": "katalog-kue.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:183950402704:android:4c37b7faef123ae30be415",
+        "android_client_info": {
+          "package_name": "com.example.katalog_kue_lebaran"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgoS7bz7iM_HUaE8TjNtpl_8DImcrIuu0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
