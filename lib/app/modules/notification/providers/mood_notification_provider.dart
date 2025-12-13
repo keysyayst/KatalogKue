@@ -4,7 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class MoodNotificationProvider extends GetxService {
-  final FlutterLocalNotificationsPlugin _plugin = 
+  final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
   // Konfigurasi waktu notifikasi
@@ -40,85 +40,86 @@ class MoodNotificationProvider extends GetxService {
   };
 
   Future<MoodNotificationProvider> init() async {
-    // Schedule semua notifikasi untuk besok
-    await _scheduleAllNotifications();
-    print('✅ Mood Notification Service initialized');
+    print('✅ Mood Notification Service initialized (scheduling deferred)');
     return this;
   }
 
-  Future<void> _scheduleAllNotifications() async {
-    final prefs = Get.find<SharedPreferences>();
-    final enabled = prefs.getBool('mood_notifications_enabled') ?? true;
-    
-    if (!enabled) return;
+  Future<void> scheduleAllNotifications() async {
+    try {
+      final prefs = Get.find<SharedPreferences>();
+      final enabled = prefs.getBool('mood_notifications_enabled') ?? true;
 
-    int id = 1000; // Starting ID untuk mood notifications
-    
-    for (var entry in moods.entries) {
-      final moodName = entry.key;
-      final config = entry.value;
-      
-      // Hitung waktu scheduling
-      final now = tz.TZDateTime.now(tz.local);
-      var scheduledDate = tz.TZDateTime(
-        tz.local,
-        now.year,
-        now.month,
-        now.day,
-        config.hour,
-        config.minute,
-      );
+      if (!enabled) return;
 
-      // Jika waktu sudah lewat hari ini, schedule untuk besok
-      if (scheduledDate.isBefore(now)) {
-        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      int id = 1000;
+
+      for (var entry in moods.entries) {
+        final moodName = entry.key;
+        final config = entry.value;
+
+        final now = tz.TZDateTime.now(tz.local);
+        var scheduledDate = tz.TZDateTime(
+          tz.local,
+          now.year,
+          now.month,
+          now.day,
+          config.hour,
+          config.minute,
+        );
+
+        if (scheduledDate.isBefore(now)) {
+          scheduledDate = scheduledDate.add(const Duration(days: 1));
+        }
+
+        try {
+          await _plugin.zonedSchedule(
+            id++,
+            config.title,
+            config.body,
+            scheduledDate,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                'katalog_kue_channel',
+                'Katalog Kue Notifications',
+                channelDescription: 'Notifikasi mood-based',
+                importance: Importance.high,
+                priority: Priority.high,
+                icon: '@mipmap/ic_launcher',
+                playSound: true,
+              ),
+              iOS: const DarwinNotificationDetails(presentSound: true),
+            ),
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime,
+            payload: config.productId,
+            // REPEAT SETIAP HARI
+            matchDateTimeComponents: DateTimeComponents.time,
+          );
+
+          print('Scheduled $moodName at ${config.hour}:${config.minute}');
+        } catch (e) {
+          print('Error scheduling $moodName: $e');
+        }
       }
-
-      // Schedule notification
-      await _plugin.zonedSchedule(
-        id++,
-        config.title,
-        config.body,
-        scheduledDate,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'katalog_kue_channel',
-            'Katalog Kue Notifications',
-            channelDescription: 'Notifikasi mood-based',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-            playSound: true,
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentSound: true,
-          ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        payload: config.productId,
-        // REPEAT SETIAP HARI
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
-
-      print('📅 Scheduled $moodName at ${config.hour}:${config.minute}');
+    } catch (e) {
+      print('Error in scheduleAllNotifications: $e');
     }
   }
 
   // Cancel all scheduled notifications
   Future<void> cancelAllScheduled() async {
     await _plugin.cancelAll();
-    print('❌ All scheduled notifications cancelled');
+    print('All scheduled notifications cancelled');
   }
 
   // Toggle mood notifications
   Future<void> toggle(bool enabled) async {
     final prefs = Get.find<SharedPreferences>();
     await prefs.setBool('mood_notifications_enabled', enabled);
-    
+
     if (enabled) {
-      await _scheduleAllNotifications();
+      await scheduleAllNotifications();
     } else {
       await cancelAllScheduled();
     }
