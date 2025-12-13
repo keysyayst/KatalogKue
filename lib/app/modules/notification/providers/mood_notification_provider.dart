@@ -107,6 +107,11 @@ class MoodNotificationProvider extends GetxService {
     }
   }
 
+  // ⚠️ DEPRECATED: Gunakan scheduleAllNotifications() untuk compatibility
+  Future<void> _scheduleAllNotifications() async {
+    await scheduleAllNotifications();
+  }
+
   // Cancel all scheduled notifications
   Future<void> cancelAllScheduled() async {
     await _plugin.cancelAll();
