@@ -7,11 +7,7 @@ import '../controllers/notification_controller.dart';
 class NotificationBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<MoodNotificationController>(
-      () => MoodNotificationController(),
-    );
-    Get.lazyPut<NotificationController>(
-      () => NotificationController(),
-    );
+    Get.lazyPut<MoodNotificationController>(() => MoodNotificationController());
+    Get.lazyPut<NotificationController>(() => NotificationController());
   }
 }
