@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 import 'app/app.dart';
 import 'app/data/services/auth_service.dart';
 import 'app/data/sources/products.dart';
@@ -20,6 +22,16 @@ import 'app/modules/notification/providers/local_notification_provider.dart';
 import 'app/modules/notification/providers/mood_notification_provider.dart';
 
 Future<void> initServices() async {
+  // ========== TIMEZONE SETUP ==========
+  // Initialize timezone data SEBELUM notification service
+  try {
+    tz_data.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+    print('✅ Timezone initialized');
+  } catch (e) {
+    print('❌ Timezone init error: $e');
+  }
+
   // ========== SUPABASE SETUP ==========
   // Ambil variabel environment
   final supabaseUrl = dotenv.env['SUPABASE_URL'];
@@ -70,16 +82,46 @@ Future<void> initServices() async {
 
   // ========== NOTIFICATION SERVICES (MODUL 6) ==========
   // Initialize Local Notification Service (harus duluan)
-  await Get.putAsync(() => LocalNotificationProvider().init());
-  print('Local Notification Service initialized');
+  try {
+    await Get.putAsync(() => LocalNotificationProvider().init()).timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {
+        print('⚠️ LocalNotificationProvider init timeout, continuing...');
+        return LocalNotificationProvider();
+      },
+    );
+    print('Local Notification Service initialized');
+  } catch (e) {
+    print('❌ LocalNotificationProvider error: $e');
+  }
 
   // Initialize Firebase Messaging Service
-  await Get.putAsync(() => FirebaseMessagingProvider().init());
-  print('Firebase Messaging Service initialized');
+  try {
+    await Get.putAsync(() => FirebaseMessagingProvider().init()).timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {
+        print('⚠️ FirebaseMessagingProvider init timeout, continuing...');
+        return FirebaseMessagingProvider();
+      },
+    );
+    print('Firebase Messaging Service initialized');
+  } catch (e) {
+    print('❌ FirebaseMessagingProvider error: $e');
+  }
 
   // Initialize Mood-Based Notification Service
-  await Get.putAsync(() => MoodNotificationProvider().init());
-  print('Mood Notification Service initialized');
+  try {
+    await Get.putAsync(() => MoodNotificationProvider().init()).timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {
+        print('⚠️ MoodNotificationProvider init timeout, continuing...');
+        return MoodNotificationProvider();
+      },
+    );
+    print('Mood Notification Service initialized');
+  } catch (e) {
+    print('❌ MoodNotificationProvider error: $e');
+  }
 
   print('All services initialized successfully!');
 }
