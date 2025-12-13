@@ -1,23 +1,36 @@
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationController extends GetxController {
-  //TODO: Implement NotificationController
+  final moodEnabled = true.obs;
+  final promoEnabled = true.obs;
 
-  final count = 0.obs;
   @override
   void onInit() {
     super.onInit();
+    _loadPrefs();
   }
 
-  @override
-  void onReady() {
-    super.onReady();
+  void _loadPrefs() {
+    final prefs = Get.find<SharedPreferences>();
+    moodEnabled.value = prefs.getBool('mood_notif') ?? true;
+    promoEnabled.value = prefs.getBool('promo_notif') ?? true;
   }
 
-  @override
-  void onClose() {
-    super.onClose();
+  Future<void> toggleMood(bool value) async {
+    moodEnabled.value = value;
+    final prefs = Get.find<SharedPreferences>();
+    await prefs.setBool('mood_notif', value);
+    
+    Get.snackbar(
+      value ? 'Aktif' : 'Nonaktif',
+      'Rekomendasi harian ${value ? "aktif" : "nonaktif"}',
+    );
   }
 
-  void increment() => count.value++;
+  Future<void> togglePromo(bool value) async {
+    promoEnabled.value = value;
+    final prefs = Get.find<SharedPreferences>();
+    await prefs.setBool('promo_notif', value);
+  }
 }
