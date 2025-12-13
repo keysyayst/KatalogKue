@@ -4,7 +4,6 @@ import '../controllers/produk_controller.dart';
 import '../../../data/models/product.dart';
 import '../../delivery_checker/controllers/delivery_checker_controller.dart';
 
-
 class DetailProdukPage extends GetView<ProdukController> {
   const DetailProdukPage({super.key});
 
@@ -472,44 +471,44 @@ class DetailProdukPage extends GetView<ProdukController> {
   }
 
   Widget _buildBottomBar(Product product) {
-  return Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 10,
-          offset: const Offset(0, -3),
-        ),
-      ],
-    ),
-    child: SafeArea(
-      child: ElevatedButton.icon(
-        onPressed: () async {
-          try {
-            final deliveryC = Get.find<DeliveryCheckerController>();
-            await deliveryC.openWhatsAppWithProduct(product);
-          } catch (e) {
-            Get.snackbar(
-              'Error',
-              'Gagal membuka WhatsApp',
-              snackPosition: SnackPosition.BOTTOM,
-            );
-          }
-        },
-        icon: const Icon(Icons.shopping_cart),
-        label: const Text('Pesan via WhatsApp'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFFE8C00),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: ElevatedButton.icon(
+          onPressed: () async {
+            try {
+              final deliveryC = Get.find<DeliveryCheckerController>();
+              await deliveryC.openWhatsAppWithProduct(product);
+            } catch (e) {
+              Get.snackbar(
+                'Error',
+                'Gagal membuka WhatsApp',
+                snackPosition: SnackPosition.BOTTOM,
+              );
+            }
+          },
+          icon: const Icon(Icons.shopping_cart),
+          label: const Text('Pesan via WhatsApp'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFE8C00),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
