@@ -7,7 +7,6 @@ import 'local_notification_provider.dart';
 // ✅ PERBAIKAN IMPORT: Gunakan package absolute path agar pasti ketemu
 // Pastikan 'katalog' adalah nama package di pubspec.yaml Anda (sesuai history chat sebelumnya)
 import 'package:katalog/app/routes/app_pages.dart';
-import 'package:katalog/app/app.dart'; // ← TAMBAH: Import DashboardController
 
 @pragma('vm:entry-point')
 Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
@@ -81,20 +80,9 @@ class FirebaseMessagingProvider extends GetxService {
     Future.delayed(const Duration(milliseconds: 1500), () {
       // LOGIC 1: MENU PRODUK
       if (screen == 'produk') {
-        print('📍 Target: MENU PRODUK');
+        print('📍 Target: MENU PRODUK (${Routes.produk})');
         try {
-          // ✅ PERBAIKAN: Navigasi ke Dashboard dulu, lalu set tab ke Produk
-          Get.offAllNamed(Routes.dashboard);
-
-          // Tunggu sebentar agar DashboardController siap
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (Get.isRegistered<DashboardController>()) {
-              Get.find<DashboardController>().changeTabIndex(
-                1,
-              ); // Index 1 = Produk
-              print('✅ Tab switched to Produk (index 1)');
-            }
-          });
+          Get.toNamed(Routes.produk);
         } catch (e) {
           print('❌ Gagal Navigasi Produk: $e');
           Get.snackbar('Error', 'Gagal membuka produk: $e');
@@ -102,47 +90,14 @@ class FirebaseMessagingProvider extends GetxService {
       }
       // LOGIC 2: PROFILE
       else if (screen == 'profile') {
-        print('📍 Target: PROFILE');
-        try {
-          Get.offAllNamed(Routes.dashboard);
-
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (Get.isRegistered<DashboardController>()) {
-              Get.find<DashboardController>().changeTabIndex(
-                4,
-              ); // Index 4 = Profile
-              print('✅ Tab switched to Profile (index 4)');
-            }
-          });
-        } catch (e) {
-          print('❌ Gagal Navigasi Profile: $e');
-        }
+        print('📍 Target: PROFILE (${Routes.profile})');
+        Get.toNamed(Routes.profile);
       }
-      // LOGIC 3: DELIVERY
-      else if (screen == 'delivery') {
-        print('📍 Target: DELIVERY');
-        try {
-          Get.offAllNamed(Routes.dashboard);
-
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (Get.isRegistered<DashboardController>()) {
-              Get.find<DashboardController>().changeTabIndex(
-                3,
-              ); // Index 3 = Delivery
-              print('✅ Tab switched to Delivery (index 3)');
-            }
-          });
-        } catch (e) {
-          print('❌ Gagal Navigasi Delivery: $e');
-        }
-      }
-      // LOGIC 4: FALLBACK
+      // LOGIC 3: FALLBACK
       else {
-        print('⚠️ Screen "$screen" tidak dikenal. Default ke Home.');
-        Get.offAllNamed(Routes.dashboard);
-        if (Get.isRegistered<DashboardController>()) {
-          Get.find<DashboardController>().changeTabIndex(0); // Index 0 = Home
-        }
+        print('⚠️ Screen "$screen" tidak dikenal. Default ke Produk.');
+        // Tetap arahkan ke produk jika payload salah, supaya terlihat "jalan"
+        Get.toNamed(Routes.produk);
       }
     });
   }
