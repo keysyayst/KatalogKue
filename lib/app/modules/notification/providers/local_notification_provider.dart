@@ -1,69 +1,57 @@
 import 'dart:async';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:katalog/app/app.dart';
 
 class LocalNotificationProvider extends GetxService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
-
-  // DEFINISI KONSTANTA AGAR KONSISTEN
-  // PENTING: ID Channel diganti (_v2) agar settingan suara baru terbaca oleh Android
   static const String channelId = 'katalog_kue_channel_v2';
   static const String channelName = 'Katalog Kue Promo';
   static const String channelDesc = 'Notifikasi dengan suara kustom';
   static const String soundFile =
-      'notif_sound'; // Nama file di res/raw tanpa ekstensi
+      'notif_sound';
 
   Future<LocalNotificationProvider> init() async {
-    // 1. Setup Android Settings
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
 
-    // 2. Setup iOS Settings (Request Permission Sound)
     const iosSettings = DarwinInitializationSettings(
       requestSoundPermission: true,
       requestAlertPermission: true,
       requestBadgePermission: true,
     );
 
-    // 3. Initialize Plugin & Handle Click (Foreground & Background)
     await _plugin.initialize(
       const InitializationSettings(android: androidSettings, iOS: iosSettings),
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Logika ketika notif diklik saat aplikasi sedang berjalan (background/foreground)
         _handleNotificationClick(response.payload);
       },
     );
 
-    // 4. Create Channel Khusus Android (Wajib untuk Custom Sound)
     final androidImplementation = _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
 
     if (androidImplementation != null) {
-      // Hapus channel lama agar bersih (opsional)
       await androidImplementation.deleteNotificationChannel(
         'katalog_kue_channel',
       );
 
-      // Buat channel baru dengan suara
       await androidImplementation.createNotificationChannel(
         const AndroidNotificationChannel(
           channelId,
           channelName,
           description: channelDesc,
-          importance: Importance.max, // Max = Muncul Popup (Heads-up)
+          importance: Importance.max, 
           playSound: true,
-          // PENTING: Link ke file di android/app/src/main/res/raw/notif_sound.mp3
           sound: RawResourceAndroidNotificationSound(soundFile),
         ),
       );
     }
 
-    // 5. Handle Click (Terminated / Mati Total)
-    // Cek apakah aplikasi baru saja dibuka karena user menekan notifikasi?
     final NotificationAppLaunchDetails? notificationAppLaunchDetails =
         await _plugin.getNotificationAppLaunchDetails();
 
@@ -72,29 +60,60 @@ class LocalNotificationProvider extends GetxService {
           notificationAppLaunchDetails!.notificationResponse?.payload;
       if (payload != null) {
         print(
-          '📱 Aplikasi dibuka dari notifikasi (Terminated). Payload: $payload',
+          'Aplikasi dibuka dari notifikasi (Terminated). Payload: $payload',
         );
-        // Beri delay sedikit agar GetX Routing siap
         Future.delayed(const Duration(milliseconds: 800), () {
           _handleNotificationClick(payload);
         });
       }
     }
 
-    print('✅ Local Notification Service initialized with Custom Sound');
+    print('Local Notification Service initialized with Custom Sound');
     return this;
   }
 
-  // Fungsi Navigasi Terpusat
   void _handleNotificationClick(String? payload) {
     if (payload != null && payload.isNotEmpty) {
-      print('🚀 Navigasi ke Product Detail: $payload');
-      // Pastikan route ini ada di AppPages Anda
-      Get.toNamed('/product-detail', arguments: payload);
+      print('Local Notification diklik. Payload: $payload');
+
+      try {
+        if (Get.isRegistered<DashboardController>()) {
+          final dashboardController = Get.find<DashboardController>();
+
+          switch (payload.toLowerCase()) {
+            case 'produk':
+              print('Target: Tab Produk (Index 1)');
+              dashboardController.changeTabIndex(1);
+              break;
+            case 'profile':
+              print('Target: Tab Profile (Index 4)');
+              dashboardController.changeTabIndex(4);
+              break;
+            case 'delivery':
+              print('Target: Tab Delivery (Index 3)');
+              dashboardController.changeTabIndex(3);
+              break;
+            case 'favorite':
+              print('Target: Tab Favorite (Index 2)');
+              dashboardController.changeTabIndex(2);
+              break;
+            case 'home':
+              print('Target: Tab Home (Index 0)');
+              dashboardController.changeTabIndex(0);
+              break;
+            default:
+              print('⚠ Payload "$payload" tidak dikenal. Default ke Produk.');
+              dashboardController.changeTabIndex(1);
+          }
+        } else {
+          print('DashboardController tidak ditemukan. Payload: $payload');
+        }
+      } catch (e) {
+        print('Error handling notification click: $e');
+      }
     }
   }
 
-  // Fungsi Show Notification Manual
   Future<void> showNotification({
     required String title,
     required String body,
@@ -106,14 +125,13 @@ class LocalNotificationProvider extends GetxService {
       body,
       NotificationDetails(
         android: AndroidNotificationDetails(
-          channelId, // Gunakan ID V2
+          channelId, 
           channelName,
           channelDescription: channelDesc,
           importance: Importance.max,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
           playSound: true,
-          // Sound di set ulang disini untuk kepastian
           sound: const RawResourceAndroidNotificationSound(soundFile),
         ),
         iOS: const DarwinNotificationDetails(presentSound: true),

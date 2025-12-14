@@ -2,24 +2,19 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
-
-// Import provider local untuk mengambil konstanta Channel ID & Sound agar sinkron
 import 'local_notification_provider.dart';
 
 class MoodNotificationProvider extends GetxService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
-  // Mengambil konfigurasi dari LocalNotificationProvider agar konsisten
   final String _channelId = LocalNotificationProvider.channelId;
   final String _channelName = LocalNotificationProvider.channelName;
   final String _soundFile = LocalNotificationProvider.soundFile;
 
   // Daftar notifikasi BERURUTAN (13:46 - 14:00)
   final Map<String, MoodConfig> moods = {
-    // ==============================================
-    // 🧪 TESTING MARATHON (13:46 - 14:00)
-    // ==============================================
+    // TESTING MARATHON (13:46 - 14:00)
 
     // TEST 1: Cek Suara & Pop-up (Aplikasi Dibuka/Background)
     'test_1': MoodConfig(
@@ -75,9 +70,7 @@ class MoodNotificationProvider extends GetxService {
       productId: 'thumbprint',
     ),
 
-    // ==============================================
-    // 📅 DAILY SCHEDULE (Jadwal Asli - Tetap Disimpan)
-    // ==============================================
+    // DAILY SCHEDULE (Jadwal Asli - Tetap Disimpan)
     'morning': MoodConfig(
       hour: 8,
       minute: 0,
@@ -109,7 +102,7 @@ class MoodNotificationProvider extends GetxService {
   };
 
   Future<MoodNotificationProvider> init() async {
-    print('✅ Mood Notification Service initialized');
+    print(' Mood Notification Service initialized');
     // Jadwalkan ulang segera saat init agar test schedule masuk
     await scheduleAllNotifications();
     return this;
@@ -121,13 +114,13 @@ class MoodNotificationProvider extends GetxService {
       final enabled = prefs.getBool('mood_notifications_enabled') ?? true;
 
       if (!enabled) {
-        print('🚫 Mood notifications are disabled');
+        print('Mood notifications are disabled');
         return;
       }
 
       // 1. Cancel jadwal lama
       await _plugin.cancelAll();
-      print('🗑️ Old schedules cancelled');
+      print('Old schedules cancelled');
 
       int id = 1000;
 
@@ -146,8 +139,7 @@ class MoodNotificationProvider extends GetxService {
           config.minute,
         );
 
-        // Logic hari: Jika jam sudah lewat, geser ke besok.
-        // HATI-HATI: Jika jam 13:46 sudah lewat saat Anda run, notif ini akan lari ke BESOK.
+        // Jika jam sudah lewat, geser ke besok
         if (scheduledDate.isBefore(now)) {
           scheduledDate = scheduledDate.add(const Duration(days: 1));
         }
@@ -160,7 +152,7 @@ class MoodNotificationProvider extends GetxService {
             scheduledDate,
             NotificationDetails(
               android: AndroidNotificationDetails(
-                _channelId, // ID V2
+                _channelId, 
                 _channelName,
                 channelDescription: 'Notifikasi mood-based',
                 importance: Importance.max,
@@ -172,7 +164,6 @@ class MoodNotificationProvider extends GetxService {
               ),
               iOS: const DarwinNotificationDetails(presentSound: true),
             ),
-            // WAJIB UTK BACKGROUND/TERMINATED
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
 
             uiLocalNotificationDateInterpretation:
@@ -184,14 +175,14 @@ class MoodNotificationProvider extends GetxService {
           );
 
           print(
-            '📅 Terjadwal: [$moodName] jam ${config.hour}:${config.minute.toString().padLeft(2, '0')}',
+            'Terjadwal: [$moodName] jam ${config.hour}:${config.minute.toString().padLeft(2, '0')}',
           );
         } catch (e) {
-          print('❌ Gagal: $moodName - $e');
+          print('Gagal: $moodName - $e');
         }
       }
     } catch (e) {
-      print('❌ Error scheduleAllNotifications: $e');
+      print('Error scheduleAllNotifications: $e');
     }
   }
 
