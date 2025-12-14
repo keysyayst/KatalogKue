@@ -3,12 +3,81 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+// Import provider local untuk mengambil konstanta Channel ID & Sound agar sinkron
+import 'local_notification_provider.dart';
+
 class MoodNotificationProvider extends GetxService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
-  // Konfigurasi waktu notifikasi
+  // Mengambil konfigurasi dari LocalNotificationProvider agar konsisten
+  final String _channelId = LocalNotificationProvider.channelId;
+  final String _channelName = LocalNotificationProvider.channelName;
+  final String _soundFile = LocalNotificationProvider.soundFile;
+
+  // Daftar notifikasi BERURUTAN (13:46 - 14:00)
   final Map<String, MoodConfig> moods = {
+    // ==============================================
+    // 🧪 TESTING MARATHON (13:46 - 14:00)
+    // ==============================================
+
+    // TEST 1: Cek Suara & Pop-up (Aplikasi Dibuka/Background)
+    'test_1': MoodConfig(
+      hour: 13,
+      minute: 46,
+      title: '🔔 Test 1 (13:46)',
+      body: 'Cek suara custom & pop-up (App Foreground/Background)',
+      productId: 'lidah_kucing',
+    ),
+
+    // TEST 2: Cek Lock Screen (Matikan Layar HP Sekarang)
+    'test_2': MoodConfig(
+      hour: 13,
+      minute: 48,
+      title: '🔔 Test 2 (13:48)',
+      body: 'Saat dilock, layar harus menyala + bunyi',
+      productId: 'nastar',
+    ),
+
+    // TEST 3: Cek Terminated (Matikan Total Aplikasi Sekarang)
+    'test_3': MoodConfig(
+      hour: 13,
+      minute: 50,
+      title: '🔔 Test 3 (13:50)',
+      body: 'Kill App sukses? Klik aku untuk masuk ke Detail Produk',
+      productId: 'kastengel',
+    ),
+
+    // TEST 4: Cek Navigasi
+    'test_4': MoodConfig(
+      hour: 13,
+      minute: 53,
+      title: '🔔 Test 4 (13:53)',
+      body: 'Klik notifikasi ini, harus pindah ke halaman Sagu Keju',
+      productId: 'sagu_keju',
+    ),
+
+    // TEST 5: Tambahan
+    'test_5': MoodConfig(
+      hour: 13,
+      minute: 56,
+      title: '🔔 Test 5 (13:56)',
+      body: 'Tes konsistensi suara custom',
+      productId: 'putri_salju',
+    ),
+
+    // TEST 6: Penutup
+    'test_6': MoodConfig(
+      hour: 14,
+      minute: 00,
+      title: '🔔 Test 6 (14:00)',
+      body: 'Sesi testing selesai. Selamat makan siang!',
+      productId: 'thumbprint',
+    ),
+
+    // ==============================================
+    // 📅 DAILY SCHEDULE (Jadwal Asli - Tetap Disimpan)
+    // ==============================================
     'morning': MoodConfig(
       hour: 8,
       minute: 0,
@@ -40,7 +109,9 @@ class MoodNotificationProvider extends GetxService {
   };
 
   Future<MoodNotificationProvider> init() async {
-    print('✅ Mood Notification Service initialized (scheduling deferred)');
+    print('✅ Mood Notification Service initialized');
+    // Jadwalkan ulang segera saat init agar test schedule masuk
+    await scheduleAllNotifications();
     return this;
   }
 
@@ -49,10 +120,18 @@ class MoodNotificationProvider extends GetxService {
       final prefs = Get.find<SharedPreferences>();
       final enabled = prefs.getBool('mood_notifications_enabled') ?? true;
 
-      if (!enabled) return;
+      if (!enabled) {
+        print('🚫 Mood notifications are disabled');
+        return;
+      }
+
+      // 1. Cancel jadwal lama
+      await _plugin.cancelAll();
+      print('🗑️ Old schedules cancelled');
 
       int id = 1000;
 
+      // 2. Loop & Jadwalkan
       for (var entry in moods.entries) {
         final moodName = entry.key;
         final config = entry.value;
@@ -67,6 +146,8 @@ class MoodNotificationProvider extends GetxService {
           config.minute,
         );
 
+        // Logic hari: Jika jam sudah lewat, geser ke besok.
+        // HATI-HATI: Jika jam 13:46 sudah lewat saat Anda run, notif ini akan lari ke BESOK.
         if (scheduledDate.isBefore(now)) {
           scheduledDate = scheduledDate.add(const Duration(days: 1));
         }
@@ -79,46 +160,45 @@ class MoodNotificationProvider extends GetxService {
             scheduledDate,
             NotificationDetails(
               android: AndroidNotificationDetails(
-                'katalog_kue_channel',
-                'Katalog Kue Notifications',
+                _channelId, // ID V2
+                _channelName,
                 channelDescription: 'Notifikasi mood-based',
-                importance: Importance.high,
+                importance: Importance.max,
                 priority: Priority.high,
                 icon: '@mipmap/ic_launcher',
                 playSound: true,
+                // CUSTOM SOUND
+                sound: RawResourceAndroidNotificationSound(_soundFile),
               ),
               iOS: const DarwinNotificationDetails(presentSound: true),
             ),
+            // WAJIB UTK BACKGROUND/TERMINATED
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+
             uiLocalNotificationDateInterpretation:
                 UILocalNotificationDateInterpretation.absoluteTime,
+
             payload: config.productId,
-            // REPEAT SETIAP HARI
+
             matchDateTimeComponents: DateTimeComponents.time,
           );
 
-          print('Scheduled $moodName at ${config.hour}:${config.minute}');
+          print(
+            '📅 Terjadwal: [$moodName] jam ${config.hour}:${config.minute.toString().padLeft(2, '0')}',
+          );
         } catch (e) {
-          print('Error scheduling $moodName: $e');
+          print('❌ Gagal: $moodName - $e');
         }
       }
     } catch (e) {
-      print('Error in scheduleAllNotifications: $e');
+      print('❌ Error scheduleAllNotifications: $e');
     }
   }
 
-  // ⚠️ DEPRECATED: Gunakan scheduleAllNotifications() untuk compatibility
-  Future<void> _scheduleAllNotifications() async {
-    await scheduleAllNotifications();
-  }
-
-  // Cancel all scheduled notifications
   Future<void> cancelAllScheduled() async {
     await _plugin.cancelAll();
-    print('All scheduled notifications cancelled');
   }
 
-  // Toggle mood notifications
   Future<void> toggle(bool enabled) async {
     final prefs = Get.find<SharedPreferences>();
     await prefs.setBool('mood_notifications_enabled', enabled);
@@ -131,7 +211,6 @@ class MoodNotificationProvider extends GetxService {
   }
 }
 
-// Model konfigurasi
 class MoodConfig {
   final int hour;
   final int minute;
