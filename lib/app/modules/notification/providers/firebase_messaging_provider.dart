@@ -4,9 +4,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'local_notification_provider.dart';
 
-// ✅ PERBAIKAN IMPORT: Gunakan package absolute path agar pasti ketemu
-// Pastikan 'katalog' adalah nama package di pubspec.yaml Anda (sesuai history chat sebelumnya)
-import 'package:katalog/app/routes/app_pages.dart';
+import 'package:katalog/app/app.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
@@ -78,26 +76,41 @@ class FirebaseMessagingProvider extends GetxService {
 
     // Delay 1.5 detik agar aplikasi benar-benar siap
     Future.delayed(const Duration(milliseconds: 1500), () {
-      // LOGIC 1: MENU PRODUK
-      if (screen == 'produk') {
-        print('📍 Target: MENU PRODUK (${Routes.produk})');
-        try {
-          Get.toNamed(Routes.produk);
-        } catch (e) {
-          print('❌ Gagal Navigasi Produk: $e');
-          Get.snackbar('Error', 'Gagal membuka produk: $e');
+      try {
+        // LOGIC 1: MENU PRODUK
+        if (screen == 'produk') {
+          print('📍 Target: MENU PRODUK');
+          // Import DashboardController dari app.dart
+          final dashboardController = Get.find<DashboardController>();
+          dashboardController.changeTabIndex(1);
         }
-      }
-      // LOGIC 2: PROFILE
-      else if (screen == 'profile') {
-        print('📍 Target: PROFILE (${Routes.profile})');
-        Get.toNamed(Routes.profile);
-      }
-      // LOGIC 3: FALLBACK
-      else {
-        print('⚠️ Screen "$screen" tidak dikenal. Default ke Produk.');
-        // Tetap arahkan ke produk jika payload salah, supaya terlihat "jalan"
-        Get.toNamed(Routes.produk);
+        // LOGIC 2: PROFILE
+        else if (screen == 'profile') {
+          print('📍 Target: PROFILE');
+          final dashboardController = Get.find<DashboardController>();
+          dashboardController.changeTabIndex(4);
+        }
+        // LOGIC 3: DELIVERY
+        else if (screen == 'delivery') {
+          print('📍 Target: DELIVERY');
+          final dashboardController = Get.find<DashboardController>();
+          dashboardController.changeTabIndex(3);
+        }
+        // LOGIC 4: FAVORITE
+        else if (screen == 'favorite') {
+          print('📍 Target: FAVORITE');
+          final dashboardController = Get.find<DashboardController>();
+          dashboardController.changeTabIndex(2);
+        }
+        // LOGIC 5: FALLBACK (HOME)
+        else {
+          print('⚠️ Screen "$screen" tidak dikenal. Default ke Produk.');
+          final dashboardController = Get.find<DashboardController>();
+          dashboardController.changeTabIndex(1);
+        }
+      } catch (e) {
+        print('❌ Gagal navigasi: $e');
+        Get.snackbar('Error', 'Gagal membuka halaman: $e');
       }
     });
   }
