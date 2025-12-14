@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 
 class MoodNotificationController extends GetxController {
-  //TODO: Implement MoodNotificationController
 
   final count = 0.obs;
   @override
