@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
-import 'package:katalog/app/app.dart';
+import 'package:cake_by_mommy/app/app.dart';
 
 class LocalNotificationProvider extends GetxService {
   final FlutterLocalNotificationsPlugin _plugin =
@@ -9,8 +9,7 @@ class LocalNotificationProvider extends GetxService {
   static const String channelId = 'katalog_kue_channel_v2';
   static const String channelName = 'Katalog Kue Promo';
   static const String channelDesc = 'Notifikasi dengan suara kustom';
-  static const String soundFile =
-      'notif_sound';
+  static const String soundFile = 'notif_sound';
 
   Future<LocalNotificationProvider> init() async {
     const androidSettings = AndroidInitializationSettings(
@@ -45,7 +44,7 @@ class LocalNotificationProvider extends GetxService {
           channelId,
           channelName,
           description: channelDesc,
-          importance: Importance.max, 
+          importance: Importance.max,
           playSound: true,
           sound: RawResourceAndroidNotificationSound(soundFile),
         ),
@@ -125,7 +124,7 @@ class LocalNotificationProvider extends GetxService {
       body,
       NotificationDetails(
         android: AndroidNotificationDetails(
-          channelId, 
+          channelId,
           channelName,
           channelDescription: channelDesc,
           importance: Importance.max,
