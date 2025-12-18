@@ -1,4 +1,4 @@
-package com.example.katalog_kue_lebaran
+package com.example.cake_by_mommy
 
 import io.flutter.embedding.android.FlutterActivity
 

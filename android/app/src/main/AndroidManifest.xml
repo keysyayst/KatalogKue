@@ -44,7 +44,7 @@
     </queries>
     
     <application
-        android:label="katalog kue"
+        android:label="Cake by Mommy"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         
