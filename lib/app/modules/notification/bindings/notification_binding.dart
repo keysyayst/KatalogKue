@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 
-import 'package:katalog/app/modules/notification/controllers/mood_notification_controller.dart';
+import 'package:cake_by_mommy/app/modules/notification/controllers/mood_notification_controller.dart';
 
 import '../controllers/notification_controller.dart';
 
