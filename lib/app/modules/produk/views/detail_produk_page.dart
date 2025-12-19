@@ -7,6 +7,9 @@ import '../../delivery_checker/controllers/delivery_checker_controller.dart';
 class DetailProdukPage extends GetView<ProdukController> {
   const DetailProdukPage({super.key});
 
+  final Color primaryOrange = const Color(0xFFE67E22);
+  final Color textDarkBlue = const Color(0xFF2C3E50);
+
   @override
   Widget build(BuildContext context) {
     final product = controller.selectedProduct.value!;
@@ -15,286 +18,279 @@ class DetailProdukPage extends GetView<ProdukController> {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(product.title),
-          backgroundColor: const Color(0xFFFE8C00),
-          foregroundColor: Colors.white,
-          bottom: TabBar(
-            onTap: controller.changeTab,
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: const [
-              Tab(text: 'Deskripsi'),
-              Tab(text: 'Komposisi'),
-              Tab(text: 'Nutrisi'),
+        backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+        body: NestedScrollView(
+          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+            return <Widget>[
+              SliverAppBar(
+                expandedHeight: 300.0,
+                floating: false,
+                pinned: true,
+                backgroundColor: primaryOrange,
+                foregroundColor: Colors.white,
+                leading: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => Get.back(),
+                  ),
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: _buildHeroImage(product),
+                ),
+                bottom: PreferredSize(
+                  preferredSize: const Size.fromHeight(48),
+                  child: Container(
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    child: TabBar(
+                      onTap: controller.changeTab,
+                      indicatorColor: primaryOrange,
+                      indicatorWeight: 3,
+                      labelColor: primaryOrange,
+                      unselectedLabelColor: Colors.grey,
+                      labelStyle: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                      ),
+                      tabs: const [
+                        Tab(text: 'Deskripsi'),
+                        Tab(text: 'Komposisi'),
+                        Tab(text: 'Nutrisi'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ];
+          },
+          body: TabBarView(
+            children: [
+              _buildDescriptionTab(product, isDark),
+              _buildCompositionTab(product, isDark),
+              _buildNutritionTab(isDark),
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            _buildDescriptionTab(product, isDark),
-            _buildCompositionTab(product, isDark),
-            _buildNutritionTab(isDark),
-          ],
-        ),
-        bottomNavigationBar: _buildBottomBar(product),
+        bottomNavigationBar: _buildStickyCTA(product, isDark),
       ),
     );
   }
 
-  Widget _buildDescriptionTab(product, bool isDark) {
-    return SingleChildScrollView(
+  // ================= HELPER WIDGETS =================
+
+  Widget _buildHeroImage(Product product) {
+    if (product.image.isEmpty) {
+      return Container(color: Colors.grey[300]);
+    }
+
+    final isUrl = product.image.startsWith('http');
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // HERO WIDGET: Pasangan dari ProductCard agar animasi nyambung
+        Hero(
+          tag: 'product_image_${product.id}',
+          child: isUrl
+              ? Image.network(product.image, fit: BoxFit.cover)
+              : Image.asset(product.image, fit: BoxFit.cover),
+        ),
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.black26, Colors.transparent],
+              stops: [0.0, 0.4],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStickyCTA(Product product, bool isDark) {
+    return Container(
       padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Total Harga',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                Text(
+                  'Rp. ${product.price}',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: primaryOrange,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  try {
+                    final deliveryC = Get.find<DeliveryCheckerController>();
+                    await deliveryC.openWhatsAppWithProduct(product);
+                  } catch (e) {
+                    Get.snackbar('Error', 'Gagal membuka WhatsApp');
+                  }
+                },
+                // Menggunakan Icons.chat karena Icons.whatsapp butuh package external
+                icon: const Icon(Icons.chat, color: Colors.white),
+                label: const Text('Pesan Sekarang'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryOrange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                  textStyle: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDescriptionTab(Product product, bool isDark) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Product Image
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: product.image.startsWith('http')
-                ? Image.network(
-                    product.image,
-                    width: double.infinity,
-                    height: 250,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: double.infinity,
-                        height: 250,
-                        color: Colors.grey[300],
-                        child: const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.broken_image,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 8),
-                            Text('Gambar tidak tersedia'),
-                          ],
-                        ),
-                      );
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        width: double.infinity,
-                        height: 250,
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFFFE8C00),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                : Image.asset(
-                    product.image,
-                    width: double.infinity,
-                    height: 250,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: double.infinity,
-                        height: 250,
-                        color: Colors.grey[300],
-                        child: const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.broken_image,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 8),
-                            Text('Gambar tidak tersedia'),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Price
           Text(
-            'Rp. ${product.price}',
-            style: const TextStyle(
+            product.title,
+            style: TextStyle(
+              fontFamily: 'Poppins',
               fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFFE8C00),
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : textDarkBlue,
             ),
           ),
-
           const SizedBox(height: 8),
 
-          // Location
           Row(
             children: [
-              const Icon(Icons.location_on, size: 16, color: Color(0xFFFE8C00)),
+              Icon(Icons.location_on, color: primaryOrange, size: 18),
               const SizedBox(width: 4),
               Text(
                 product.location,
                 style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.grey[600],
+                  fontFamily: 'Poppins',
+                  color: Colors.grey[600],
                 ),
               ),
             ],
           ),
 
-          const Divider(height: 32),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 16),
 
-          // Description
           Text(
-            'Deskripsi Produk',
+            'Tentang Produk',
             style: TextStyle(
+              fontFamily: 'Poppins',
               fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : textDarkBlue,
             ),
           ),
-
-          const SizedBox(height: 8),
-
-          if (product.description != null && product.description!.isNotEmpty)
-            Text(
-              product.description!,
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.5,
-                color: isDark ? Colors.white70 : Colors.grey[700],
-              ),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.grey[400]),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Deskripsi produk belum tersedia',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+          const SizedBox(height: 12),
+          Text(
+            product.description ?? 'Belum ada deskripsi untuk produk ini.',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              height: 1.6,
+              color: isDark ? Colors.white70 : Colors.grey[700],
             ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildCompositionTab(product, bool isDark) {
+  Widget _buildCompositionTab(Product product, bool isDark) {
     final List<String> ingredients = product.compositionList;
-
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Komposisi Bahan',
+            'Bahan Utama',
             style: TextStyle(
+              fontFamily: 'Poppins',
               fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : textDarkBlue,
             ),
           ),
-
           const SizedBox(height: 16),
-
           if (ingredients.isNotEmpty)
-            ...ingredients
-                .map(
-                  (ingredient) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.check_circle,
-                          size: 20,
-                          color: Color(0xFFFE8C00),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            ingredient,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark ? Colors.white70 : Colors.grey[700],
-                            ),
-                          ),
-                        ),
-                      ],
+            ...ingredients.map(
+              (ing) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      color: primaryOrange,
+                      size: 20,
                     ),
-                  ),
-                )
-                .toList()
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        ing,
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          color: isDark ? Colors.white70 : Colors.grey[800],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
           else
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.grey[400]),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Komposisi bahan belum tersedia',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          if (ingredients.isNotEmpty) const SizedBox(height: 16),
-
-          if (ingredients.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.orange[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Color(0xFFFE8C00)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Dibuat dengan bahan berkualitas dan proses higienis',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? Colors.white70 : Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildEmptyState('Data komposisi belum tersedia'),
         ],
       ),
     );
@@ -305,125 +301,70 @@ class DetailProdukPage extends GetView<ProdukController> {
     final nutrition = product.nutrition;
 
     if (nutrition == null || nutrition.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.info_outline, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              'Informasi nutrisi belum tersedia',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Data nutrisi akan ditambahkan segera',
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-            ),
-          ],
-        ),
-      );
+      return _buildEmptyState('Informasi nutrisi belum tersedia');
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Informasi Nilai Gizi',
             style: TextStyle(
+              fontFamily: 'Poppins',
               fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : textDarkBlue,
             ),
           ),
-
           const SizedBox(height: 8),
-
           Text(
-            'Per 100 gram',
+            'Per 100 gram penyajian',
             style: TextStyle(
-              fontSize: 14,
-              color: isDark ? Colors.white70 : Colors.grey[600],
+              fontFamily: 'Poppins',
+              fontSize: 12,
+              color: Colors.grey,
             ),
           ),
+          const SizedBox(height: 20),
 
-          const SizedBox(height: 16),
-
-          if (nutrition['calories'] != null)
-            _buildNutritionItem(
-              'Kalori',
-              '${nutrition['calories']} kcal',
-              Icons.local_fire_department,
-              isDark,
-            ),
-          if (nutrition['protein'] != null)
-            _buildNutritionItem(
-              'Protein',
-              '${nutrition['protein']} g',
-              Icons.fitness_center,
-              isDark,
-            ),
-          if (nutrition['fat'] != null)
-            _buildNutritionItem(
-              'Lemak',
-              '${nutrition['fat']} g',
-              Icons.opacity,
-              isDark,
-            ),
-          if (nutrition['carbs'] != null)
-            _buildNutritionItem(
-              'Karbohidrat',
-              '${nutrition['carbs']} g',
-              Icons.grain,
-              isDark,
-            ),
-          if (nutrition['sugar'] != null)
-            _buildNutritionItem(
-              'Gula',
-              '${nutrition['sugar']} g',
-              Icons.water_drop,
-              isDark,
-            ),
-          if (nutrition['fiber'] != null)
-            _buildNutritionItem(
-              'Serat',
-              '${nutrition['fiber']} g',
-              Icons.eco,
-              isDark,
-            ),
-
-          const SizedBox(height: 16),
-
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Informasi nutrisi dapat bervariasi tergantung cara pengolahan',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? Colors.white70 : Colors.grey[700],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          _buildNutriItem(
+            'Kalori',
+            '${nutrition['calories']} kcal',
+            Icons.local_fire_department,
+            isDark,
+          ),
+          _buildNutriItem(
+            'Protein',
+            '${nutrition['protein']} g',
+            Icons.fitness_center,
+            isDark,
+          ),
+          _buildNutriItem(
+            'Lemak',
+            '${nutrition['fat']} g',
+            Icons.opacity,
+            isDark,
+          ),
+          _buildNutriItem(
+            'Karbohidrat',
+            '${nutrition['carbs']} g',
+            Icons.grain,
+            isDark,
+          ),
+          _buildNutriItem(
+            'Gula',
+            '${nutrition['sugar']} g',
+            Icons.water_drop,
+            isDark,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNutritionItem(
+  Widget _buildNutriItem(
     String label,
     String value,
     IconData icon,
@@ -431,38 +372,39 @@ class DetailProdukPage extends GetView<ProdukController> {
   ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFFE8C00).withOpacity(0.1),
+              color: primaryOrange.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: const Color(0xFFFE8C00), size: 20),
+            child: Icon(icon, color: primaryOrange, size: 20),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
+          const SizedBox(width: 16),
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              color: isDark ? Colors.white70 : Colors.grey[700],
             ),
           ),
+          const Spacer(),
           Text(
             value,
             style: TextStyle(
+              fontFamily: 'Poppins',
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
+              color: isDark ? Colors.white : textDarkBlue,
             ),
           ),
         ],
@@ -470,43 +412,21 @@ class DetailProdukPage extends GetView<ProdukController> {
     );
   }
 
-  Widget _buildBottomBar(Product product) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -3),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: ElevatedButton.icon(
-          onPressed: () async {
-            try {
-              final deliveryC = Get.find<DeliveryCheckerController>();
-              await deliveryC.openWhatsAppWithProduct(product);
-            } catch (e) {
-              Get.snackbar(
-                'Error',
-                'Gagal membuka WhatsApp',
-                snackPosition: SnackPosition.BOTTOM,
-              );
-            }
-          },
-          icon: const Icon(Icons.shopping_cart),
-          label: const Text('Pesan via WhatsApp'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFE8C00),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+  Widget _buildEmptyState(String text) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.info_outline, size: 48, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              text,
+              style: TextStyle(fontFamily: 'Poppins', color: Colors.grey[500]),
+              textAlign: TextAlign.center,
             ),
-          ),
+          ],
         ),
       ),
     );
