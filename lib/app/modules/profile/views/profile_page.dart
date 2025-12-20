@@ -3,6 +3,12 @@ import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
 import '../../../routes/app_pages.dart';
 import '../../../theme/design_system.dart';
+import '../../admin/views/edit_delivery_store_page.dart';
+import 'package:cake_by_mommy/data/services/store_service.dart';
+import 'package:cake_by_mommy/app/data/models/delivery_store_model.dart';
+import 'package:cake_by_mommy/data/models/store.dart';
+import 'package:cake_by_mommy/app/data/repositories/delivery_store_repository.dart';
+import 'package:cake_by_mommy/app/modules/delivery_checker/controllers/delivery_checker_controller.dart';
 
 class ProfilePage extends GetView<ProfileController> {
   const ProfilePage({super.key});
@@ -450,8 +456,27 @@ class ProfilePage extends GetView<ProfileController> {
                           width: double.infinity,
                           height: 56,
                           child: _AnimatedButton(
-                            onTap: () =>
-                                Get.toNamed(Routes.adminDeliveryStores),
+                            onTap: () async {
+                              // Ambil data DeliveryStore langsung dari repository agar update benar-benar sinkron
+                              final repo = DeliveryStoreRepository();
+                              final stores = await repo.getAllStores();
+                              final deliveryStore = stores.isNotEmpty
+                                  ? stores.first
+                                  : null;
+                              final result = await Get.to(
+                                () =>
+                                    EditDeliveryStorePage(store: deliveryStore),
+                              );
+                              if (result == true) {
+                                // Refresh info toko di delivery jika ada update
+                                if (Get.isRegistered<
+                                  DeliveryCheckerController
+                                >()) {
+                                  Get.find<DeliveryCheckerController>()
+                                      .fetchStore();
+                                }
+                              }
+                            },
                             child: Container(
                               decoration: BoxDecoration(
                                 color: DesignColors.primary,
@@ -625,6 +650,29 @@ class ProfilePage extends GetView<ProfileController> {
       'Desember',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+  // Fungsi konversi Store ke DeliveryStore
+  DeliveryStore? storeToDeliveryStore(Store? s) {
+    if (s == null) return null;
+    return DeliveryStore(
+      id: s.id,
+      name: s.name,
+      owner: s.owner,
+      address: s.address,
+      latitude: s.latitude,
+      longitude: s.longitude,
+      phone: s.phone,
+      whatsapp: s.whatsapp,
+      email: s.email,
+      deliveryRadius: s.deliveryRadius,
+      freeDeliveryRadius: s.freeDeliveryRadius,
+      deliveryCostPerKm: s.deliveryCostPerKm,
+      minOrder: s.minOrder,
+      isActive: s.isActive,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+    );
   }
 }
 
