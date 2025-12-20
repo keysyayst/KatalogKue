@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/meal_model.dart';
+import '../../../theme/design_system.dart';
 
 class HasilTesPage extends StatelessWidget {
   const HasilTesPage({super.key});
@@ -14,8 +15,8 @@ class HasilTesPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Hasil Tes $library'),
-        backgroundColor: const Color(0xFFFE8C00),
+        title: Text('Hasil Tes $library', style: const TextStyle(fontFamily: DesignText.family)),
+        backgroundColor: DesignColors.primary,
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -28,14 +29,14 @@ class HasilTesPage extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFFFE8C00),
-                  const Color(0xFFFE8C00).withOpacity(0.7),
+                  DesignColors.primary,
+                  DesignColors.primary.withOpacity(0.72),
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFE8C00).withOpacity(0.3),
+                  color: DesignColors.primary.withOpacity(0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -46,6 +47,7 @@ class HasilTesPage extends StatelessWidget {
                 Text(
                   library,
                   style: const TextStyle(
+                    fontFamily: DesignText.family,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -74,19 +76,20 @@ class HasilTesPage extends StatelessWidget {
           // Section Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(Icons.restaurant_menu, color: Color(0xFFFE8C00)),
-                const SizedBox(width: 8),
-                Text(
-                  'Daftar Dessert (${meals.length})',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Row(
+                  children: [
+                    Icon(Icons.restaurant_menu, color: DesignColors.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Daftar Dessert (${meals.length})',
+                      style: const TextStyle(
+                        fontFamily: DesignText.family,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
           ),
           
           // Meal List
@@ -155,10 +158,10 @@ class HasilTesPage extends StatelessWidget {
                               fontSize: 12,
                             ),
                           ),
-                          trailing: const Icon(
+                          trailing: Icon(
                             Icons.arrow_forward_ios,
                             size: 16,
-                            color: Color(0xFFFE8C00),
+                            color: DesignColors.primary,
                           ),
                         ),
                       );

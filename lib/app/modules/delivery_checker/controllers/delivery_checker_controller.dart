@@ -217,6 +217,16 @@ class DeliveryCheckerController extends GetxController {
     estimatedTime.value = ((distanceToStore.value / 15) * 60).round();
   }
 
+  /// Called when stores list is updated elsewhere (e.g. admin changes).
+  /// Recalculates delivery info using the current customer location and
+  /// available store data. This is intentionally lightweight—if more
+  /// complex refresh logic is needed, expand this implementation.
+  void refreshStores() {
+    if (customerLocation.value != null) {
+      calculateDeliveryInfo();
+    }
+  }
+
   // refresh location and stores
   Future<void> refreshLocation() async {
     await checkCustomerLocation();

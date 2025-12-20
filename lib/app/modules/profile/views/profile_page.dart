@@ -2,511 +2,574 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
 import '../../../routes/app_pages.dart';
+import '../../../theme/design_system.dart';
 
 class ProfilePage extends GetView<ProfileController> {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Cek mode gelap/terang dari theme context
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Build reaktif berdasarkan ThemeController.isDarkMode
+    return Obx(() {
+      final isDark = controller.isDarkMode;
 
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // ========================================
-          // SLIVER APP BAR (KE KIRI)
-          // ========================================
-          SliverAppBar(
-            expandedHeight: 80,
-            floating: false,
-            pinned: true,
-            backgroundColor: const Color(0xFFFE8C00),
-            foregroundColor: Colors.white,
-            automaticallyImplyLeading: false, // Hilangkan back button
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(
-                left: 16,
-                bottom: 16,
-              ), // ← KE KIRI
-              title: const Text(
-                'Profil Saya',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Colors.white,
-                ),
-              ),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    colors: [Color(0xFFFE8C00), Color(0xFFFF6B00)],
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: -50,
-                      top: -50,
-                      child: Container(
-                        width: 200,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.1),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: -30,
-                      bottom: -30,
-                      child: Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.1),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            actions: [
-              // 1. ICON TOGGLE TEMA
-              Obx(
-                () => IconButton(
-                  icon: Icon(
-                    controller.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+      return Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            // ========================================
+            // SLIVER APP BAR (KE KIRI)
+            // ========================================
+            SliverAppBar(
+              expandedHeight: 80,
+              floating: false,
+              pinned: true,
+              backgroundColor: DesignColors.primary,
+              foregroundColor: Colors.white,
+              automaticallyImplyLeading: false, // Hilangkan back button
+              flexibleSpace: FlexibleSpaceBar(
+                titlePadding: const EdgeInsets.only(
+                  left: 16,
+                  bottom: 16,
+                ), // ← KE KIRI
+                title: const Text(
+                  'Profil Saya',
+                  style: TextStyle(
+                    fontFamily: DesignText.family,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 24,
                     color: Colors.white,
                   ),
-                  onPressed: controller.toggleTheme,
-                  tooltip: controller.isDarkMode ? 'Mode Terang' : 'Mode Gelap',
                 ),
-              ),
-
-              // 2. TOMBOL EDIT / SIMPAN
-              Obx(
-                () => controller.isEditing.value
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white),
-                            onPressed: controller.toggleEdit,
-                            tooltip: 'Batal',
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.check, color: Colors.white),
-                            onPressed: controller.updateProfile,
-                            tooltip: 'Simpan',
-                          ),
-                        ],
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.white),
-                        onPressed: controller.toggleEdit,
-                        tooltip: 'Edit Profil',
-                      ),
-              ),
-
-              // 3. (BARU) TITIK TIGA -> MENU TESTING (MODUL 5)
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, color: Colors.white),
-                onSelected: (value) {
-                  if (value == 'testing') {
-                    // Arahkan ke halaman Testing
-                    Get.toNamed(Routes.locationExperiment);
-                  }
-                },
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
-                    value: 'testing',
-                    child: Row(
-                      children: [
-                        Icon(Icons.science, color: Colors.black54),
-                        SizedBox(width: 8),
-                        Text('Testing (Modul 5)'),
-                      ],
+                background: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      colors: [DesignColors.primary, DesignColors.darkPrimary],
                     ),
                   ),
-                ],
-              ),
-            ],
-          ),
-
-          // ========================================
-          // CONTENT
-          // ========================================
-          SliverToBoxAdapter(
-            child: Obx(() {
-              final profile = controller.profile;
-
-              if (profile == null) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(color: Color(0xFFFE8C00)),
-                  ),
-                );
-              }
-
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // Avatar Section
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Obx(
-                          () => CircleAvatar(
-                            radius: 70,
-                            backgroundColor: const Color(0xFFFE8C00),
-                            child: controller.isUploadingAvatar.value
-                                ? const CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  )
-                                : profile.avatarUrl != null &&
-                                      profile.avatarUrl!.isNotEmpty
-                                ? ClipOval(
-                                    child: Image.network(
-                                      profile.avatarUrl!,
-                                      width: 140,
-                                      height: 140,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                            return const Icon(
-                                              Icons.person,
-                                              size: 70,
-                                              color: Colors.white,
-                                            );
-                                          },
-                                    ),
-                                  )
-                                : const Icon(
-                                    Icons.person,
-                                    size: 70,
-                                    color: Colors.white,
-                                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: -50,
+                        top: -50,
+                        child: Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.1),
                           ),
                         ),
+                      ),
+                      Positioned(
+                        left: -30,
+                        bottom: -30,
+                        child: Container(
+                          width: 150,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.1),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                // 1. ICON TOGGLE TEMA
+                Obx(
+                  () => IconButton(
+                    icon: Icon(
+                      controller.isDarkMode
+                          ? Icons.light_mode
+                          : Icons.dark_mode,
+                      color: Colors.white,
+                    ),
+                    onPressed: controller.toggleTheme,
+                    tooltip: controller.isDarkMode
+                        ? 'Mode Terang'
+                        : 'Mode Gelap',
+                  ),
+                ),
 
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: controller.showAvatarPicker,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFE8C00),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isDark
-                                      ? const Color(0xFF121212)
-                                      : Colors.white,
-                                  width: 3,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt,
-                                size: 20,
+                // 2. TOMBOL EDIT / SIMPAN
+                Obx(
+                  () => controller.isEditing.value
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.close,
                                 color: Colors.white,
                               ),
+                              onPressed: controller.toggleEdit,
+                              tooltip: 'Batal',
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Role Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: controller.isAdmin
-                            ? Colors.red.withOpacity(0.2)
-                            : Colors.blue.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: controller.isAdmin ? Colors.red : Colors.blue,
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            controller.isAdmin
-                                ? Icons.admin_panel_settings
-                                : Icons.person,
-                            color: controller.isAdmin
-                                ? Colors.red
-                                : Colors.blue,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            controller.isAdmin ? 'Administrator' : 'User',
-                            style: TextStyle(
-                              color: controller.isAdmin
-                                  ? Colors.red
-                                  : Colors.blue,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Email (read-only)
-                    Obx(
-                      () => TextField(
-                        key: ValueKey(controller.emailText.value),
-                        controller: controller.emailController,
-                        enabled: false,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: const Icon(
-                            Icons.email,
-                            color: Colors.grey,
-                          ),
-                          filled: true,
-                          fillColor: isDark
-                              ? Colors.grey[800]
-                              : Colors.grey[200],
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Full Name
-                    Obx(
-                      () => TextField(
-                        key: ValueKey(controller.fullNameText.value),
-                        controller: controller.fullNameController,
-                        enabled: controller.isEditing.value,
-                        decoration: InputDecoration(
-                          labelText: 'Nama Lengkap',
-                          prefixIcon: Icon(
-                            Icons.person,
-                            color: controller.isEditing.value
-                                ? const Color(0xFFFE8C00)
-                                : Colors.grey,
-                          ),
-                          filled: true,
-                          fillColor: controller.isEditing.value
-                              ? (isDark
-                                    ? const Color(0xFF1E1E1E)
-                                    : Colors.white)
-                              : (isDark ? Colors.grey[800] : Colors.grey[200]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFFE8C00),
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Phone
-                    Obx(
-                      () => TextField(
-                        key: ValueKey(controller.phoneText.value),
-                        controller: controller.phoneController,
-                        enabled: controller.isEditing.value,
-                        keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
-                          labelText: 'No. Telepon',
-                          prefixIcon: Icon(
-                            Icons.phone,
-                            color: controller.isEditing.value
-                                ? const Color(0xFFFE8C00)
-                                : Colors.grey,
-                          ),
-                          filled: true,
-                          fillColor: controller.isEditing.value
-                              ? (isDark
-                                    ? const Color(0xFF1E1E1E)
-                                    : Colors.white)
-                              : (isDark ? Colors.grey[800] : Colors.grey[200]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFFE8C00),
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Info Card
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF1E1E1E)
-                            : Colors.grey[100],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.info_outline,
-                                color: Color(0xFFFE8C00),
-                                size: 20,
+                            IconButton(
+                              icon: const Icon(
+                                Icons.check,
+                                color: Colors.white,
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Informasi Akun',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black,
+                              onPressed: controller.updateProfile,
+                              tooltip: 'Simpan',
+                            ),
+                          ],
+                        )
+                      : IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.white),
+                          onPressed: controller.toggleEdit,
+                          tooltip: 'Edit Profil',
+                        ),
+                ),
+
+                // removed testing menu per request
+              ],
+            ),
+
+            // ========================================
+            // CONTENT
+            // ========================================
+            SliverToBoxAdapter(
+              child: Obx(() {
+                final profile = controller.profile;
+
+                if (profile == null) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32),
+                      child: CircularProgressIndicator(
+                        color: DesignColors.primary,
+                      ),
+                    ),
+                  );
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Avatar Section
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Obx(
+                            () => CircleAvatar(
+                              radius: 70,
+                              backgroundColor: DesignColors.primary,
+                              child: controller.isUploadingAvatar.value
+                                  ? const CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    )
+                                  : profile.avatarUrl != null &&
+                                        profile.avatarUrl!.isNotEmpty
+                                  ? ClipOval(
+                                      child: Image.network(
+                                        profile.avatarUrl!,
+                                        width: 140,
+                                        height: 140,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                              return const Icon(
+                                                Icons.person,
+                                                size: 70,
+                                                color: Colors.white,
+                                              );
+                                            },
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.person,
+                                      size: 70,
+                                      color: Colors.white,
+                                    ),
+                            ),
+                          ),
+
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: SizedBox(
+                              width: 46,
+                              height: 46,
+                              child: _AnimatedButton(
+                                onTap: controller.showAvatarPicker,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: DesignColors.primary,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isDark
+                                          ? const Color(0xFF1B1B1B)
+                                          : Colors.white,
+                                      width: 3,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    size: 20,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
-                            ],
-                          ),
-                          const Divider(height: 24),
-                          _buildInfoRow(
-                            icon: Icons.calendar_today,
-                            label: 'Bergabung sejak',
-                            value: _formatDate(profile.createdAt),
-                            isDark: isDark,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildInfoRow(
-                            icon: Icons.update,
-                            label: 'Terakhir diperbarui',
-                            value: _formatDate(profile.updatedAt),
-                            isDark: isDark,
+                            ),
                           ),
                         ],
                       ),
-                    ),
 
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
-                    // Admin Panel Button (Hanya jika admin)
-                    if (controller.isAdmin) ...[
-                      // Kelola Toko Delivery (NEW)
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton.icon(
-                          onPressed: () =>
-                              Get.toNamed(Routes.adminDeliveryStores),
-                          icon: const Icon(Icons.store),
-                          label: const Text(
-                            'Kelola Toko Delivery',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      // Role Badge (animated color transition)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: controller.isAdmin
+                              ? (isDark
+                                    ? DesignColors.error.withValues(alpha: 0.12)
+                                    : DesignColors.error.withValues(
+                                        alpha: 0.06,
+                                      ))
+                              : (isDark
+                                    ? DesignColors.info.withValues(alpha: 0.10)
+                                    : DesignColors.info.withValues(
+                                        alpha: 0.08,
+                                      )),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: controller.isAdmin
+                                ? DesignColors.error
+                                : DesignColors.info,
+                            width: 1,
                           ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFE8C00),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              controller.isAdmin
+                                  ? Icons.admin_panel_settings
+                                  : Icons.person,
+                              color: controller.isAdmin
+                                  ? DesignColors.error
+                                  : DesignColors.info,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(''),
+                            Text(
+                              controller.isAdmin ? 'Administrator' : 'User',
+                              style: TextStyle(
+                                fontFamily: DesignText.family,
+                                color: controller.isAdmin
+                                    ? DesignColors.error
+                                    : (isDark ? Colors.white : Colors.black),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      const SizedBox(height: 8),
+
+                      // Email (read-only)
+                      Obx(
+                        () => TextField(
+                          key: ValueKey(controller.emailText.value),
+                          controller: controller.emailController,
+                          enabled: false,
+                          decoration: InputDecoration(
+                            labelText: 'Email',
+                            prefixIcon: const Icon(
+                              Icons.email,
+                              color: Colors.grey,
+                            ),
+                            filled: true,
+                            fillColor: isDark
+                                ? Colors.grey[800]
+                                : Colors.grey[200],
+                            border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 16),
-                      // Kelola Produk (NEW)
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton.icon(
-                          onPressed: () => Get.toNamed('/admin/products'),
-                          icon: const Icon(Icons.dashboard),
-                          label: const Text(
-                            'Kelola Produk',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+
+                      // Full Name
+                      Obx(
+                        () => TextField(
+                          key: ValueKey(controller.fullNameText.value),
+                          controller: controller.fullNameController,
+                          enabled: controller.isEditing.value,
+                          decoration: InputDecoration(
+                            labelText: 'Nama Lengkap',
+                            prefixIcon: Icon(
+                              Icons.person,
+                              color: controller.isEditing.value
+                                  ? DesignColors.primary
+                                  : Colors.grey,
                             ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
+                            filled: true,
+                            fillColor: controller.isEditing.value
+                                ? (isDark
+                                      ? const Color(0xFF1E1E1E)
+                                      : Colors.white)
+                                : (isDark
+                                      ? Colors.grey[800]
+                                      : Colors.grey[200]),
+                            border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: DesignColors.primary,
+                                width: 2,
+                              ),
                             ),
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 16),
+
+                      // Phone
+                      Obx(
+                        () => TextField(
+                          key: ValueKey(controller.phoneText.value),
+                          controller: controller.phoneController,
+                          enabled: controller.isEditing.value,
+                          keyboardType: TextInputType.phone,
+                          decoration: InputDecoration(
+                            labelText: 'No. Telepon',
+                            prefixIcon: Icon(
+                              Icons.phone,
+                              color: controller.isEditing.value
+                                  ? DesignColors.primary
+                                  : Colors.grey,
+                            ),
+                            filled: true,
+                            fillColor: controller.isEditing.value
+                                ? (isDark
+                                      ? const Color(0xFF1E1E1E)
+                                      : Colors.white)
+                                : (isDark
+                                      ? Colors.grey[800]
+                                      : Colors.grey[200]),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: DesignColors.primary,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Info Card (animated background color)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E1E1E)
+                              : DesignColors.lightPrimary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.info_outline,
+                                  color: DesignColors.primary,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Informasi Akun',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Divider(height: 24),
+                            _buildInfoRow(
+                              icon: Icons.calendar_today,
+                              label: 'Bergabung sejak',
+                              value: _formatDate(profile.createdAt),
+                              isDark: isDark,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildInfoRow(
+                              icon: Icons.update,
+                              label: 'Terakhir diperbarui',
+                              value: _formatDate(profile.updatedAt),
+                              isDark: isDark,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Admin Panel Button (Hanya jika admin)
+                      if (controller.isAdmin) ...[
+                        // Kelola Toko Delivery (NEW) - animated
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: _AnimatedButton(
+                            onTap: () =>
+                                Get.toNamed(Routes.adminDeliveryStores),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: DesignColors.primary,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              alignment: Alignment.center,
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.store, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Kelola Toko Delivery',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Kelola Produk (NEW)
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: _AnimatedButton(
+                            onTap: () => Get.toNamed('/admin/products'),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: DesignColors.darkPrimary,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              alignment: Alignment.center,
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.dashboard, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Kelola Produk',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Logout Button (animated)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: _AnimatedButton(
+                          onTap: controller.logout,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: DesignColors.error,
+                                width: 2,
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.logout, color: DesignColors.error),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Keluar',
+                                  style: TextStyle(
+                                    fontFamily: DesignText.family,
+                                    color: Color(0xFFE74C3C),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
                     ],
-
-                    // Logout Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: OutlinedButton.icon(
-                        onPressed: controller.logout,
-                        icon: const Icon(Icons.logout, color: Colors.red),
-                        label: const Text(
-                          'Keluar',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.red, width: 2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              );
-            }),
-          ),
-        ],
-      ),
-    );
+                  ),
+                );
+              }),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildInfoRow({
@@ -517,7 +580,7 @@ class ProfilePage extends GetView<ProfileController> {
   }) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: const Color(0xFFFE8C00)),
+        Icon(icon, size: 18, color: DesignColors.primary),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -562,5 +625,53 @@ class ProfilePage extends GetView<ProfileController> {
       'Desember',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+}
+
+// A small animated button used across this page to add modern micro-interactions
+class _AnimatedButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final Widget child;
+  const _AnimatedButton({required this.onTap, required this.child});
+
+  @override
+  State<_AnimatedButton> createState() => _AnimatedButtonState();
+}
+
+class _AnimatedButtonState extends State<_AnimatedButton> {
+  bool _pressed = false;
+
+  void _onTapDown(TapDownDetails _) {
+    setState(() => _pressed = true);
+  }
+
+  void _onTapUp(TapUpDetails _) async {
+    setState(() => _pressed = false);
+    await Future.delayed(const Duration(milliseconds: 60));
+    widget.onTap();
+  }
+
+  void _onTapCancel() {
+    setState(() => _pressed = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      child: AnimatedScale(
+        scale: _pressed ? 0.985 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutBack,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 120),
+          opacity: _pressed ? 0.95 : 1.0,
+          child: widget.child,
+        ),
+      ),
+    );
   }
 }
