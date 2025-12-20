@@ -1,3 +1,4 @@
+// lib/app/modules/produk/views/produk_view.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/produk_controller.dart';
@@ -185,6 +186,7 @@ class ProdukPage extends GetView<ProdukController> {
       ),
       child: TextField(
         controller: controller.searchController,
+        focusNode: controller.searchFocusNode, // ✅ TAMBAHAN INI
         onChanged: controller.searchProducts,
         onSubmitted: (query) {
           controller.saveSearchToHistory(query);

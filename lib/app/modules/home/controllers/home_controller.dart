@@ -5,6 +5,7 @@ import '../../../data/models/product.dart';
 import '../../../data/sources/products.dart';
 import '../../../app.dart';
 import '../../delivery_checker/controllers/delivery_checker_controller.dart';
+import '../../produk/controllers/produk_controller.dart';
 
 class HomeController extends GetxController {
   final ProductService _productService = Get.find<ProductService>();
@@ -90,22 +91,18 @@ class HomeController extends GetxController {
   void onQuickActionPressed(String action) {
     switch (action) {
       case 'favorite':
-        // Navigate ke tab Favorit (index 2)
         navigateToTab(2);
         break;
         
       case 'track':
-        // Navigate ke tab Delivery (index 3)
         navigateToTab(3);
         break;
         
       case 'products':
-        // Pindah ke tab Produk (index 1)
         navigateToTab(1);
         break;
         
       case 'pickup':
-        // Navigate ke tab Delivery (index 3) dan trigger pickup mode
         navigateToPickupMode();
         break;
     }
@@ -117,7 +114,6 @@ class HomeController extends GetxController {
       dashboardController.changeTabIndex(index);
     } catch (e) {
       print('Error navigating to tab $index: $e');
-      // Fallback routes
       switch (index) {
         case 1:
           Get.toNamed('/produk');
@@ -134,32 +130,43 @@ class HomeController extends GetxController {
 
   void navigateToPickupMode() {
     try {
-      // 1. Pindah ke tab Delivery (index 3)
       final dashboardController = Get.find<DashboardController>();
       dashboardController.changeTabIndex(3);
       
-      // 2. Trigger show pickup view
-      // Beri delay kecil untuk memastikan tab sudah ter-render
       Future.delayed(const Duration(milliseconds: 300), () {
         if (Get.isRegistered<DeliveryCheckerController>()) {
-          // Anda bisa tambahkan method di DeliveryCheckerController
-          // untuk show pickup map atau trigger navigasi ke PickupMapView
-          Get.toNamed('/delivery-checker'); // atau method lain
-          
-          // Alternatif: jika ada observable untuk mode
-          // final deliveryController = Get.find<DeliveryCheckerController>();
-          // deliveryController.switchToPickupMode(); 
+          Get.toNamed('/delivery-checker');
         }
       });
     } catch (e) {
       print('Error navigating to pickup mode: $e');
-      // Fallback
       Get.toNamed('/delivery-checker');
     }
   }
 
   void navigateToProductsPage() {
-    // Method untuk button "Belanja Sekarang" dan "Lihat Semua"
     navigateToTab(1);
+  }
+
+  // ===== SEARCH NAVIGATION =====
+  
+  void navigateToSearch() {
+    try {
+      // 1. Pindah ke tab Produk (index 1)
+      final dashboardController = Get.find<DashboardController>();
+      dashboardController.changeTabIndex(1);
+      
+      // 2. Fokus ke search field dengan delay
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (Get.isRegistered<ProdukController>()) {
+          final produkController = Get.find<ProdukController>();
+          // Fokus ke search field untuk membuka keyboard
+          produkController.focusSearch();
+        }
+      });
+    } catch (e) {
+      print('Error navigating to search: $e');
+      Get.toNamed('/produk');
+    }
   }
 }

@@ -151,7 +151,7 @@ class HomePage extends GetView<HomeController> {
   return Container(
     padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
     decoration: const BoxDecoration(
-      color: Color(0xFFE67E22), // TETAP ORANGE
+      color: Color(0xFFE67E22),
     ),
     child: Column(
       children: [
@@ -166,7 +166,8 @@ class HomePage extends GetView<HomeController> {
             child: InkWell(
               borderRadius: BorderRadius.circular(8),
               onTap: () {
-                controller.navigateToProductsPage();
+                // UBAH INI - langsung ke search dengan keyboard
+                controller.navigateToSearch();
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -174,7 +175,7 @@ class HomePage extends GetView<HomeController> {
                   children: [
                     const Icon(
                       Icons.search,
-                      color: Color(0xFFE67E22), // ORANGE - SESUAI TEMA
+                      color: Color(0xFFE67E22),
                       size: 22,
                     ),
                     const SizedBox(width: 12),
