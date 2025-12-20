@@ -9,38 +9,39 @@ class HomePage extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(child: _buildSimpleHeader()),
-            SliverToBoxAdapter(child: _buildQuickActions()),
-            SliverToBoxAdapter(child: _buildPromoBanner()),
+            SliverToBoxAdapter(child: _buildSimpleHeader(context)),
+            SliverToBoxAdapter(child: _buildQuickActions(context)),
+            SliverToBoxAdapter(child: _buildPromoBanner(context)),
             
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       'Rekomendasi',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 20,
-                        color: Color(0xFF2C3E50),
+                        color: isDark ? Colors.white : const Color(0xFF2C3E50),
                       ),
                     ),
                     const Spacer(),
                     TextButton(
                       onPressed: () {
-                        // Navigate ke halaman produk
                         controller.navigateToProductsPage();
                       },
                       child: const Text(
                         'Lihat Semua',
                         style: TextStyle(
-                          color: Color(0xFFE67E22),
+                          color: Color(0xFFE67E22), // TETAP ORANGE
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -53,7 +54,7 @@ class HomePage extends GetView<HomeController> {
             Obx(() {
               if (controller.isLoadingProducts.value) {
                 return SliverToBoxAdapter(
-                  child: _buildLoadingProducts(),
+                  child: _buildLoadingProducts(context),
                 );
               }
               
@@ -85,7 +86,9 @@ class HomePage extends GetView<HomeController> {
     );
   }
 
-  Widget _buildLoadingProducts() {
+  Widget _buildLoadingProducts(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       height: 400,
       padding: const EdgeInsets.all(32),
@@ -104,13 +107,13 @@ class HomePage extends GetView<HomeController> {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE67E22).withOpacity(0.1),
+                      color: const Color(0xFFE67E22).withOpacity(isDark ? 0.2 : 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.cake_rounded,
                       size: 60,
-                      color: Color(0xFFE67E22),
+                      color: Color(0xFFE67E22), // TETAP ORANGE
                     ),
                   ),
                 ),
@@ -118,12 +121,12 @@ class HomePage extends GetView<HomeController> {
             },
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Memuat produk...',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF7F8C8D),
+              color: isDark ? Colors.white54 : const Color(0xFF7F8C8D),
             ),
           ),
           const SizedBox(height: 16),
@@ -132,7 +135,7 @@ class HomePage extends GetView<HomeController> {
             child: LinearProgressIndicator(
               backgroundColor: const Color(0xFFE67E22).withOpacity(0.2),
               valueColor: const AlwaysStoppedAnimation<Color>(
-                Color(0xFFE67E22),
+                Color(0xFFE67E22), // TETAP ORANGE
               ),
               minHeight: 3,
             ),
@@ -142,82 +145,86 @@ class HomePage extends GetView<HomeController> {
     );
   }
 
-  Widget _buildSimpleHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      decoration: const BoxDecoration(
-        color: Color(0xFFE67E22),
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.white,
+  Widget _buildSimpleHeader(BuildContext context) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  
+  return Container(
+    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+    decoration: const BoxDecoration(
+      color: Color(0xFFE67E22), // TETAP ORANGE
+    ),
+    child: Column(
+      children: [
+        Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
               borderRadius: BorderRadius.circular(8),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: () {
-                  // Navigate ke halaman produk saat search diklik
-                  controller.navigateToProductsPage();
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: const [
-                      Icon(
-                        Icons.search,
-                        color: Color(0xFF7F8C8D),
-                        size: 22,
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Cari kue favorit...',
-                          style: TextStyle(
-                            color: Color(0xFF95A5A6),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          ),
+              onTap: () {
+                controller.navigateToProductsPage();
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.search,
+                      color: Color(0xFFE67E22), // ORANGE - SESUAI TEMA
+                      size: 22,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Cari kue favorit...',
+                        style: TextStyle(
+                          color: isDark ? Colors.white38 : const Color(0xFF95A5A6),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
-  Widget _buildQuickActions() {
+
+  Widget _buildQuickActions(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     final actions = [
       {
         'icon': Icons.favorite_rounded,
-        'color': const Color(0xFFE91E63),
+        'color': const Color(0xFFE91E63), // TETAP PINK
         'label': 'Favorit',
         'action': 'favorite',
       },
       {
         'icon': Icons.local_shipping_rounded,
-        'color': const Color(0xFF3498DB),
+        'color': const Color(0xFF3498DB), // TETAP BLUE
         'label': 'Lacak\nPesanan',
         'action': 'track',
       },
       {
         'icon': Icons.grid_view_rounded,
-        'color': const Color(0xFFE67E22),
+        'color': const Color(0xFFE67E22), // TETAP ORANGE
         'label': 'Produk',
         'action': 'products',
       },
       {
         'icon': Icons.store_rounded,
-        'color': const Color(0xFF27AE60),
+        'color': const Color(0xFF27AE60), // TETAP GREEN
         'label': 'Ambil\nDitempat',
         'action': 'pickup',
       },
@@ -227,11 +234,11 @@ class HomePage extends GetView<HomeController> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -241,6 +248,7 @@ class HomePage extends GetView<HomeController> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: actions.map((action) {
           return _buildQuickActionItem(
+            context: context,
             icon: action['icon'] as IconData,
             color: action['color'] as Color,
             label: action['label'] as String,
@@ -252,11 +260,14 @@ class HomePage extends GetView<HomeController> {
   }
 
   Widget _buildQuickActionItem({
+    required BuildContext context,
     required IconData icon,
     required Color color,
     required String label,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -269,15 +280,15 @@ class HomePage extends GetView<HomeController> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
                 border: Border.all(
-                  color: const Color(0xFFE0E0E0),
+                  color: isDark ? Colors.white12 : const Color(0xFFE0E0E0),
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
-                child: Icon(icon, color: color, size: 28),
+                child: Icon(icon, color: color, size: 28), // COLOR TETAP
               ),
             ),
             const SizedBox(height: 8),
@@ -285,10 +296,10 @@ class HomePage extends GetView<HomeController> {
               height: 28,
               child: Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF2C3E50),
+                  color: isDark ? Colors.white : const Color(0xFF2C3E50),
                   height: 1.3,
                 ),
                 textAlign: TextAlign.center,
@@ -302,7 +313,9 @@ class HomePage extends GetView<HomeController> {
     );
   }
 
-  Widget _buildPromoBanner() {
+  Widget _buildPromoBanner(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       height: 200,
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -336,10 +349,10 @@ class HomePage extends GetView<HomeController> {
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
                       return Container(
-                        color: const Color(0xFFF5F5F5),
+                        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5),
                         child: const Center(
                           child: CircularProgressIndicator(
-                            color: Color(0xFFE67E22),
+                            color: Color(0xFFE67E22), // TETAP ORANGE
                             strokeWidth: 3,
                           ),
                         ),
@@ -361,7 +374,7 @@ class HomePage extends GetView<HomeController> {
                           child: Icon(
                             Icons.cake_rounded,
                             size: 72,
-                            color: Color(0xFFE67E22),
+                            color: Color(0xFFE67E22), // TETAP ORANGE
                           ),
                         ),
                       );
@@ -389,7 +402,7 @@ class HomePage extends GetView<HomeController> {
                         Text(
                           banner['title']!,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Colors.white, // TETAP WHITE
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             height: 1.2,
@@ -406,7 +419,7 @@ class HomePage extends GetView<HomeController> {
                         Text(
                           banner['subtitle']!,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Colors.white, // TETAP WHITE
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
@@ -414,11 +427,10 @@ class HomePage extends GetView<HomeController> {
                         const SizedBox(height: 12),
                         ElevatedButton(
                           onPressed: () {
-                            // Navigate ke halaman produk
                             controller.navigateToProductsPage();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE67E22),
+                            backgroundColor: const Color(0xFFE67E22), // TETAP ORANGE
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 20,
