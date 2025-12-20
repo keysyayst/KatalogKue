@@ -109,7 +109,7 @@ class DashboardPage extends GetView<DashboardController> {
           onTap: controller.changeTabIndex,
           type: BottomNavigationBarType.fixed,
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
             BottomNavigationBarItem(
               icon: Icon(Icons.grid_view),
               label: 'Produk',
