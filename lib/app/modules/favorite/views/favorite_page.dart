@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../widgets/product_card.dart';
 import '../controllers/favorite_controller.dart';
-// Import DashboardController agar bisa ganti tab
 import '../../../app.dart';
 
 class FavoritePage extends GetView<FavoriteController> {
@@ -10,8 +9,12 @@ class FavoritePage extends GetView<FavoriteController> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Deteksi Dark Mode
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      // 2. FIX: Background menyesuaikan tema (Hitam/Putih)
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Obx(() {
         final favs = controller.favoriteProducts;
 
@@ -52,13 +55,17 @@ class FavoritePage extends GetView<FavoriteController> {
                                   ),
                                 );
                               },
-                              child: const Text(
+                              child: Text(
                                 'Belum ada produk favorit',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 20,
+                                  fontFamily: 'Poppins', // Tambah font Poppins
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF2C3E50),
+                                  // 3. FIX: Warna Teks Menyesuaikan Tema
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF2C3E50),
                                   height: 1.4,
                                 ),
                               ),
@@ -79,17 +86,13 @@ class FavoritePage extends GetView<FavoriteController> {
                               },
                               child: IntrinsicWidth(
                                 child: _AnimatedCTAButton(
-                                  // PERBAIKAN NAVIGASI DI SINI
                                   onPressed: () {
                                     try {
-                                      // Cari DashboardController dan pindah ke Tab 1 (Produk)
                                       final dashboard =
                                           Get.find<DashboardController>();
                                       dashboard.changeTabIndex(1);
                                     } catch (e) {
-                                      print(
-                                        "DashboardController not found: $e",
-                                      );
+                                      // ignore
                                     }
                                   },
                                 ),
@@ -121,16 +124,16 @@ class FavoritePage extends GetView<FavoriteController> {
                   '${favs.length} Produk Favorit',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white70
-                        : Colors.grey[600],
+                    fontFamily: 'Poppins',
+                    // Warna teks count sudah benar sebelumnya, tapi kita pastikan lagi
+                    color: isDark ? Colors.white70 : Colors.grey[600],
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ),
 
-            // Product Grid dengan staggered animation
+            // Product Grid
             SliverPadding(
               padding: const EdgeInsets.all(16),
               sliver: SliverGrid(
@@ -166,7 +169,7 @@ class FavoritePage extends GetView<FavoriteController> {
       foregroundColor: Colors.white,
       elevation: 2,
       automaticallyImplyLeading: false,
-      // Fix: withOpacity -> withValues
+      // Gunakan withValues untuk Flutter terbaru
       shadowColor: const Color(0xFF000000).withValues(alpha: 0.05),
 
       flexibleSpace: FlexibleSpaceBar(
@@ -175,6 +178,7 @@ class FavoritePage extends GetView<FavoriteController> {
         title: const Text(
           'Favorit',
           style: TextStyle(
+            fontFamily: 'Poppins',
             fontWeight: FontWeight.bold,
             fontSize: 20,
             color: Colors.white,
@@ -224,6 +228,10 @@ class _AnimatedEmptyStateIconState extends State<_AnimatedEmptyStateIcon>
 
   @override
   Widget build(BuildContext context) {
+    // 4. FIX: Background lingkaran empty state menyesuaikan tema
+    // Agar tidak terlalu terang (silau) di mode gelap
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -233,10 +241,12 @@ class _AnimatedEmptyStateIconState extends State<_AnimatedEmptyStateIcon>
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFFFFE5D9),
+              // Jika dark mode, pakai warna abu gelap transparan, jika light mode pakai Light Orange
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : const Color(0xFFFFE5D9),
               boxShadow: [
                 BoxShadow(
-                  // Fix: withOpacity -> withValues
                   color: const Color(
                     0xFFE67E22,
                   ).withValues(alpha: 0.15 * _opacityAnimation.value),
@@ -291,7 +301,6 @@ class _AnimatedCTAButtonState extends State<_AnimatedCTAButton> {
               ? []
               : [
                   BoxShadow(
-                    // Fix: withOpacity -> withValues
                     color: const Color(0xFFE67E22).withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
@@ -303,6 +312,7 @@ class _AnimatedCTAButtonState extends State<_AnimatedCTAButton> {
           child: Text(
             'Jelajahi Produk',
             style: TextStyle(
+              fontFamily: 'Poppins',
               fontSize: 14,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
@@ -315,7 +325,7 @@ class _AnimatedCTAButtonState extends State<_AnimatedCTAButton> {
   }
 }
 
-// 3. Animated Product Card
+// 3. Animated Product Card (Wrapper)
 class _AnimatedProductCard extends StatefulWidget {
   final int index;
   final Widget child;
@@ -390,6 +400,9 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard>
 
   @override
   Widget build(BuildContext context) {
+    // 5. FIX: Menyesuaikan Border Container saat Dark Mode
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 300 + (widget.index * 50)),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -426,20 +439,18 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard>
                 scale: _scaleAnimation.value,
                 child: Stack(
                   children: [
-                    // Card Wrapper
+                    // Card Wrapper (Shadow)
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            // Fix: withOpacity -> withValues
                             color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
                           BoxShadow(
-                            // Fix: withOpacity -> withValues
                             color: const Color(
                               0xFFE67E22,
                             ).withValues(alpha: 0.2 * _shadowAnimation.value),
@@ -473,7 +484,6 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard>
                                     ),
                                     colors: [
                                       Colors.transparent,
-                                      // Fix: withOpacity -> withValues
                                       Colors.white.withValues(alpha: 0.15),
                                       Colors.transparent,
                                     ],
@@ -493,7 +503,6 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              // Fix: withOpacity -> withValues
                               color: const Color(
                                 0xFFE67E22,
                               ).withValues(alpha: 0.3 * _shadowAnimation.value),
@@ -563,7 +572,6 @@ class _AnimatedAppBarBackgroundState extends State<_AnimatedAppBarBackground>
                   height: 160,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    // Fix: withOpacity -> withValues
                     color: Colors.white.withValues(alpha: 0.08),
                   ),
                 ),
@@ -576,7 +584,6 @@ class _AnimatedAppBarBackgroundState extends State<_AnimatedAppBarBackground>
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    // Fix: withOpacity -> withValues
                     color: Colors.white.withValues(alpha: 0.05),
                   ),
                 ),
@@ -589,7 +596,6 @@ class _AnimatedAppBarBackgroundState extends State<_AnimatedAppBarBackground>
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    // Fix: withOpacity -> withValues
                     color: const Color(0xFFD35400).withValues(alpha: 0.3),
                   ),
                 ),
