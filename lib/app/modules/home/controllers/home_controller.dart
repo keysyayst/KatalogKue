@@ -8,7 +8,6 @@ import '../../produk/controllers/produk_controller.dart';
 
 class HomeController extends GetxController {
   final ProductService _productService = Get.find<ProductService>();
-
   final isLoadingProducts = true.obs;
 
   List<Product> get rekomendasiProducts {
@@ -88,22 +87,17 @@ class HomeController extends GetxController {
     pendingOrderCount.value = 1;
   }
 
-  // ===== NAVIGATION METHODS =====
-
   void onQuickActionPressed(String action) {
     switch (action) {
       case 'favorite':
         navigateToTab(2);
         break;
-
       case 'track':
         navigateToTab(3);
         break;
-
       case 'products':
         navigateToTab(1);
         break;
-
       case 'pickup':
         navigateToPickupMode();
         break;
@@ -134,7 +128,6 @@ class HomeController extends GetxController {
     try {
       final dashboardController = Get.find<DashboardController>();
       dashboardController.changeTabIndex(3);
-
       Future.delayed(const Duration(milliseconds: 300), () {
         if (Get.isRegistered<DeliveryCheckerController>()) {
           Get.toNamed('/delivery-checker');
@@ -150,15 +143,10 @@ class HomeController extends GetxController {
     navigateToTab(1);
   }
 
-  // ===== SEARCH NAVIGATION =====
-
   void navigateToSearch() {
     try {
-      // 1. Pindah ke tab Produk (index 1)
       final dashboardController = Get.find<DashboardController>();
       dashboardController.changeTabIndex(1);
-
-      // 2. Fokus ke search field dengan delay
       Future.delayed(const Duration(milliseconds: 200), () {
         if (Get.isRegistered<ProdukController>()) {
           final produkController = Get.find<ProdukController>();

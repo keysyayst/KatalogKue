@@ -29,27 +29,15 @@ class ProdukPage extends GetView<ProdukController> {
             cacheExtent: 500,
             slivers: [
               _buildSliverAppBar(context, isDark),
-
-              // Search Bar
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    20,
-                    24,
-                    20,
-                    8,
-                  ), // Padding bawah dikurangi sedikit
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
                   child: _buildSearchBar(isDark),
                 ),
               ),
-
-              // === [BARU] BAGIAN RIWAYAT PENCARIAN ===
-              // Hanya muncul jika ada riwayat DAN kolom search sedang kosong
               if (controller.searchHistory.isNotEmpty &&
                   controller.searchQuery.value.isEmpty)
                 SliverToBoxAdapter(child: _buildSearchHistorySection(isDark)),
-
-              // Header Jumlah Produk
               if (controller.filteredProducts.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
@@ -65,8 +53,6 @@ class ProdukPage extends GetView<ProdukController> {
                     ),
                   ),
                 ),
-
-              // Grid Produk / Empty State
               if (controller.filteredProducts.isEmpty)
                 SliverFillRemaining(
                   child: Center(
@@ -113,7 +99,6 @@ class ProdukPage extends GetView<ProdukController> {
                     }, childCount: controller.filteredProducts.length),
                   ),
                 ),
-
               const SliverToBoxAdapter(child: SizedBox(height: 80)),
             ],
           ),
@@ -122,12 +107,10 @@ class ProdukPage extends GetView<ProdukController> {
     );
   }
 
-  // === WIDGET RIWAYAT (BARU) ===
   Widget _buildSearchHistorySection(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header Riwayat
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           child: Row(
@@ -142,7 +125,6 @@ class ProdukPage extends GetView<ProdukController> {
                   color: isDark ? Colors.white : darkBlueGrey,
                 ),
               ),
-              // Tombol Hapus Semua
               GestureDetector(
                 onTap: controller.clearSearchHistory,
                 child: Text(
@@ -158,13 +140,10 @@ class ProdukPage extends GetView<ProdukController> {
             ],
           ),
         ),
-
-        // List Horizontal Chips
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
-            // Menggunakan Row agar scrollable horizontal mulus
             children: controller.searchHistory.map((history) {
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0),
@@ -184,9 +163,7 @@ class ProdukPage extends GetView<ProdukController> {
                       color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
                     ),
                   ),
-                  // Aksi Klik: Cari langsung
                   onPressed: () => controller.applySearchFromHistory(history),
-                  // Aksi Hapus per item
                   onDeleted: () => controller.removeSearchHistory(history),
                   deleteIcon: Icon(
                     Icons.close,

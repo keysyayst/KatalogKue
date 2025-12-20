@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../data/models/product.dart';
 import '../../../data/models/nutrition_model.dart';
 import '../../../data/services/nutrition_service.dart';
@@ -13,21 +12,14 @@ class ProdukController extends GetxController {
   final SearchHistoryHiveService searchHistoryService =
       Get.find<SearchHistoryHiveService>();
 
-  // Controller untuk text field pencarian
   final TextEditingController searchController = TextEditingController();
-
-  // ✅ PENTING: FocusNode untuk fitur auto-focus dari Home
   final FocusNode searchFocusNode = FocusNode();
 
-  // List produk
   final RxList<Product> products = <Product>[].obs;
   final RxList<Product> filteredProducts = <Product>[].obs;
-
-  // State pencarian
   final RxString searchQuery = ''.obs;
   final RxList<String> searchHistory = <String>[].obs;
 
-  // Untuk detail produk
   final Rx<Product?> selectedProduct = Rx<Product?>(null);
   final Rx<NutritionData?> nutritionData = Rx<NutritionData?>(null);
   final RxBool isLoadingNutrition = false.obs;
@@ -46,8 +38,6 @@ class ProdukController extends GetxController {
     refreshProducts();
   }
 
-  // ================== PRODUK ==================
-
   void loadProducts() {
     products.value = productService.getAllProducts();
     filteredProducts.value = products;
@@ -59,11 +49,8 @@ class ProdukController extends GetxController {
     loadProducts();
   }
 
-  // ================== PENCARIAN ==================
-
   void searchProducts(String query) {
     searchQuery.value = query;
-
     if (query.isEmpty) {
       filteredProducts.value = products;
     } else {
@@ -105,15 +92,10 @@ class ProdukController extends GetxController {
     searchQuery.value = query;
     searchProducts(query);
     saveSearchToHistory(query);
-    searchFocusNode.unfocus(); // Tutup keyboard saat pilih history
+    searchFocusNode.unfocus();
   }
 
-  // ================== FOCUS SEARCH (FITUR DARI HOME) ==================
-
-  /// Method untuk fokus ke search field dan membuka keyboard
-  /// Dipanggil dari HomeController saat user tap search bar di Home
   void focusSearch() {
-    // Request focus dengan delay kecil untuk memastikan widget sudah ter-render
     Future.delayed(const Duration(milliseconds: 100), () {
       if (searchFocusNode.canRequestFocus) {
         searchFocusNode.requestFocus();
@@ -121,22 +103,15 @@ class ProdukController extends GetxController {
     });
   }
 
-  /// Method untuk unfocus search field (menutup keyboard)
   void unfocusSearch() {
     searchFocusNode.unfocus();
   }
-
-  // ================== NUTRISI & DETAIL ==================
 
   Future<void> loadNutritionData(String productName) async {
     try {
       isLoadingNutrition(true);
       final data = await nutritionService.getNutritionData(productName);
-      if (data != null) {
-        nutritionData.value = data;
-      } else {
-        nutritionData.value = NutritionData.dummy();
-      }
+      nutritionData.value = data ?? NutritionData.dummy();
     } catch (e) {
       nutritionData.value = NutritionData.dummy();
     } finally {
@@ -161,7 +136,7 @@ class ProdukController extends GetxController {
   @override
   void onClose() {
     searchController.dispose();
-    searchFocusNode.dispose(); // Dispose focus node
+    searchFocusNode.dispose();
     super.onClose();
   }
 }
