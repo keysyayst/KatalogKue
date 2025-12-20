@@ -9,11 +9,9 @@ class FavoritePage extends GetView<FavoriteController> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Deteksi Dark Mode
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      // 2. FIX: Background menyesuaikan tema (Hitam/Putih)
       backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Obx(() {
         final favs = controller.favoriteProducts;
@@ -60,9 +58,8 @@ class FavoritePage extends GetView<FavoriteController> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 20,
-                                  fontFamily: 'Poppins', // Tambah font Poppins
+                                  fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w600,
-                                  // 3. FIX: Warna Teks Menyesuaikan Tema
                                   color: isDark
                                       ? Colors.white
                                       : const Color(0xFF2C3E50),
@@ -125,7 +122,6 @@ class FavoritePage extends GetView<FavoriteController> {
                   style: TextStyle(
                     fontSize: 14,
                     fontFamily: 'Poppins',
-                    // Warna teks count sudah benar sebelumnya, tapi kita pastikan lagi
                     color: isDark ? Colors.white70 : Colors.grey[600],
                     fontWeight: FontWeight.w500,
                   ),
@@ -169,7 +165,6 @@ class FavoritePage extends GetView<FavoriteController> {
       foregroundColor: Colors.white,
       elevation: 2,
       automaticallyImplyLeading: false,
-      // Gunakan withValues untuk Flutter terbaru
       shadowColor: const Color(0xFF000000).withValues(alpha: 0.05),
 
       flexibleSpace: FlexibleSpaceBar(
@@ -228,8 +223,6 @@ class _AnimatedEmptyStateIconState extends State<_AnimatedEmptyStateIcon>
 
   @override
   Widget build(BuildContext context) {
-    // 4. FIX: Background lingkaran empty state menyesuaikan tema
-    // Agar tidak terlalu terang (silau) di mode gelap
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnimatedBuilder(
@@ -241,7 +234,6 @@ class _AnimatedEmptyStateIconState extends State<_AnimatedEmptyStateIcon>
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              // Jika dark mode, pakai warna abu gelap transparan, jika light mode pakai Light Orange
               color: isDark
                   ? Colors.white.withValues(alpha: 0.05)
                   : const Color(0xFFFFE5D9),
@@ -282,6 +274,8 @@ class _AnimatedCTAButtonState extends State<_AnimatedCTAButton> {
 
   @override
   Widget build(BuildContext context) {
+    final scale = _isPressed ? 0.95 : 1.0;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) {
@@ -307,12 +301,12 @@ class _AnimatedCTAButtonState extends State<_AnimatedCTAButton> {
                   ),
                 ],
         ),
-        transform: Matrix4.identity()..scale(_isPressed ? 0.95 : 1.0),
+        // FIX: Menggunakan diagonal3Values pengganti scale() yang deprecated
+        transform: Matrix4.diagonal3Values(scale, scale, 1.0),
         child: const Center(
           child: Text(
             'Jelajahi Produk',
             style: TextStyle(
-              fontFamily: 'Poppins',
               fontSize: 14,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
@@ -400,8 +394,7 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard>
 
   @override
   Widget build(BuildContext context) {
-    // 5. FIX: Menyesuaikan Border Container saat Dark Mode
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // FIX: Menghapus variable 'isDark' yang tidak digunakan
 
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 300 + (widget.index * 50)),
