@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../widgets/product_card.dart';
 import '../controllers/favorite_controller.dart';
-// Import DashboardController agar bisa ganti tab
 import '../../../app.dart';
 
 class FavoritePage extends GetView<FavoriteController> {
@@ -29,8 +28,11 @@ class FavoritePage extends GetView<FavoriteController> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Animated Icon
-                        _AnimatedEmptyStateIcon(),
+                        // Simple Icon without animation (with opacity)
+                        Opacity(
+                          opacity: 0.4,
+                          child: _EmptyStateIcon(),
+                        ),
                         const SizedBox(height: 32),
 
                         // Text & Button
@@ -38,35 +40,38 @@ class FavoritePage extends GetView<FavoriteController> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Fade in text
-                            TweenAnimationBuilder<double>(
-                              duration: const Duration(milliseconds: 600),
-                              tween: Tween(begin: 0.0, end: 1.0),
-                              curve: Curves.easeOut,
-                              builder: (context, value, child) {
-                                return Opacity(
-                                  opacity: value,
-                                  child: Transform.translate(
-                                    offset: Offset(0, 20 * (1 - value)),
-                                    child: child,
+                            // Fade in text (with opacity)
+                            Opacity(
+                              opacity: 0.5,
+                              child: TweenAnimationBuilder<double>(
+                                duration: const Duration(milliseconds: 600),
+                                tween: Tween(begin: 0.0, end: 1.0),
+                                curve: Curves.easeOut,
+                                builder: (context, value, child) {
+                                  return Opacity(
+                                    opacity: value,
+                                    child: Transform.translate(
+                                      offset: Offset(0, 20 * (1 - value)),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  'Belum ada produk',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF2C3E50),
+                                    height: 1.4,
                                   ),
-                                );
-                              },
-                              child: const Text(
-                                'Belum ada produk favorit',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF2C3E50),
-                                  height: 1.4,
                                 ),
                               ),
                             ),
 
                             const SizedBox(height: 32),
 
-                            // Animated Button
+                            // Animated Button (opacity removed)
                             TweenAnimationBuilder<double>(
                               duration: const Duration(milliseconds: 800),
                               tween: Tween(begin: 0.0, end: 1.0),
@@ -79,10 +84,8 @@ class FavoritePage extends GetView<FavoriteController> {
                               },
                               child: IntrinsicWidth(
                                 child: _AnimatedCTAButton(
-                                  // PERBAIKAN NAVIGASI DI SINI
                                   onPressed: () {
                                     try {
-                                      // Cari DashboardController dan pindah ke Tab 1 (Produk)
                                       final dashboard =
                                           Get.find<DashboardController>();
                                       dashboard.changeTabIndex(1);
@@ -166,7 +169,6 @@ class FavoritePage extends GetView<FavoriteController> {
       foregroundColor: Colors.white,
       elevation: 2,
       automaticallyImplyLeading: false,
-      // Fix: withOpacity -> withValues
       shadowColor: const Color(0xFF000000).withValues(alpha: 0.05),
 
       flexibleSpace: FlexibleSpaceBar(
@@ -190,74 +192,19 @@ class FavoritePage extends GetView<FavoriteController> {
 // ANIMATED WIDGETS
 // ========================================
 
-// 1. Animated Empty State Icon
-class _AnimatedEmptyStateIcon extends StatefulWidget {
-  @override
-  State<_AnimatedEmptyStateIcon> createState() =>
-      _AnimatedEmptyStateIconState();
-}
-
-class _AnimatedEmptyStateIconState extends State<_AnimatedEmptyStateIcon>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _opacityAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _opacityAnimation = Tween<double>(
-      begin: 0.6,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+// 1. Simple Empty State Icon (No Animation, No Circle)
+class _EmptyStateIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _opacityAnimation.value,
-          child: Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFFFFE5D9),
-              boxShadow: [
-                BoxShadow(
-                  // Fix: withOpacity -> withValues
-                  color: const Color(
-                    0xFFE67E22,
-                  ).withValues(alpha: 0.15 * _opacityAnimation.value),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.favorite_border_rounded,
-              size: 80,
-              color: Color(0xFFE67E22),
-            ),
-          ),
-        );
-      },
+    return const Icon(
+      Icons.favorite_border_rounded,
+      size: 80,
+      color: Color(0xFFE67E22),
     );
   }
 }
 
-// 2. Animated CTA Button
+// 2. Animated CTA Button (No Orange Shadow)
 class _AnimatedCTAButton extends StatefulWidget {
   final VoidCallback onPressed;
 
@@ -287,21 +234,11 @@ class _AnimatedCTAButtonState extends State<_AnimatedCTAButton> {
         decoration: BoxDecoration(
           color: const Color(0xFFE67E22),
           borderRadius: BorderRadius.circular(12),
-          boxShadow: _isPressed
-              ? []
-              : [
-                  BoxShadow(
-                    // Fix: withOpacity -> withValues
-                    color: const Color(0xFFE67E22).withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
         ),
         transform: Matrix4.identity()..scale(_isPressed ? 0.95 : 1.0),
         child: const Center(
           child: Text(
-            'Jelajahi Produk',
+            'Tambahkan Produk',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -433,13 +370,11 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard>
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            // Fix: withOpacity -> withValues
                             color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
                           BoxShadow(
-                            // Fix: withOpacity -> withValues
                             color: const Color(
                               0xFFE67E22,
                             ).withValues(alpha: 0.2 * _shadowAnimation.value),
@@ -473,7 +408,6 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard>
                                     ),
                                     colors: [
                                       Colors.transparent,
-                                      // Fix: withOpacity -> withValues
                                       Colors.white.withValues(alpha: 0.15),
                                       Colors.transparent,
                                     ],
@@ -493,7 +427,6 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              // Fix: withOpacity -> withValues
                               color: const Color(
                                 0xFFE67E22,
                               ).withValues(alpha: 0.3 * _shadowAnimation.value),
@@ -563,7 +496,6 @@ class _AnimatedAppBarBackgroundState extends State<_AnimatedAppBarBackground>
                   height: 160,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    // Fix: withOpacity -> withValues
                     color: Colors.white.withValues(alpha: 0.08),
                   ),
                 ),
@@ -576,7 +508,6 @@ class _AnimatedAppBarBackgroundState extends State<_AnimatedAppBarBackground>
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    // Fix: withOpacity -> withValues
                     color: Colors.white.withValues(alpha: 0.05),
                   ),
                 ),
@@ -589,7 +520,6 @@ class _AnimatedAppBarBackgroundState extends State<_AnimatedAppBarBackground>
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    // Fix: withOpacity -> withValues
                     color: const Color(0xFFD35400).withValues(alpha: 0.3),
                   ),
                 ),
