@@ -6,7 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../data/services/location_service.dart';
-import '../../../data/sources/catering_info.dart';
+import '../../../data/repositories/delivery_store_repository.dart';
+import '../../../data/models/delivery_store_model.dart';
 import '../../produk/controllers/produk_controller.dart';
 import '../../../data/models/product.dart';
 
@@ -23,12 +24,12 @@ class StoreScheduleInfo {
 }
 
 class DeliveryCheckerController extends GetxController {
+  // Untuk kontrol posisi sheet (extent)
+  final RxDouble sheetExtent = 0.38.obs;
   final LocationService locationService = Get.find<LocationService>();
-
-  // Map controller to control camera programmatically
+  final DeliveryStoreRepository storeRepository = DeliveryStoreRepository();
+  final Rx<DeliveryStore?> store = Rx<DeliveryStore?>(null);
   final MapController mapController = MapController();
-
-  // Observables lokasi & ongkir
   final Rx<Position?> customerLocation = Rx<Position?>(null);
   final RxBool isLoading = false.obs;
   final RxBool isInDeliveryZone = false.obs;
@@ -37,25 +38,27 @@ class DeliveryCheckerController extends GetxController {
   final RxBool isFreeDelivery = false.obs;
   final RxString locationMethod = ''.obs;
   final RxInt estimatedTime = 0.obs;
-
-  // Perbandingan GPS vs Network
   final Rx<Position?> gpsLocation = Rx<Position?>(null);
   final Rx<Position?> networkLocation = Rx<Position?>(null);
   final RxDouble gpsAccuracy = 0.0.obs;
   final RxDouble networkAccuracy = 0.0.obs;
   final RxDouble locationDifference = 0.0.obs;
-
-  // Lokasi terakhir sebagai URL Google Maps
   final RxString lastLocationUrl = ''.obs;
-
-  // Live tracking state & subscription
   final RxBool isLiveTracking = false.obs;
   StreamSubscription<Position>? _positionStream;
 
   @override
   void onInit() {
     super.onInit();
+    fetchStore();
     checkCustomerLocation();
+  }
+
+  Future<void> fetchStore() async {
+    isLoading.value = true;
+    final stores = await storeRepository.getAllStores();
+    store.value = stores.isNotEmpty ? stores.first : null;
+    isLoading.value = false;
   }
 
   @override
@@ -83,7 +86,7 @@ class DeliveryCheckerController extends GetxController {
   }
 
   Future<void> openWhatsAppWithProduct(Product product) async {
-    final phone = CateringInfo.store['whatsapp'];
+    final phone = store.value?.whatsapp ?? '';
 
     final deliveryText = buildDeliveryText();
 
@@ -117,14 +120,11 @@ class DeliveryCheckerController extends GetxController {
 
       if (gpsPos != null) {
         _setLocationFromGPS(gpsPos);
-
-        // Ambil network untuk perbandingan
         Position? netPos = await locationService.getNetworkLocation();
         if (netPos != null) {
           _setNetworkComparison(gpsPos, netPos);
         }
       } else {
-        // Fallback ke Network
         Position? netPos = await locationService.getNetworkLocation();
         if (netPos != null) {
           _setLocationFromNetwork(netPos);
@@ -184,15 +184,14 @@ class DeliveryCheckerController extends GetxController {
         'https://www.google.com/maps/search/?api=1&query=${netPos.latitude},${netPos.longitude}';
   }
 
-  //calculate delivery info
   void calculateDeliveryInfo() {
     if (customerLocation.value == null) return;
 
-    final storeLat = CateringInfo.store['lat'];
-    final storeLng = CateringInfo.store['lng'];
-    final deliveryRadius = CateringInfo.store['deliveryRadius'];
-    final freeDeliveryRadius = CateringInfo.store['freeDeliveryRadius'];
-    final costPerKm = (CateringInfo.store['deliveryCostPerKm']).toDouble();
+    final storeLat = store.value?.latitude ?? 0.0;
+    final storeLng = store.value?.longitude ?? 0.0;
+    final deliveryRadius = store.value?.deliveryRadius ?? 0.0;
+    final freeDeliveryRadius = store.value?.freeDeliveryRadius ?? 0.0;
+    final costPerKm = (store.value?.deliveryCostPerKm ?? 0).toDouble();
 
     final distanceMeters = locationService.calculateDistance(
       storeLat,
@@ -201,8 +200,7 @@ class DeliveryCheckerController extends GetxController {
       customerLocation.value!.longitude,
     );
 
-    distanceToStore.value = distanceMeters / 1000; // meter -> km
-
+    distanceToStore.value = distanceMeters / 1000;
     isInDeliveryZone.value = distanceToStore.value <= deliveryRadius;
 
     if (distanceToStore.value <= freeDeliveryRadius) {
@@ -217,17 +215,12 @@ class DeliveryCheckerController extends GetxController {
     estimatedTime.value = ((distanceToStore.value / 15) * 60).round();
   }
 
-  /// Called when stores list is updated elsewhere (e.g. admin changes).
-  /// Recalculates delivery info using the current customer location and
-  /// available store data. This is intentionally lightweight—if more
-  /// complex refresh logic is needed, expand this implementation.
   void refreshStores() {
     if (customerLocation.value != null) {
       calculateDeliveryInfo();
     }
   }
 
-  // refresh location and stores
   Future<void> refreshLocation() async {
     await checkCustomerLocation();
     Get.snackbar(
@@ -238,7 +231,6 @@ class DeliveryCheckerController extends GetxController {
     );
   }
 
-  // live tracking control
   void startLiveTracking() {
     if (isLiveTracking.value) return;
     isLiveTracking.value = true;
@@ -248,13 +240,6 @@ class DeliveryCheckerController extends GetxController {
       calculateDeliveryInfo();
       _moveCameraTo(pos);
     });
-
-    Get.snackbar(
-      'Live Location Aktif',
-      'Peta mengikuti pergerakan Anda',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
   }
 
   void stopLiveTracking() {
@@ -264,7 +249,6 @@ class DeliveryCheckerController extends GetxController {
   }
 
   Future<void> centerOnUser() async {
-    // If we don't have a location yet, fetch once
     if (customerLocation.value == null) {
       await checkCustomerLocation();
     }
@@ -283,10 +267,9 @@ class DeliveryCheckerController extends GetxController {
     } catch (_) {}
   }
 
-  // GET DELIVERY MESSAGE UNTUK CARD
   String getDeliveryMessage() {
     if (!isInDeliveryZone.value) {
-      return 'Maaf, lokasi Anda di luar area pengiriman (>${CateringInfo.store['deliveryRadius']} km)';
+      return 'Maaf, lokasi Anda di luar area pengiriman (>${store.value?.deliveryRadius ?? 0} km)';
     } else if (isFreeDelivery.value) {
       return 'Selamat! Lokasi Anda mendapat GRATIS ONGKIR!';
     } else {
@@ -295,8 +278,7 @@ class DeliveryCheckerController extends GetxController {
   }
 
   StoreScheduleInfo getStoreSchedule() {
-    final hours =
-        CateringInfo.store['operationalHours'] as Map<String, dynamic>?;
+    final hours = store.value?.operationalHours;
     final now = DateTime.now();
     final dayKey = _mapDayToKey(now.weekday);
     final rawHours = hours?[dayKey]?.toString();
@@ -342,11 +324,9 @@ class DeliveryCheckerController extends GetxController {
     return 'minggu';
   }
 
-  // OPEN WHATSAPP (dari halaman delivery)
+  // OPEN WHATSAPP
   Future<void> openWhatsApp() async {
-    final phone = CateringInfo.store['whatsapp'];
-
-    // Produk terpilih (jika ada)
+    final phone = store.value?.whatsapp ?? '';
     Product? selectedProduct;
     if (Get.isRegistered<ProdukController>()) {
       final produkController = Get.find<ProdukController>();
@@ -401,8 +381,8 @@ Mohon konfirmasi ketersediaan dan total harga. Terima kasih.""");
   // OPEN GOOGLE MAPS (DIRECTIONS)
   Future<void> openGoogleMaps() async {
     if (customerLocation.value == null) return;
-    final storeLat = CateringInfo.store['lat'];
-    final storeLng = CateringInfo.store['lng'];
+    final storeLat = store.value?.latitude ?? 0.0;
+    final storeLng = store.value?.longitude ?? 0.0;
     final customerLat = customerLocation.value!.latitude;
     final customerLng = customerLocation.value!.longitude;
 
@@ -423,7 +403,7 @@ Mohon konfirmasi ketersediaan dan total harga. Terima kasih.""");
 
   // CALL PHONE
   Future<void> callPhone() async {
-    final phone = CateringInfo.store['phone'];
+    final phone = store.value?.phone ?? '';
     final url = 'tel:$phone';
 
     final uri = Uri.parse(url);

@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../app.dart';
 import '../middlewares/auth_middleware.dart';
 import '../modules/admin/bindings/admin_binding.dart';
-import '../modules/admin/views/admin_delivery_stores_page.dart';
 import '../modules/admin/views/admin_products_page.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/auth_page.dart';
@@ -78,6 +77,9 @@ class AppPages {
       binding: AdminBinding(),
       middlewares: [AuthMiddleware()],
     ),
+    // Halaman adminDeliveryStores dihapus karena hanya ada 1 toko
+
+    // --- PAGE TESTING (MODUL 5) ---
     GetPage(
       name: Routes.locationExperiment,
       page: () => const LocationExperimentView(),
