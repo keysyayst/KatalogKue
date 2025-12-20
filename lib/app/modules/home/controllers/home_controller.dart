@@ -7,13 +7,16 @@ import '../../../data/sources/products.dart';
 import '../../../app.dart';
 import '../../delivery_checker/controllers/delivery_checker_controller.dart';
 import '../../produk/controllers/produk_controller.dart';
+import 'package:cake_by_mommy/app/data/services/product_supabase_service.dart';
+import 'package:cake_by_mommy/app/modules/favorite/controllers/favorite_controller.dart';
+import 'package:cake_by_mommy/app/modules/profile/controllers/profile_controller.dart';
 
 class HomeController extends GetxController {
-  final ProductService _productService = Get.find<ProductService>();
+  final ProductSupabaseService _productService = Get.find<ProductSupabaseService>();
   final isLoadingProducts = true.obs;
 
   List<Product> get rekomendasiProducts {
-    return _productService.getAllProducts().take(8).toList();
+    return _productService.products.take(8).toList();
   }
 
   final currentBannerIndex = 0.obs;
@@ -43,7 +46,6 @@ class HomeController extends GetxController {
   ].obs;
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
-
   var isOnline = true.obs;
 
   @override
@@ -53,30 +55,44 @@ class HomeController extends GetxController {
     _loadFavoriteCount();
     _loadProducts();
     _initConnectivityListener();
+    _productService.loadProducts();
   }
 
-void _initConnectivityListener() {
-  final connectivity = Connectivity();
+  void _initConnectivityListener() {
+    final connectivity = Connectivity();
 
-  _connectivitySubscription =
-      connectivity.onConnectivityChanged.listen((List<ConnectivityResult> result) {
-    final wasOnline = isOnline.value;
-    final hasConnection = result.any((r) => r != ConnectivityResult.none);
+    _connectivitySubscription = connectivity.onConnectivityChanged.listen((
+      List<ConnectivityResult> result,
+    ) {
+      final wasOnline = isOnline.value;
+      final hasConnection = result.any((r) => r != ConnectivityResult.none);
 
-    isOnline.value = hasConnection;
+      isOnline.value = hasConnection;
 
-    if (!wasOnline && isOnline.value) {
-      // panggil method yang benar
-      reloadAllData();
+      if (!wasOnline && isOnline.value) {
+        reloadAllData();
+      }
+    });
+  }
+
+  Future<void> reloadAllData() async {
+    isLoadingProducts.value = true;
+    if (Get.isRegistered<ProductSupabaseService>()) {
+      await Get.find<ProductSupabaseService>().loadProducts();
     }
-  });
-}
 
-// public, tanpa underscore di depan
-Future<void> reloadAllData() async {
-  _loadProducts();
-  // nanti kalau mau, tambahkan refresh lain di sini
-}
+    if (Get.isRegistered<FavoriteController>()) {
+      await Get.find<FavoriteController>().fetchFavorites();
+    }
+
+    if (Get.isRegistered<ProfileController>()) {
+      await Get.find<ProfileController>().loadProfile();
+    }
+
+    if (Get.isRegistered<DeliveryCheckerController>()) {
+      await Get.find<DeliveryCheckerController>().fetchStore();
+    }
+  }
 
   @override
   void onClose() {

@@ -1,12 +1,13 @@
 import 'package:get/get.dart';
 import '../../../data/models/product.dart';
-import '../../../data/sources/products.dart';
+import '../../../data/services/product_supabase_service.dart';
 import '../../../data/services/favorite_supabase_service.dart';
 import '../../../data/services/favorite_hive_service.dart';
 import '../../../data/services/auth_service.dart';
 
 class FavoriteController extends GetxController {
-  final ProductService _productService = Get.find<ProductService>();
+  final ProductSupabaseService _productService =
+      Get.find<ProductSupabaseService>();
   final FavoriteSupabaseService _favoriteService =
       Get.find<FavoriteSupabaseService>();
   final FavoriteHiveService _favoriteHiveService =
@@ -25,28 +26,23 @@ class FavoriteController extends GetxController {
     final userId = _authService.currentUser.value?.id;
     if (userId == null) return;
 
-    // Ambil favorite dari Supabase (source of truth untuk multi-device)
     final supabaseFavIds = await _favoriteService.getFavoriteIds(userId);
 
-    // Sync ke local Hive untuk offline access
     final localFavIds = _favoriteHiveService.getFavoriteIds();
 
-    // Tambahkan favorite dari Supabase yang belum ada di local
     for (final id in supabaseFavIds) {
       if (!localFavIds.contains(id)) {
-        await _favoriteHiveService.toggleFavorite(id); // Tambah ke Hive
+        await _favoriteHiveService.toggleFavorite(id); 
       }
     }
 
-    // Hapus favorite dari local yang tidak ada di Supabase
     for (final id in localFavIds) {
       if (!supabaseFavIds.contains(id)) {
-        await _favoriteHiveService.toggleFavorite(id); // Hapus dari Hive
+        await _favoriteHiveService.toggleFavorite(id); 
       }
     }
 
-    // Tampilkan favorite dari Supabase
-    final allProducts = _productService.getAllProducts();
+    final allProducts = _productService.products; 
     favoriteProducts.value = allProducts
         .where((p) => supabaseFavIds.contains(p.id))
         .toList();
@@ -55,9 +51,7 @@ class FavoriteController extends GetxController {
   Future<void> toggleFavorite(String productId) async {
     final userId = _authService.currentUser.value?.id;
     if (userId == null) return;
-    // Toggle lokal dulu
     await _favoriteHiveService.toggleFavorite(productId);
-    // Sinkron ke Supabase: jika sekarang jadi favorite, tambahkan ke Supabase
     final isNowFavorite = _favoriteHiveService.isFavorite(productId);
     if (isNowFavorite) {
       await _favoriteService.addFavorite(userId, productId);
