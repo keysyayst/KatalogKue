@@ -7,6 +7,7 @@ import '../modules/admin/views/admin_delivery_stores_page.dart';
 import '../modules/admin/views/admin_products_page.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/auth_page.dart';
+// Dashboard import otomatis ada karena di file app.dart
 import '../modules/delivery_checker/bindings/delivery_checker_binding.dart';
 import '../modules/delivery_checker/views/delivery_checker_view.dart';
 import '../modules/location/views/location_experiment_view.dart';
@@ -18,16 +19,16 @@ import '../modules/produk/views/produk_page.dart';
 import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_page.dart';
 
-// --- IMPORT VIEW TESTING BARU ---
-
 part 'app_routes.dart';
 
 class AppPages {
   AppPages._();
 
+  // Ubah initial jadi dashboard (hanya fallback)
   static const initial = Routes.dashboard;
 
   static final routes = [
+    // RUTE SPLASH DIHAPUS
     GetPage(
       name: _Paths.auth,
       page: () => const AuthPage(),
@@ -35,8 +36,8 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.dashboard,
-      page: () => const DashboardPage(),
-      binding: DashboardBinding(),
+      page: () => const DashboardPage(), // Ini ngambil dari app.dart
+      binding: DashboardBinding(), // Ini ngambil dari app.dart
       middlewares: [AuthMiddleware()],
     ),
     GetPage(
@@ -77,12 +78,9 @@ class AppPages {
       binding: AdminBinding(),
       middlewares: [AuthMiddleware()],
     ),
-
-    // --- PAGE TESTING (MODUL 5) ---
     GetPage(
       name: Routes.locationExperiment,
       page: () => const LocationExperimentView(),
-      // Tidak butuh binding khusus karena controller di-put di dalam view atau bisa lazyPut di sini jika mau
     ),
     GetPage(
       name: _Paths.NOTIFICATION,

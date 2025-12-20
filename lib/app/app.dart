@@ -20,11 +20,13 @@ import 'modules/delivery_checker/controllers/delivery_checker_controller.dart';
 import 'data/services/location_service.dart';
 
 // ========================================================
-// APP WIDGET
+// APP WIDGET (MODIFIED)
 // ========================================================
 
 class App extends StatelessWidget {
-  const App({super.key});
+  final String initialRoute; // Menerima parameter rute awal
+
+  const App({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +38,14 @@ class App extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
-      initialRoute: AppPages.initial,
+      initialRoute: initialRoute, // <-- Gunakan variabel ini
       getPages: AppPages.routes,
     );
   }
 }
 
 // =======================================================
-// DASHBOARD
+// DASHBOARD (FULL CODE)
 // =======================================================
 
 class DashboardController extends GetxController {
@@ -109,7 +111,7 @@ class DashboardPage extends GetView<DashboardController> {
           onTap: controller.changeTabIndex,
           type: BottomNavigationBarType.fixed,
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
             BottomNavigationBarItem(
               icon: Icon(Icons.grid_view),
               label: 'Produk',
@@ -137,7 +139,7 @@ class DashboardBinding extends Bindings {
     Get.lazyPut(() => AuthService());
     Get.lazyPut(() => NutritionService());
 
-    // ← PASTIKAN LocationService JUGA DI-INJECT
+    // Location Service Check
     if (!Get.isRegistered<LocationService>()) {
       Get.put(LocationService());
     }
@@ -148,8 +150,6 @@ class DashboardBinding extends Bindings {
     Get.lazyPut(() => FavoriteController());
     Get.lazyPut(() => ProdukController());
     Get.lazyPut(() => ProfileController());
-
-    // ← TAMBAH INI: DeliveryCheckerController
     Get.lazyPut(() => DeliveryCheckerController());
   }
 }
