@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 import '../../../data/models/product.dart';
 import '../../../data/sources/products.dart';
 import '../../../app.dart';
@@ -21,21 +23,28 @@ class HomeController extends GetxController {
 
   final promoBanners = <Map<String, String>>[
     {
-      'image': 'https://smartpluspro.com/app/repository/upload/2025_Boleci%20Copyright/4_April/Resep/nastar-gluten-free.jpg', // Nastar cookies
+      'image':
+          'https://smartpluspro.com/app/repository/upload/2025_Boleci%20Copyright/4_April/Resep/nastar-gluten-free.jpg', // Nastar cookies
       'title': 'Nastar Spesial',
       'subtitle': 'Kue kering favorit keluarga!',
     },
     {
-      'image': 'https://img.freepik.com/free-photo/delicious-dessert-table_23-2151901934.jpg?t=st=1766220929~exp=1766224529~hmac=b5294fa190446488af0971936f2e6cc126f575c2e44ced87e15a43b81b936c6f&w=1060', // Brownies
+      'image':
+          'https://img.freepik.com/free-photo/delicious-dessert-table_23-2151901934.jpg?t=st=1766220929~exp=1766224529~hmac=b5294fa190446488af0971936f2e6cc126f575c2e44ced87e15a43b81b936c6f&w=1060', // Brownies
       'title': 'Brownies Cup Lezat ',
       'subtitle': 'Mulai dari Rp 50K per box',
     },
     {
-      'image': 'https://lh6.googleusercontent.com/proxy/noSGK21lOQeuOTzzOC_i6oZT9h8CZPs9SP6WF0ro-IF474UoDHZN26xXU9Ds2UMKQEu0zQfagp1sow30SSRo8YfGTDSrUWDSTPREk3XcSea7vCmXG-P_UIWQs-VormEvhVRmMGi1Sy79x8DGFIiJkgjfbvvJAgvnqrbALnDHapZ28yRhXt3Tceypa4woMgyFoA05qw', // Thumbprint cookies
+      'image':
+          'https://lh6.googleusercontent.com/proxy/noSGK21lOQeuOTzzOC_i6oZT9h8CZPs9SP6WF0ro-IF474UoDHZN26xXU9Ds2UMKQEu0zQfagp1sow30SSRo8YfGTDSrUWDSTPREk3XcSea7vCmXG-P_UIWQs-VormEvhVRmMGi1Sy79x8DGFIiJkgjfbvvJAgvnqrbALnDHapZ28yRhXt3Tceypa4woMgyFoA05qw', // Thumbprint cookies
       'title': 'Thumbprint Premium',
       'subtitle': 'Renyah dengan selai pilihan!',
     },
   ].obs;
+
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+
+  var isOnline = true.obs;
 
   @override
   void onInit() {
@@ -43,11 +52,36 @@ class HomeController extends GetxController {
     _startBannerAutoSlide();
     _loadFavoriteCount();
     _loadProducts();
+    _initConnectivityListener();
   }
+
+void _initConnectivityListener() {
+  final connectivity = Connectivity();
+
+  _connectivitySubscription =
+      connectivity.onConnectivityChanged.listen((List<ConnectivityResult> result) {
+    final wasOnline = isOnline.value;
+    final hasConnection = result.any((r) => r != ConnectivityResult.none);
+
+    isOnline.value = hasConnection;
+
+    if (!wasOnline && isOnline.value) {
+      // panggil method yang benar
+      reloadAllData();
+    }
+  });
+}
+
+// public, tanpa underscore di depan
+Future<void> reloadAllData() async {
+  _loadProducts();
+  // nanti kalau mau, tambahkan refresh lain di sini
+}
 
   @override
   void onClose() {
     bannerController.dispose();
+    _connectivitySubscription?.cancel();
     super.onClose();
   }
 
