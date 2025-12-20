@@ -1,3 +1,4 @@
+// lib/app/modules/produk/controllers/produk_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -15,6 +16,7 @@ class ProdukController extends GetxController {
 
   // Controller untuk text field pencarian
   final TextEditingController searchController = TextEditingController();
+  final FocusNode searchFocusNode = FocusNode(); // TAMBAHAN UNTUK FOCUS
 
   // List produk
   final RxList<Product> products = <Product>[].obs;
@@ -107,6 +109,22 @@ class ProdukController extends GetxController {
     saveSearchToHistory(query);
   }
 
+  // ================== FOCUS SEARCH (BARU) ==================
+
+  /// Method untuk fokus ke search field dan membuka keyboard
+  /// Dipanggil dari HomeController saat user tap search bar
+  void focusSearch() {
+    // Request focus dengan delay kecil untuk memastikan widget sudah ter-render
+    Future.delayed(const Duration(milliseconds: 100), () {
+      searchFocusNode.requestFocus();
+    });
+  }
+
+  /// Method untuk unfocus search field (menutup keyboard)
+  void unfocusSearch() {
+    searchFocusNode.unfocus();
+  }
+
   // ================== NUTRISI & DETAIL ==================
 
   Future<void> loadNutritionData(String productName) async {
@@ -149,6 +167,7 @@ class ProdukController extends GetxController {
   @override
   void onClose() {
     searchController.dispose();
+    searchFocusNode.dispose(); // TAMBAHAN: dispose focus node
     super.onClose();
   }
 }
