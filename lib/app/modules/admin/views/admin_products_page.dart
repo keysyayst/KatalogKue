@@ -63,7 +63,9 @@ class AdminProductsPage extends GetView<AdminController> {
             final product = controller.products[index];
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesignRadius.medium)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(DesignRadius.medium),
+              ),
               elevation: 3,
               child: ListTile(
                 contentPadding: const EdgeInsets.all(12),
@@ -75,21 +77,35 @@ class AdminProductsPage extends GetView<AdminController> {
                           width: 60,
                           height: 60,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.broken_image),
                         )
                       : Image.asset(
                           product.image,
                           width: 60,
                           height: 60,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.broken_image),
                         ),
                 ),
-                title: Text(product.title, style: const TextStyle(fontFamily: DesignText.family, fontWeight: FontWeight.w600)),
+                title: Text(
+                  product.title,
+                  style: const TextStyle(
+                    fontFamily: DesignText.family,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Rp. ${product.price}', style: TextStyle(color: DesignColors.primary, fontWeight: FontWeight.w700)),
+                    Text(
+                      'Rp. ${product.price}',
+                      style: TextStyle(
+                        color: DesignColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     if (product.description != null)
                       Text(
                         product.description!,
@@ -104,7 +120,8 @@ class AdminProductsPage extends GetView<AdminController> {
                   children: [
                     IconButton(
                       icon: Icon(Icons.edit, color: DesignColors.info),
-                      onPressed: () => controller.showProductForm(product: product),
+                      onPressed: () =>
+                          controller.showProductForm(product: product),
                       tooltip: 'Edit',
                     ),
                     IconButton(
