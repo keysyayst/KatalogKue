@@ -181,7 +181,7 @@ class HomePage extends GetView<HomeController> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Cari kue favorit...',
+                        'Cari kue...',
                         style: TextStyle(
                           color: isDark ? Colors.white38 : const Color(0xFF95A5A6),
                           fontSize: 14,
