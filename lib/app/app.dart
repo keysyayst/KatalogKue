@@ -19,6 +19,7 @@ import 'modules/delivery_checker/views/delivery_checker_view.dart';
 import 'modules/delivery_checker/controllers/delivery_checker_controller.dart';
 import 'data/services/location_service.dart';
 import 'data/services/favorite_supabase_service.dart';
+import 'data/services/product_supabase_service.dart';
 
 // ========================================================
 // APP WIDGET (MODIFIED)
@@ -139,6 +140,7 @@ class DashboardBinding extends Bindings {
     // Services
     Get.lazyPut(() => AuthService());
     Get.lazyPut(() => NutritionService());
+    Get.lazyPut(() => ProductSupabaseService());
     Get.lazyPut(() => FavoriteSupabaseService());
 
     // Location Service Check

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 import '../../../data/models/product.dart';
 import '../../../data/models/nutrition_model.dart';
 import '../../../data/services/nutrition_service.dart';
@@ -7,6 +9,8 @@ import '../../../data/services/search_history_hive_service.dart';
 import '../../../data/sources/products.dart';
 
 class ProdukController extends GetxController {
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  final RxBool isOnline = true.obs;
   final ProductService productService = Get.find<ProductService>();
   final NutritionService nutritionService = Get.find<NutritionService>();
   final SearchHistoryHiveService searchHistoryService =
@@ -30,6 +34,21 @@ class ProdukController extends GetxController {
     super.onInit();
     loadProducts();
     loadSearchHistory();
+    _initConnectivityListener();
+  }
+
+  void _initConnectivityListener() {
+    final connectivity = Connectivity();
+    _connectivitySubscription = connectivity.onConnectivityChanged.listen((
+      List<ConnectivityResult> result,
+    ) {
+      final wasOnline = isOnline.value;
+      final hasConnection = result.any((r) => r != ConnectivityResult.none);
+      isOnline.value = hasConnection;
+      if (!wasOnline && isOnline.value) {
+        refreshProducts();
+      }
+    });
   }
 
   @override
@@ -137,6 +156,7 @@ class ProdukController extends GetxController {
   void onClose() {
     searchController.dispose();
     searchFocusNode.dispose();
+    _connectivitySubscription?.cancel();
     super.onClose();
   }
 }

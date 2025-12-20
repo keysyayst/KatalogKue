@@ -13,10 +13,10 @@ class HomePage extends GetView<HomeController> {
 
     return Scaffold(
       backgroundColor:
-          Colors.transparent, // biar gradient header sampai ke atas
-      extendBodyBehindAppBar: true, // biar header gradient sampai ke status bar
+          Colors.transparent,
+      extendBodyBehindAppBar: true, 
       body: SafeArea(
-        top: false, // biar header gradient sampai ke status bar
+        top: false, 
         child: RefreshIndicator(
           onRefresh: () async {
             await controller.reloadAllData();

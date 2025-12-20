@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../data/services/auth_service.dart';
@@ -8,6 +10,8 @@ import '../../../theme/theme_controller.dart';
 import '../../../theme/design_system.dart';
 
 class ProfileController extends GetxController {
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  final RxBool isOnline = true.obs;
   final AuthService _authService = Get.find<AuthService>();
   final ThemeController _themeController = Get.find<ThemeController>();
 
@@ -31,10 +35,32 @@ class ProfileController extends GetxController {
     super.onInit();
     debugPrint('🎯 ProfileController onInit called');
     loadProfile();
+    _initConnectivityListener();
     // Listen to profile changes
     ever(_authService.currentProfile, (profile) {
-      debugPrint('🔄 Profile changed detected: ${profile?.email}');
+      debugPrint('🔄 Profile changed detected: ${profile?.email}');
       loadProfile();
+    });
+  }
+
+  void _initConnectivityListener() {
+    final connectivity = Connectivity();
+    _connectivitySubscription = connectivity.onConnectivityChanged.listen((
+      List<ConnectivityResult> result,
+    ) async {
+      final wasOnline = isOnline.value;
+      final hasConnection = result.any((r) => r != ConnectivityResult.none);
+      isOnline.value = hasConnection;
+      if (!wasOnline && isOnline.value) {
+        try {
+          if (_authService.fetchProfileFromServer != null) {
+            await _authService.fetchProfileFromServer();
+          }
+        } catch (e) {
+          debugPrint('Gagal fetch profile dari server: $e');
+        }
+        loadProfile();
+      }
     });
   }
 
@@ -42,7 +68,6 @@ class ProfileController extends GetxController {
   void onReady() {
     super.onReady();
     debugPrint('✅ ProfileController onReady called');
-    // Load lagi saat view sudah siap, untuk memastikan data tampil
     loadProfile();
   }
 
@@ -51,6 +76,7 @@ class ProfileController extends GetxController {
     fullNameController.dispose();
     phoneController.dispose();
     emailController.dispose();
+    _connectivitySubscription?.cancel();
     super.onClose();
   }
 
@@ -60,14 +86,13 @@ class ProfileController extends GetxController {
     _themeController.toggleTheme();
   }
 
-  void loadProfile() {
+  Future<void> loadProfile() async {
     final profile = _authService.currentProfile.value;
     if (profile != null) {
       fullNameController.text = profile.fullName ?? '';
       phoneController.text = profile.phone ?? '';
       emailController.text = profile.email;
 
-      // Update reactive variables untuk trigger rebuild
       fullNameText.value = profile.fullName ?? '';
       phoneText.value = profile.phone ?? '';
       emailText.value = profile.email;

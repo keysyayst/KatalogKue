@@ -28,7 +28,6 @@ class ProductSupabaseService extends GetxService {
           .toList();
     } catch (e) {
       debugPrint('Error loading products: $e');
-      Get.snackbar('Error', 'Gagal memuat produk: ${e.toString()}');
     } finally {
       isLoading.value = false;
     }
