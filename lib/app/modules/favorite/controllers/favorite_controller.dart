@@ -24,16 +24,31 @@ class FavoriteController extends GetxController {
   Future<void> fetchFavorites() async {
     final userId = _authService.currentUser.value?.id;
     if (userId == null) return;
-    // Ambil ID favorite dari lokal
-    final localFavIds = _favoriteHiveService.getFavoriteIds();
-    // Ambil data favorite dari Supabase, filter hanya yang ada di lokal
+
+    // Ambil favorite dari Supabase (source of truth untuk multi-device)
     final supabaseFavIds = await _favoriteService.getFavoriteIds(userId);
-    final filteredIds = supabaseFavIds
-        .where((id) => localFavIds.contains(id))
-        .toList();
+
+    // Sync ke local Hive untuk offline access
+    final localFavIds = _favoriteHiveService.getFavoriteIds();
+
+    // Tambahkan favorite dari Supabase yang belum ada di local
+    for (final id in supabaseFavIds) {
+      if (!localFavIds.contains(id)) {
+        await _favoriteHiveService.toggleFavorite(id); // Tambah ke Hive
+      }
+    }
+
+    // Hapus favorite dari local yang tidak ada di Supabase
+    for (final id in localFavIds) {
+      if (!supabaseFavIds.contains(id)) {
+        await _favoriteHiveService.toggleFavorite(id); // Hapus dari Hive
+      }
+    }
+
+    // Tampilkan favorite dari Supabase
     final allProducts = _productService.getAllProducts();
     favoriteProducts.value = allProducts
-        .where((p) => filteredIds.contains(p.id))
+        .where((p) => supabaseFavIds.contains(p.id))
         .toList();
   }
 
