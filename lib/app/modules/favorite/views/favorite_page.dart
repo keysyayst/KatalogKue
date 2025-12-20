@@ -122,7 +122,7 @@ class FavoritePage extends GetView<FavoriteController> {
       foregroundColor: Colors.white,
       elevation: 2,
       automaticallyImplyLeading: false,
-      shadowColor: const Color(0xFF000000).withValues(alpha: 0.05),
+      shadowColor: const Color(0xFF000000).withOpacity(0.05),
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
         centerTitle: false,
@@ -135,7 +135,55 @@ class FavoritePage extends GetView<FavoriteController> {
             color: Colors.white,
           ),
         ),
-        background: RepaintBoundary(child: _AnimatedAppBarBackground()),
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFE67E22), Color.fromRGBO(211, 84, 0, 1)],
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -40 + 20,
+                top: -40 - 10,
+                child: Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.08),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 40 - 15,
+                top: 20 + 10,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.05),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -20 + 10,
+                bottom: -20,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFD35400).withOpacity(0.3),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -196,90 +244,6 @@ class _AnimatedCTAButtonState extends State<_AnimatedCTAButton> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _AnimatedAppBarBackground extends StatefulWidget {
-  @override
-  State<_AnimatedAppBarBackground> createState() =>
-      _AnimatedAppBarBackgroundState();
-}
-
-class _AnimatedAppBarBackgroundState extends State<_AnimatedAppBarBackground>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 5),
-      vsync: this,
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFE67E22), Color(0xFFD35400)],
-            ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                right: -40 + (20 * _controller.value),
-                top: -40 - (10 * _controller.value),
-                child: Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.08),
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 40 - (15 * _controller.value),
-                top: 20 + (10 * _controller.value),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.05),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: -20 + (10 * _controller.value),
-                bottom: -20,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFFD35400).withValues(alpha: 0.3),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

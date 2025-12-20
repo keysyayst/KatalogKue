@@ -10,16 +10,19 @@ class HomePage extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
+      backgroundColor:
+          Colors.transparent, // biar gradient header sampai ke atas
+      extendBodyBehindAppBar: true, // biar header gradient sampai ke status bar
       body: SafeArea(
+        top: false, // biar header gradient sampai ke status bar
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(child: _buildSimpleHeader(context)),
             SliverToBoxAdapter(child: _buildQuickActions(context)),
             SliverToBoxAdapter(child: _buildPromoBanner(context)),
-            
+
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
@@ -50,14 +53,14 @@ class HomePage extends GetView<HomeController> {
                 ),
               ),
             ),
-            
+
             Obx(() {
               if (controller.isLoadingProducts.value) {
                 return SliverToBoxAdapter(
                   child: _buildLoadingProducts(context),
                 );
               }
-              
+
               return SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 sliver: SliverGrid(
@@ -67,18 +70,15 @@ class HomePage extends GetView<HomeController> {
                     crossAxisSpacing: 12,
                     childAspectRatio: 0.78,
                   ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return ProductCard(
-                        product: controller.rekomendasiProducts[index],
-                      );
-                    },
-                    childCount: controller.rekomendasiProducts.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    return ProductCard(
+                      product: controller.rekomendasiProducts[index],
+                    );
+                  }, childCount: controller.rekomendasiProducts.length),
                 ),
               );
             }),
-            
+
             const SliverToBoxAdapter(child: SizedBox(height: 80)),
           ],
         ),
@@ -88,7 +88,7 @@ class HomePage extends GetView<HomeController> {
 
   Widget _buildLoadingProducts(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       height: 400,
       padding: const EdgeInsets.all(32),
@@ -107,7 +107,9 @@ class HomePage extends GetView<HomeController> {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE67E22).withOpacity(isDark ? 0.2 : 0.1),
+                      color: const Color(
+                        0xFFE67E22,
+                      ).withOpacity(isDark ? 0.2 : 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -146,64 +148,116 @@ class HomePage extends GetView<HomeController> {
   }
 
   Widget _buildSimpleHeader(BuildContext context) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  
-  return Container(
-    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-    decoration: const BoxDecoration(
-      color: Color(0xFFE67E22),
-    ),
-    child: Column(
-      children: [
-        Container(
-          height: 48,
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: () {
-                // UBAH INI - langsung ke search dengan keyboard
-                controller.navigateToSearch();
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.search,
-                      color: Color(0xFFE67E22),
-                      size: 22,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Cari kue...',
-                        style: TextStyle(
-                          color: isDark ? Colors.white38 : const Color(0xFF95A5A6),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(0, statusBarHeight + 16, 0, 16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFE67E22), Color(0xFFD35400)],
+        ),
+        // Lingkaran dekoratif statis
+        // Tidak pakai const karena ada variabel
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -40 + 20,
+            top: -40 - 10,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.08),
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+          Positioned(
+            right: 40 - 15,
+            top: 20 + 10,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.05),
+              ),
+            ),
+          ),
+          Positioned(
+            left: -20 + 10,
+            bottom: -20,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFD35400).withOpacity(0.3),
+              ),
+            ),
+          ),
+          // Search bar di bawah, tidak terlalu ke atas
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        controller.navigateToSearch();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.search,
+                              color: Color(0xFFE67E22),
+                              size: 22,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Cari kue...',
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white38
+                                      : const Color(0xFF95A5A6),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildQuickActions(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     final actions = [
       {
         'icon': Icons.favorite_rounded,
@@ -253,7 +307,8 @@ class HomePage extends GetView<HomeController> {
             icon: action['icon'] as IconData,
             color: action['color'] as Color,
             label: action['label'] as String,
-            onTap: () => controller.onQuickActionPressed(action['action'] as String),
+            onTap: () =>
+                controller.onQuickActionPressed(action['action'] as String),
           );
         }).toList(),
       ),
@@ -268,7 +323,7 @@ class HomePage extends GetView<HomeController> {
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -316,7 +371,7 @@ class HomePage extends GetView<HomeController> {
 
   Widget _buildPromoBanner(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       height: 200,
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -350,7 +405,9 @@ class HomePage extends GetView<HomeController> {
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
                       return Container(
-                        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5),
+                        color: isDark
+                            ? const Color(0xFF1E1E1E)
+                            : const Color(0xFFF5F5F5),
                         child: const Center(
                           child: CircularProgressIndicator(
                             color: Color(0xFFE67E22), // TETAP ORANGE
@@ -431,7 +488,9 @@ class HomePage extends GetView<HomeController> {
                             controller.navigateToProductsPage();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE67E22), // TETAP ORANGE
+                            backgroundColor: const Color(
+                              0xFFE67E22,
+                            ), // TETAP ORANGE
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 20,
