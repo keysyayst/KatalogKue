@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
-import '../../../routes/app_pages.dart';
 import '../../../theme/design_system.dart';
 import '../../admin/views/edit_delivery_store_page.dart';
-import 'package:cake_by_mommy/data/services/store_service.dart';
 import 'package:cake_by_mommy/app/data/models/delivery_store_model.dart';
 import 'package:cake_by_mommy/data/models/store.dart';
 import 'package:cake_by_mommy/app/data/repositories/delivery_store_repository.dart';
@@ -15,28 +13,24 @@ class ProfilePage extends GetView<ProfileController> {
 
   @override
   Widget build(BuildContext context) {
-    // Build reaktif berdasarkan ThemeController.isDarkMode
     return Obx(() {
       final isDark = controller.isDarkMode;
 
       return Scaffold(
         body: CustomScrollView(
           slivers: [
-            // ========================================
-            // SLIVER APP BAR (KE KIRI)
-            // ========================================
             SliverAppBar(
               expandedHeight: 80,
               floating: false,
               pinned: true,
               backgroundColor: DesignColors.primary,
               foregroundColor: Colors.white,
-              automaticallyImplyLeading: false, // Hilangkan back button
+              automaticallyImplyLeading: false,
               flexibleSpace: FlexibleSpaceBar(
                 titlePadding: const EdgeInsets.only(
                   left: 16,
                   bottom: 16,
-                ), // ← KE KIRI
+                ),
                 title: const Text(
                   'Profil Saya',
                   style: TextStyle(
@@ -85,7 +79,6 @@ class ProfilePage extends GetView<ProfileController> {
                 ),
               ),
               actions: [
-                // 1. ICON TOGGLE TEMA
                 Obx(
                   () => IconButton(
                     icon: Icon(
@@ -101,7 +94,6 @@ class ProfilePage extends GetView<ProfileController> {
                   ),
                 ),
 
-                // 2. TOMBOL EDIT / SIMPAN
                 Obx(
                   () => controller.isEditing.value
                       ? Row(
@@ -131,14 +123,9 @@ class ProfilePage extends GetView<ProfileController> {
                           tooltip: 'Edit Profil',
                         ),
                 ),
-
-                // removed testing menu per request
               ],
             ),
 
-            // ========================================
-            // CONTENT
-            // ========================================
             SliverToBoxAdapter(
               child: Obx(() {
                 final profile = controller.profile;
@@ -158,7 +145,6 @@ class ProfilePage extends GetView<ProfileController> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      // Avatar Section
                       Stack(
                         alignment: Alignment.center,
                         children: [
@@ -233,8 +219,6 @@ class ProfilePage extends GetView<ProfileController> {
                       ),
 
                       const SizedBox(height: 16),
-
-                      // Role Badge (animated color transition)
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
@@ -295,7 +279,6 @@ class ProfilePage extends GetView<ProfileController> {
 
                       const SizedBox(height: 8),
 
-                      // Email (read-only)
                       Obx(
                         () => TextField(
                           key: ValueKey(controller.emailText.value),
@@ -320,7 +303,6 @@ class ProfilePage extends GetView<ProfileController> {
 
                       const SizedBox(height: 16),
 
-                      // Full Name
                       Obx(
                         () => TextField(
                           key: ValueKey(controller.fullNameText.value),
@@ -358,7 +340,6 @@ class ProfilePage extends GetView<ProfileController> {
 
                       const SizedBox(height: 16),
 
-                      // Phone
                       Obx(
                         () => TextField(
                           key: ValueKey(controller.phoneText.value),
@@ -397,7 +378,6 @@ class ProfilePage extends GetView<ProfileController> {
 
                       const SizedBox(height: 24),
 
-                      // Info Card (animated background color)
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
@@ -449,15 +429,12 @@ class ProfilePage extends GetView<ProfileController> {
 
                       const SizedBox(height: 24),
 
-                      // Admin Panel Button (Hanya jika admin)
                       if (controller.isAdmin) ...[
-                        // Kelola Toko Delivery (NEW) - animated
                         SizedBox(
                           width: double.infinity,
                           height: 56,
                           child: _AnimatedButton(
                             onTap: () async {
-                              // Ambil data DeliveryStore langsung dari repository agar update benar-benar sinkron
                               final repo = DeliveryStoreRepository();
                               final stores = await repo.getAllStores();
                               final deliveryStore = stores.isNotEmpty
@@ -468,7 +445,6 @@ class ProfilePage extends GetView<ProfileController> {
                                     EditDeliveryStorePage(store: deliveryStore),
                               );
                               if (result == true) {
-                                // Refresh info toko di delivery jika ada update
                                 if (Get.isRegistered<
                                   DeliveryCheckerController
                                 >()) {
@@ -509,7 +485,6 @@ class ProfilePage extends GetView<ProfileController> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Kelola Produk (NEW)
                         SizedBox(
                           width: double.infinity,
                           height: 56,
@@ -549,7 +524,6 @@ class ProfilePage extends GetView<ProfileController> {
                         const SizedBox(height: 16),
                       ],
 
-                      // Logout Button (animated)
                       SizedBox(
                         width: double.infinity,
                         height: 56,
@@ -652,7 +626,6 @@ class ProfilePage extends GetView<ProfileController> {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-  // Fungsi konversi Store ke DeliveryStore
   DeliveryStore? storeToDeliveryStore(Store? s) {
     if (s == null) return null;
     return DeliveryStore(
@@ -676,7 +649,6 @@ class ProfilePage extends GetView<ProfileController> {
   }
 }
 
-// A small animated button used across this page to add modern micro-interactions
 class _AnimatedButton extends StatefulWidget {
   final VoidCallback onTap;
   final Widget child;

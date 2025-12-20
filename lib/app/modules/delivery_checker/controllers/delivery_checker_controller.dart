@@ -48,17 +48,17 @@ class DeliveryCheckerController extends GetxController {
   StreamSubscription<Position>? _positionStream;
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
-    fetchStore();
-    checkCustomerLocation();
+    isLoading.value = true;
+    await fetchStore();
+    await checkCustomerLocation();
+    isLoading.value = false;
   }
 
   Future<void> fetchStore() async {
-    isLoading.value = true;
     final stores = await storeRepository.getAllStores();
     store.value = stores.isNotEmpty ? stores.first : null;
-    isLoading.value = false;
   }
 
   @override
@@ -113,7 +113,7 @@ class DeliveryCheckerController extends GetxController {
 
   //get customer location
   Future<void> checkCustomerLocation() async {
-    isLoading.value = true;
+    // isLoading diatur di onInit saja agar tidak bentrok
 
     try {
       Position? gpsPos = await locationService.getGPSLocation();
@@ -149,7 +149,7 @@ class DeliveryCheckerController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
-      isLoading.value = false;
+      // isLoading diatur di onInit saja agar tidak bentrok
     }
   }
 
