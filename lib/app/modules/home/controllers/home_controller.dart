@@ -12,7 +12,8 @@ import 'package:cake_by_mommy/app/modules/favorite/controllers/favorite_controll
 import 'package:cake_by_mommy/app/modules/profile/controllers/profile_controller.dart';
 
 class HomeController extends GetxController {
-  final ProductSupabaseService _productService = Get.find<ProductSupabaseService>();
+  final ProductSupabaseService _productService =
+      Get.find<ProductSupabaseService>();
   final isLoadingProducts = true.obs;
 
   List<Product> get rekomendasiProducts {
@@ -56,6 +57,14 @@ class HomeController extends GetxController {
     _loadProducts();
     _initConnectivityListener();
     _productService.loadProducts();
+    // Cek status koneksi saat startup, jika online langsung reload data
+    Connectivity().checkConnectivity().then((result) {
+      final hasConnection = result != ConnectivityResult.none;
+      isOnline.value = hasConnection;
+      if (hasConnection) {
+        reloadAllData();
+      }
+    });
   }
 
   void _initConnectivityListener() {
@@ -79,6 +88,7 @@ class HomeController extends GetxController {
     isLoadingProducts.value = true;
     if (Get.isRegistered<ProductSupabaseService>()) {
       await Get.find<ProductSupabaseService>().loadProducts();
+      update(); // Trigger UI update for rekomendasiProducts
     }
 
     if (Get.isRegistered<FavoriteController>()) {
@@ -139,8 +149,18 @@ class HomeController extends GetxController {
       case 'favorite':
         navigateToTab(2);
         break;
-      case 'track':
-        navigateToTab(3);
+      case 'order_now':
+        // Langsung buka WhatsApp (pakai logic dari DeliveryCheckerController)
+        if (Get.isRegistered<DeliveryCheckerController>()) {
+          Get.find<DeliveryCheckerController>().openWhatsApp();
+        } else {
+          Get.toNamed('/delivery-checker');
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (Get.isRegistered<DeliveryCheckerController>()) {
+              Get.find<DeliveryCheckerController>().openWhatsApp();
+            }
+          });
+        }
         break;
       case 'products':
         navigateToTab(1);

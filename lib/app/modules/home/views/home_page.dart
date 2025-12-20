@@ -12,84 +12,75 @@ class HomePage extends GetView<HomeController> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          Colors.transparent,
-      extendBodyBehindAppBar: true, 
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       body: SafeArea(
-        top: false, 
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await controller.reloadAllData();
-          },
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(child: _buildSimpleHeader(context)),
-              SliverToBoxAdapter(child: _buildQuickActions(context)),
-              SliverToBoxAdapter(child: _buildPromoBanner(context)),
+        top: false,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(child: _buildSimpleHeader(context)),
+            SliverToBoxAdapter(child: _buildQuickActions(context)),
+            SliverToBoxAdapter(child: _buildPromoBanner(context)),
 
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Rekomendasi',
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+                child: Row(
+                  children: [
+                    Text(
+                      'Rekomendasi',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
+                        color: isDark ? Colors.white : const Color(0xFF2C3E50),
+                      ),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        controller.navigateToProductsPage();
+                      },
+                      child: const Text(
+                        'Lihat Semua',
                         style: TextStyle(
+                          color: Color(0xFFE67E22), // TETAP ORANGE
                           fontWeight: FontWeight.w600,
-                          fontSize: 20,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF2C3E50),
                         ),
                       ),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () {
-                          controller.navigateToProductsPage();
-                        },
-                        child: const Text(
-                          'Lihat Semua',
-                          style: TextStyle(
-                            color: Color(0xFFE67E22), // TETAP ORANGE
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
+            ),
 
-              Obx(() {
-                if (controller.isLoadingProducts.value) {
-                  return SliverToBoxAdapter(
-                    child: _buildLoadingProducts(context),
-                  );
-                }
-
-                return SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 0.78,
-                        ),
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      return ProductCard(
-                        product: controller.rekomendasiProducts[index],
-                      );
-                    }, childCount: controller.rekomendasiProducts.length),
-                  ),
+            Obx(() {
+              if (controller.isLoadingProducts.value) {
+                return SliverToBoxAdapter(
+                  child: _buildLoadingProducts(context),
                 );
-              }),
+              }
 
-              const SliverToBoxAdapter(child: SizedBox(height: 80)),
-            ],
-          ),
+              return SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.78,
+                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    return ProductCard(
+                      product: controller.rekomendasiProducts[index],
+                    );
+                  }, childCount: controller.rekomendasiProducts.length),
+                ),
+              );
+            }),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          ],
         ),
       ),
     );
@@ -275,10 +266,10 @@ class HomePage extends GetView<HomeController> {
         'action': 'favorite',
       },
       {
-        'icon': Icons.local_shipping_rounded,
-        'color': const Color(0xFF3498DB), // TETAP BLUE
-        'label': 'Lacak\nPesanan',
-        'action': 'track',
+        'icon': Icons.chat_bubble,
+        'color': const Color(0xFF25D366), // WhatsApp green
+        'label': 'Order\nNow',
+        'action': 'order_now',
       },
       {
         'icon': Icons.grid_view_rounded,
