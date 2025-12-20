@@ -58,7 +58,8 @@ class ProfilePage extends GetView<ProfileController> {
                           height: 200,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.1),
+                            // PERBAIKAN: Ganti withOpacity -> withValues
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
                       ),
@@ -70,7 +71,8 @@ class ProfilePage extends GetView<ProfileController> {
                           height: 150,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.1),
+                            // PERBAIKAN: Ganti withOpacity -> withValues
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
                       ),
@@ -329,7 +331,7 @@ class ProfilePage extends GetView<ProfileController> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                 color: DesignColors.primary,
                                 width: 2,
                               ),
@@ -367,7 +369,7 @@ class ProfilePage extends GetView<ProfileController> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                 color: DesignColors.primary,
                                 width: 2,
                               ),
@@ -459,7 +461,8 @@ class ProfilePage extends GetView<ProfileController> {
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
+                                    // PERBAIKAN: Ganti withOpacity -> withValues
+                                    color: Colors.black.withValues(alpha: 0.08),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -496,7 +499,8 @@ class ProfilePage extends GetView<ProfileController> {
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
+                                    // PERBAIKAN: Ganti withOpacity -> withValues
+                                    color: Colors.black.withValues(alpha: 0.08),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -539,12 +543,12 @@ class ProfilePage extends GetView<ProfileController> {
                               ),
                             ),
                             alignment: Alignment.center,
-                            child: Row(
+                            child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.logout, color: DesignColors.error),
-                                const SizedBox(width: 8),
-                                const Text(
+                                SizedBox(width: 8),
+                                Text(
                                   'Keluar',
                                   style: TextStyle(
                                     fontFamily: DesignText.family,
