@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../controllers/delivery_checker_controller.dart';
+import '../../../app.dart';
 import '../../../data/sources/catering_info.dart';
-import '../views/pickup_map_view.dart';
 
 class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   const DeliveryCheckerView({Key? key}) : super(key: key);
@@ -12,37 +12,8 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: Theme.of(context).appBarTheme.foregroundColor,
-          ),
-          onPressed: () => Get.back(),
-        ),
-        title: Text(
-          'Pesanan',
-          style: TextStyle(
-            color: Theme.of(context).appBarTheme.foregroundColor,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.refresh,
-              color: Theme.of(context).appBarTheme.foregroundColor,
-            ),
-            onPressed: controller.refreshLocation,
-          ),
-        ],
-      ),
+      backgroundColor: Colors.transparent,
       body: Obx(() {
         if (controller.isLoading.value) {
           return _buildLoadingState();
@@ -52,23 +23,198 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
           return _buildLocationError();
         }
 
-        return Column(
+        return Stack(
           children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            // Full screen map background
+            Positioned.fill(child: _buildFullMap()),
+
+            // Top overlay (acts like AppBar but translucent)
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                child: Row(
                   children: [
-                    _buildDeliveryToggle(isDark),
-                    _buildStoreSelector(isDark),
-                    _buildStoreInfoCard(),
-                    _buildMapSection(),
-                    _buildAddressCard(isDark),
-                    _buildDeliveryInfoCard(isDark),
-                    const SizedBox(height: 100),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFE8C00),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          try {
+                            final dash = Get.find<DashboardController>();
+                            dash.changeTabIndex(0);
+                          } catch (e) {
+                            Get.back();
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Pesanan',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFE8C00),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // optional action placeholder
+                    Container(width: 40, height: 40),
                   ],
                 ),
               ),
+            ),
+
+            // Floating controls and distance badge
+            Positioned(
+              left: 16,
+              bottom: MediaQuery.of(context).size.height * 0.38 + 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.straighten,
+                      color: Color(0xFFFE8C00),
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${controller.distanceToStore.value.toStringAsFixed(2)} km',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            Positioned(
+              right: 16,
+              bottom: MediaQuery.of(context).size.height * 0.38 + 16,
+              child: Column(
+                children: [
+                  FloatingActionButton(
+                    heroTag: 'centerMe',
+                    onPressed: () async {
+                      await controller.centerOnUser();
+                    },
+                    backgroundColor: Colors.white,
+                    elevation: 3,
+                    child: const Icon(
+                      Icons.my_location,
+                      color: Color(0xFFFE8C00),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Obx(
+                    () => FloatingActionButton(
+                      heroTag: 'liveToggle',
+                      onPressed: controller.isLiveTracking.value
+                          ? controller.stopLiveTracking
+                          : controller.startLiveTracking,
+                      backgroundColor: controller.isLiveTracking.value
+                          ? Colors.red
+                          : const Color(0xFFFE8C00),
+                      elevation: 3,
+                      child: Icon(
+                        controller.isLiveTracking.value
+                            ? Icons.pause_circle_filled
+                            : Icons.play_circle_fill,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Draggable bottom sheet with details
+            DraggableScrollableSheet(
+              initialChildSize: 0.38,
+              minChildSize: 0.18,
+              maxChildSize: 0.92,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 12,
+                      ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // drag handle
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12, bottom: 8),
+                          child: Center(
+                            child: Container(
+                              width: 48,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // content
+                        const SizedBox(height: 8),
+                        _buildStoreInfoCard(),
+                        _buildAddressCard(isDark),
+                        _buildDeliveryInfoCard(isDark),
+                        _buildHelpSection(),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         );
@@ -76,261 +222,185 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ========= DELIVERY TOGGLE ==================
-  Widget _buildDeliveryToggle(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(100),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _toggleButton(
-              isDark: isDark,
-              label: 'Ambil di Tempat',
-              isSelected: false,
-              onTap: () {
-                Get.to(() => const PickupMapView());
-              },
-            ),
-          ),
-          Expanded(
-            child: _toggleButton(
-              isDark: isDark,
-              label: 'Pengiriman',
-              isSelected: true,
-              onTap: () {},
-            ),
-          ),
-        ],
-      ),
+  // Full screen map used as background for draggable sheet layout
+  Widget _buildFullMap() {
+    final storeLatLng = LatLng(
+      CateringInfo.store['lat'],
+      CateringInfo.store['lng'],
     );
-  }
-
-  Widget _toggleButton({
-    required bool isDark,
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFFE8C00) : Colors.transparent,
-          borderRadius: BorderRadius.circular(100),
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: isSelected
-                ? Colors.white
-                : (isDark ? Colors.white : Colors.black),
-          ),
-        ),
-      ),
+    final customerLatLng = LatLng(
+      controller.customerLocation.value!.latitude,
+      controller.customerLocation.value!.longitude,
     );
-  }
 
-  //STORE SELECTOR
-  Widget _buildStoreSelector(bool isDark) {
-    return Obx(() {
-      if (controller.storesLoading.value) {
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: const SizedBox(
-            height: 50,
-            child: Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFFFE8C00),
-                strokeWidth: 2,
-              ),
-            ),
-          ),
-        );
-      }
-
-      if (controller.availableStores.isEmpty) {
-        return const SizedBox.shrink();
-      }
-
-      return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFFE8C00).withOpacity(0.3)),
-          borderRadius: BorderRadius.circular(12),
-          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+    return FlutterMap(
+      mapController: controller.mapController,
+      options: MapOptions(
+        initialCenter: storeLatLng,
+        initialZoom: 12.5,
+        minZoom: 10,
+        maxZoom: 18,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.example.katalog',
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: DropdownButton<String>(
-                value: controller.selectedStore.value?.id,
-                isExpanded: true,
-                underline: const SizedBox.shrink(),
-                hint: const Text('Pilih Toko'),
-                items: controller.availableStores.map((store) {
-                  return DropdownMenuItem<String>(
-                    value: store.id,
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.store,
-                          size: 18,
-                          color: Color(0xFFFE8C00),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                store.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                store.address,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-                onChanged: (storeId) {
-                  if (storeId != null) {
-                    final store = controller.availableStores.firstWhere(
-                      (s) => s.id == storeId,
-                    );
-                    controller.selectStore(store);
-                  }
-                },
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.refresh, color: Color(0xFFFE8C00)),
-              tooltip: 'Refresh Toko',
-              onPressed: controller.refreshStores,
+        CircleLayer(
+          circles: [
+            CircleMarker(
+              point: storeLatLng,
+              radius: (CateringInfo.store['deliveryRadius']) * 1000,
+              useRadiusInMeter: true,
+              color: const Color(0xFFFE8C00).withOpacity(0.1),
+              borderColor: const Color(0xFFFE8C00),
+              borderStrokeWidth: 2,
             ),
           ],
         ),
-      );
-    });
+        PolylineLayer(
+          polylines: [
+            Polyline(
+              points: [storeLatLng, customerLatLng],
+              strokeWidth: 3,
+              color: const Color(0xFFFE8C00),
+              pattern: const StrokePattern.dotted(spacingFactor: 2),
+            ),
+          ],
+        ),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: storeLatLng,
+              width: 50,
+              height: 50,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFE8C00),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.store, color: Colors.white, size: 24),
+              ),
+            ),
+            Marker(
+              point: customerLatLng,
+              width: 50,
+              height: 50,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.circle, color: Colors.white, size: 12),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   //STORE INFO CARD
   Widget _buildStoreInfoCard() {
-    return Obx(() {
-      final store = controller.selectedStore.value;
-      if (store == null) {
-        return const SizedBox.shrink();
-      }
+    final store = CateringInfo.store;
 
-      return Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              const Color(0xFFFE8C00).withOpacity(0.1),
-              const Color(0xFFFE8C00).withOpacity(0.05),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFFE8C00).withOpacity(0.3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFE8C00), Color(0xFFFF6B00)],
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.store_rounded,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        store.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Color(0xFFFE8C00),
-                        ),
-                      ),
-                      Text(
-                        'Pemilik: ${store.owner}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildStoreInfoRow(
-              icon: Icons.location_on_rounded,
-              label: 'Alamat',
-              value: store.address,
-            ),
-            const SizedBox(height: 8),
-            if (store.phone.isNotEmpty)
-              _buildStoreInfoRow(
-                icon: Icons.phone_rounded,
-                label: 'Telepon',
-                value: store.phone,
-              ),
-            if (store.phone.isNotEmpty) const SizedBox(height: 8),
-            if (store.whatsapp.isNotEmpty)
-              _buildStoreInfoRow(
-                icon: Icons.chat_rounded,
-                label: 'WhatsApp',
-                value: store.whatsapp,
-              ),
-            if (store.whatsapp.isNotEmpty) const SizedBox(height: 8),
-            if (store.email.isNotEmpty)
-              _buildStoreInfoRow(
-                icon: Icons.email_rounded,
-                label: 'Email',
-                value: store.email,
-              ),
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFE8C00).withOpacity(0.1),
+            const Color(0xFFFE8C00).withOpacity(0.05),
           ],
         ),
-      );
-    });
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFE8C00).withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFE8C00), Color(0xFFFF6B00)],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.store_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      store['name'],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Color(0xFFFE8C00),
+                      ),
+                    ),
+                    Text(
+                      'Pemilik: ${store['owner']}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildStoreInfoRow(
+            icon: Icons.location_on_rounded,
+            label: 'Alamat',
+            value: store['address'],
+          ),
+          const SizedBox(height: 8),
+          _buildStoreInfoRow(
+            icon: Icons.phone_rounded,
+            label: 'Telepon',
+            value: store['phone'],
+          ),
+          const SizedBox(height: 8),
+          _buildStoreInfoRow(
+            icon: Icons.chat_rounded,
+            label: 'WhatsApp',
+            value: store['whatsapp'],
+          ),
+          const SizedBox(height: 8),
+          _buildStoreInfoRow(
+            icon: Icons.email_rounded,
+            label: 'Email',
+            value: store['email'],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildStoreInfoRow({
@@ -374,199 +444,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
           ),
         ),
       ],
-    );
-  }
-
-  // ================= MAP SECTION (Full Width) =================
-  Widget _buildMapSection() {
-    final selected = controller.selectedStore.value;
-    final storeLatLng = LatLng(
-      selected?.latitude ?? CateringInfo.store['lat'],
-      selected?.longitude ?? CateringInfo.store['lng'],
-    );
-    final customerLatLng = LatLng(
-      controller.customerLocation.value!.latitude,
-      controller.customerLocation.value!.longitude,
-    );
-
-    return Container(
-      height: 300,
-      margin: const EdgeInsets.only(bottom: 20),
-      child: Stack(
-        children: [
-          FlutterMap(
-            mapController: controller.mapController,
-            options: MapOptions(
-              initialCenter: storeLatLng,
-              initialZoom: 12.5,
-              minZoom: 10,
-              maxZoom: 18,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.example.katalog',
-              ),
-              CircleLayer(
-                circles: [
-                  CircleMarker(
-                    point: storeLatLng,
-                    radius:
-                        (selected?.deliveryRadius ??
-                            CateringInfo.store['deliveryRadius']) *
-                        1000,
-                    useRadiusInMeter: true,
-                    color: const Color(0xFFFE8C00).withOpacity(0.1),
-                    borderColor: const Color(0xFFFE8C00),
-                    borderStrokeWidth: 2,
-                  ),
-                ],
-              ),
-              PolylineLayer(
-                polylines: [
-                  Polyline(
-                    points: [storeLatLng, customerLatLng],
-                    strokeWidth: 3,
-                    color: const Color(0xFFFE8C00),
-                    pattern: const StrokePattern.dotted(spacingFactor: 2),
-                  ),
-                ],
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: storeLatLng,
-                    width: 50,
-                    height: 50,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFE8C00),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.store,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  Marker(
-                    point: customerLatLng,
-                    width: 50,
-                    height: 50,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.circle,
-                        color: Colors.white,
-                        size: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          // Floating distance badge
-          Positioned(
-            bottom: 20,
-            left: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.straighten,
-                    color: Color(0xFFFE8C00),
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${controller.distanceToStore.value.toStringAsFixed(2)} km',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // My Location floating button (Google Maps style)
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: Column(
-              children: [
-                FloatingActionButton(
-                  heroTag: 'centerMe',
-                  onPressed: () async {
-                    await controller.centerOnUser();
-                  },
-                  backgroundColor: Colors.white,
-                  elevation: 3,
-                  child: const Icon(
-                    Icons.my_location,
-                    color: Color(0xFFFE8C00),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Obx(
-                  () => FloatingActionButton(
-                    heroTag: 'liveToggle',
-                    onPressed: controller.isLiveTracking.value
-                        ? controller.stopLiveTracking
-                        : controller.startLiveTracking,
-                    backgroundColor: controller.isLiveTracking.value
-                        ? Colors.red
-                        : const Color(0xFFFE8C00),
-                    elevation: 3,
-                    child: Icon(
-                      controller.isLiveTracking.value
-                          ? Icons.pause_circle_filled
-                          : Icons.play_circle_fill,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -615,8 +492,9 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                 Text(
                   'Pengiriman dalam ${controller.estimatedTime.value} menit',
                   style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.white70 : Colors.grey[600]),
+                    fontSize: 14,
+                    color: isDark ? Colors.white70 : Colors.grey[600],
+                  ),
                 ),
               ],
             ),
@@ -657,7 +535,9 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: inZone ? (isDark ? Colors.white : Colors.black) : Colors.red[900],
+              color: inZone
+                  ? (isDark ? Colors.white : Colors.black)
+                  : Colors.red[900],
             ),
           ),
           const SizedBox(height: 8),
@@ -752,6 +632,143 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
+  // ================= HELP / FAQ =================
+  Widget _buildHelpSection() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Row(
+            children: [
+              Icon(Icons.help_outline, color: Color(0xFFFE8C00)),
+              SizedBox(width: 8),
+              Text(
+                'Bantuan Pengiriman',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+          _HelpBullet(
+            text: 'Pastikan GPS aktif untuk hitung jarak dan ongkir.',
+          ),
+          _HelpBullet(
+            text:
+                'Di luar radius? Hubungi kami via WhatsApp untuk opsi pengambilan.',
+          ),
+          _HelpBullet(
+            text:
+                'Tombol Arah membuka Google Maps sesuai lokasi Anda sekarang.',
+          ),
+          _HelpBullet(
+            text:
+                'Jam buka mengikuti jadwal toko; pesan lebih awal saat ramai.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Simple help bullet widget to keep text compact
+  // (intentionally stateless and small)
+
+  // ================= LOADING STATE =================
+  Widget _buildLoadingState() {
+    return Container(
+      color: Colors.white,
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: Color(0xFFFE8C00), strokeWidth: 3),
+            SizedBox(height: 20),
+            Text(
+              'Memuat peta...',
+              style: TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ================= ERROR STATE =================
+  Widget _buildLocationError() {
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.location_off,
+                  size: 64,
+                  color: Colors.red.shade400,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Tidak dapat mengakses lokasi',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Mohon aktifkan GPS untuk melihat lokasi toko',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: controller.refreshLocation,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text(
+                    'Coba Lagi',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFE8C00),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _infoRow({
     required bool isDark,
     required IconData icon,
@@ -760,20 +777,43 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   }) {
     return Row(
       children: [
-        Icon(icon, size: 22, color: const Color(0xFFFE8C00)),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.grey[800]
+                : const Color(0xFFFE8C00).withOpacity(0.08),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: isDark ? Colors.white70 : const Color(0xFFFE8C00),
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white70 : Colors.grey[600],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -787,107 +827,42 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     required VoidCallback onTap,
   }) {
     return SizedBox(
-      height: 50,
-      child: OutlinedButton.icon(
+      height: 48,
+      child: ElevatedButton.icon(
         onPressed: onTap,
-        icon: Icon(icon, size: 20),
-        label: Text(
-          label,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        ),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: color,
-          side: BorderSide(color: color, width: 2),
+        icon: Icon(icon, color: Colors.white),
+        label: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );
   }
+}
 
-  // ================= LOADING STATE =================
-  Widget _buildLoadingState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+class _HelpBullet extends StatelessWidget {
+  final String text;
+
+  const _HelpBullet({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircularProgressIndicator(
-              color: Color(0xFFFE8C00), strokeWidth: 3),
-          SizedBox(height: 20),
-          Text(
-            'Mencari lokasi Anda...',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
+          const Text('• ', style: TextStyle(color: Colors.black87)),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 13, color: Colors.black87),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // ================= ERROR STATE =================
-  Widget _buildLocationError() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.location_off,
-                size: 64,
-                color: Colors.red.shade400,
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Tidak dapat mengakses lokasi',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Mohon aktifkan GPS dan izinkan aplikasi mengakses lokasi Anda',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                onPressed: controller.refreshLocation,
-                icon: const Icon(Icons.refresh),
-                label: const Text(
-                  'Coba Lagi',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFE8C00),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

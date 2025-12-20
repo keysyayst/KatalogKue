@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/admin_controller.dart';
+import '../../../theme/design_system.dart';
 
 class AdminProductsPage extends GetView<AdminController> {
   const AdminProductsPage({super.key});
@@ -10,7 +11,7 @@ class AdminProductsPage extends GetView<AdminController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola Produk'),
-        backgroundColor: Colors.red,
+        backgroundColor: DesignColors.darkPrimary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -30,10 +31,10 @@ class AdminProductsPage extends GetView<AdminController> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.inventory_2_outlined,
                   size: 64,
-                  color: Colors.grey,
+                  color: DesignColors.lightGrey,
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -46,7 +47,7 @@ class AdminProductsPage extends GetView<AdminController> {
                   icon: const Icon(Icons.add),
                   label: const Text('Tambah Produk Pertama'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: DesignColors.darkPrimary,
                     foregroundColor: Colors.white,
                   ),
                 ),
@@ -62,29 +63,49 @@ class AdminProductsPage extends GetView<AdminController> {
             final product = controller.products[index];
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(DesignRadius.medium),
+              ),
+              elevation: 3,
               child: ListTile(
-                leading: product.image.startsWith('http')
-                    ? Image.network(
-                        product.image,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.broken_image),
-                      )
-                    : Image.asset(
-                        product.image,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.broken_image),
-                      ),
-                title: Text(product.title),
+                contentPadding: const EdgeInsets.all(12),
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: product.image.startsWith('http')
+                      ? Image.network(
+                          product.image,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.broken_image),
+                        )
+                      : Image.asset(
+                          product.image,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.broken_image),
+                        ),
+                ),
+                title: Text(
+                  product.title,
+                  style: const TextStyle(
+                    fontFamily: DesignText.family,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Rp. ${product.price}'),
+                    Text(
+                      'Rp. ${product.price}',
+                      style: TextStyle(
+                        color: DesignColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     if (product.description != null)
                       Text(
                         product.description!,
@@ -98,13 +119,13 @@ class AdminProductsPage extends GetView<AdminController> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      icon: Icon(Icons.edit, color: DesignColors.info),
                       onPressed: () =>
                           controller.showProductForm(product: product),
                       tooltip: 'Edit',
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: Icon(Icons.delete, color: DesignColors.error),
                       onPressed: () => controller.deleteProduct(product),
                       tooltip: 'Hapus',
                     ),
@@ -117,7 +138,7 @@ class AdminProductsPage extends GetView<AdminController> {
       }),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => controller.showAddProductOptionsDialog(),
-        backgroundColor: Colors.red,
+        backgroundColor: DesignColors.darkPrimary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Tambah Produk'),

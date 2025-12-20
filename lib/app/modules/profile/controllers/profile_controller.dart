@@ -5,6 +5,7 @@ import 'dart:io';
 import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
 import '../../../theme/theme_controller.dart'; // ← TAMBAH INI
+import '../../../theme/design_system.dart';
 
 class ProfileController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
@@ -108,7 +109,7 @@ class ProfileController extends GetxController {
         'Error',
         'Gagal memilih foto: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
+        backgroundColor: DesignColors.error,
         colorText: Colors.white,
       );
     }
@@ -133,7 +134,7 @@ class ProfileController extends GetxController {
         'Error',
         'Gagal mengambil foto: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
+        backgroundColor: DesignColors.error,
         colorText: Colors.white,
       );
     }
@@ -154,7 +155,7 @@ class ProfileController extends GetxController {
           'Berhasil',
           'Foto profil berhasil diperbarui',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
+          backgroundColor: DesignColors.success,
           colorText: Colors.white,
         );
 
@@ -164,7 +165,7 @@ class ProfileController extends GetxController {
           'Error',
           'Gagal upload foto profil',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
+          backgroundColor: DesignColors.error,
           colorText: Colors.white,
         );
       }
@@ -173,7 +174,7 @@ class ProfileController extends GetxController {
         'Error',
         'Gagal upload foto: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
+        backgroundColor: DesignColors.error,
         colorText: Colors.white,
       );
     } finally {
@@ -198,9 +199,9 @@ class ProfileController extends GetxController {
             ),
             const SizedBox(height: 20),
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.photo_library,
-                color: Color(0xFFFE8C00),
+                color: DesignColors.primary,
               ),
               title: const Text('Pilih dari Galeri'),
               onTap: () {
@@ -209,7 +210,7 @@ class ProfileController extends GetxController {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: Color(0xFFFE8C00)),
+              leading: Icon(Icons.camera_alt, color: DesignColors.primary),
               title: const Text('Ambil Foto'),
               onTap: () {
                 Get.back();
@@ -271,7 +272,7 @@ class ProfileController extends GetxController {
               await _authService.signOut();
               Get.offAllNamed(Routes.auth);
             },
-            child: const Text('Keluar', style: TextStyle(color: Colors.red)),
+            child: Text('Keluar', style: TextStyle(color: DesignColors.error)),
           ),
         ],
       ),

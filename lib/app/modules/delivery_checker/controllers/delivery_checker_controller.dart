@@ -5,18 +5,25 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../../data/services/location_service.dart';
 import '../../../data/sources/catering_info.dart';
-import '../../../data/models/delivery_store_model.dart';
-import '../../../data/repositories/delivery_store_repository.dart';
 import '../../produk/controllers/produk_controller.dart';
 import '../../../data/models/product.dart';
 
+class StoreScheduleInfo {
+  final bool isOpen;
+  final String statusLabel;
+  final String hoursText;
+
+  const StoreScheduleInfo({
+    required this.isOpen,
+    required this.statusLabel,
+    required this.hoursText,
+  });
+}
+
 class DeliveryCheckerController extends GetxController {
   final LocationService locationService = Get.find<LocationService>();
-  final DeliveryStoreRepository _storeRepository = DeliveryStoreRepository();
 
   // Map controller to control camera programmatically
   final MapController mapController = MapController();
@@ -31,11 +38,6 @@ class DeliveryCheckerController extends GetxController {
   final RxString locationMethod = ''.obs;
   final RxInt estimatedTime = 0.obs;
 
-  // Multi-store support (NEW)
-  final RxList<DeliveryStore> availableStores = RxList<DeliveryStore>([]);
-  final Rx<DeliveryStore?> selectedStore = Rx<DeliveryStore?>(null);
-  final RxBool storesLoading = false.obs;
-
   // Perbandingan GPS vs Network
   final Rx<Position?> gpsLocation = Rx<Position?>(null);
   final Rx<Position?> networkLocation = Rx<Position?>(null);
@@ -49,55 +51,20 @@ class DeliveryCheckerController extends GetxController {
   // Live tracking state & subscription
   final RxBool isLiveTracking = false.obs;
   StreamSubscription<Position>? _positionStream;
-  RealtimeChannel? _storesChannel;
 
   @override
   void onInit() {
     super.onInit();
-    _loadAvailableStores();
     checkCustomerLocation();
-    _setupRealtimeSubscription();
-  }
-
-  /// Load all available delivery stores from repository
-  Future<void> _loadAvailableStores() async {
-    storesLoading.value = true;
-    try {
-      final stores = await _storeRepository.getAllStores();
-      availableStores.assignAll(stores);
-
-      // Set first store as default if available
-      if (stores.isNotEmpty) {
-        selectedStore.value = stores.first;
-      }
-    } catch (e) {
-      print('❌ Error loading stores: $e');
-    } finally {
-      storesLoading.value = false;
-    }
-  }
-
-  /// Select store and recalculate delivery info
-  void selectStore(DeliveryStore store) {
-    selectedStore.value = store;
-    calculateDeliveryInfo();
-    // Pindahkan kamera ke lokasi toko baru
-    try {
-      mapController.move(
-        LatLng(store.latitude, store.longitude),
-        mapController.camera.zoom,
-      );
-    } catch (_) {}
   }
 
   @override
   void onClose() {
     stopLiveTracking();
-    _storesChannel?.unsubscribe();
     super.onClose();
   }
 
-//WA
+  //WA
   String buildDeliveryText() {
     final jarak = distanceToStore.value.toStringAsFixed(2);
     final ongkir = isInDeliveryZone.value
@@ -141,8 +108,7 @@ class DeliveryCheckerController extends GetxController {
     }
   }
 
-
-//get customer location
+  //get customer location
   Future<void> checkCustomerLocation() async {
     isLoading.value = true;
 
@@ -218,20 +184,15 @@ class DeliveryCheckerController extends GetxController {
         'https://www.google.com/maps/search/?api=1&query=${netPos.latitude},${netPos.longitude}';
   }
 
-//calculate delivery info
+  //calculate delivery info
   void calculateDeliveryInfo() {
     if (customerLocation.value == null) return;
 
-    final store = selectedStore.value;
-    final storeLat = store?.latitude ?? CateringInfo.store['lat'];
-    final storeLng = store?.longitude ?? CateringInfo.store['lng'];
-    final deliveryRadius =
-        store?.deliveryRadius ?? CateringInfo.store['deliveryRadius'];
-    final freeDeliveryRadius =
-        store?.freeDeliveryRadius ?? CateringInfo.store['freeDeliveryRadius'];
-    final costPerKm =
-        (store?.deliveryCostPerKm ?? CateringInfo.store['deliveryCostPerKm'])
-            .toDouble();
+    final storeLat = CateringInfo.store['lat'];
+    final storeLng = CateringInfo.store['lng'];
+    final deliveryRadius = CateringInfo.store['deliveryRadius'];
+    final freeDeliveryRadius = CateringInfo.store['freeDeliveryRadius'];
+    final costPerKm = (CateringInfo.store['deliveryCostPerKm']).toDouble();
 
     final distanceMeters = locationService.calculateDistance(
       storeLat,
@@ -256,9 +217,18 @@ class DeliveryCheckerController extends GetxController {
     estimatedTime.value = ((distanceToStore.value / 15) * 60).round();
   }
 
-// refresh location and stores
+  /// Called when stores list is updated elsewhere (e.g. admin changes).
+  /// Recalculates delivery info using the current customer location and
+  /// available store data. This is intentionally lightweight—if more
+  /// complex refresh logic is needed, expand this implementation.
+  void refreshStores() {
+    if (customerLocation.value != null) {
+      calculateDeliveryInfo();
+    }
+  }
+
+  // refresh location and stores
   Future<void> refreshLocation() async {
-    await _loadAvailableStores();
     await checkCustomerLocation();
     Get.snackbar(
       'Lokasi Diperbarui',
@@ -267,17 +237,8 @@ class DeliveryCheckerController extends GetxController {
       duration: const Duration(seconds: 2),
     );
   }
-  Future<void> refreshStores() async {
-    await _loadAvailableStores();
-    Get.snackbar(
-      'Toko Diperbarui',
-      'Daftar toko berhasil dimuat ulang',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
-  }
 
-// live tracking control
+  // live tracking control
   void startLiveTracking() {
     if (isLiveTracking.value) return;
     isLiveTracking.value = true;
@@ -319,8 +280,7 @@ class DeliveryCheckerController extends GetxController {
         LatLng(pos.latitude, pos.longitude),
         mapController.camera.zoom,
       );
-    } catch (_) {
-    }
+    } catch (_) {}
   }
 
   // GET DELIVERY MESSAGE UNTUK CARD
@@ -332,6 +292,54 @@ class DeliveryCheckerController extends GetxController {
     } else {
       return 'Ongkir: Rp ${deliveryCost.value.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';
     }
+  }
+
+  StoreScheduleInfo getStoreSchedule() {
+    final hours =
+        CateringInfo.store['operationalHours'] as Map<String, dynamic>?;
+    final now = DateTime.now();
+    final dayKey = _mapDayToKey(now.weekday);
+    final rawHours = hours?[dayKey]?.toString();
+
+    if (rawHours == null || rawHours.toLowerCase() == 'tutup') {
+      return const StoreScheduleInfo(
+        isOpen: false,
+        statusLabel: 'Tutup',
+        hoursText: 'Tutup hari ini',
+      );
+    }
+
+    final parts = rawHours.split(' - ');
+    final startText = parts.first;
+    final endText = parts.length > 1 ? parts.last : '';
+
+    DateTime _parse(String hhmm) {
+      final pieces = hhmm.split(':');
+      final h = int.parse(pieces.first);
+      final m = pieces.length > 1 ? int.parse(pieces[1]) : 0;
+      return DateTime(now.year, now.month, now.day, h, m);
+    }
+
+    final start = _parse(startText);
+    final end = endText.isEmpty ? start : _parse(endText);
+    final isOpen = now.isAfter(start) && now.isBefore(end);
+
+    final statusLabel = isOpen ? 'Buka sekarang' : 'Tutup sekarang';
+    final hoursText = isOpen ? 'Tutup pukul $endText' : 'Buka pukul $startText';
+
+    return StoreScheduleInfo(
+      isOpen: isOpen,
+      statusLabel: statusLabel,
+      hoursText: hoursText,
+    );
+  }
+
+  String _mapDayToKey(int weekday) {
+    if (weekday >= DateTime.monday && weekday <= DateTime.friday) {
+      return 'senin-jumat';
+    }
+    if (weekday == DateTime.saturday) return 'sabtu';
+    return 'minggu';
   }
 
   // OPEN WHATSAPP (dari halaman delivery)
@@ -393,9 +401,8 @@ Mohon konfirmasi ketersediaan dan total harga. Terima kasih.""");
   // OPEN GOOGLE MAPS (DIRECTIONS)
   Future<void> openGoogleMaps() async {
     if (customerLocation.value == null) return;
-    final store = selectedStore.value;
-    final storeLat = store?.latitude ?? CateringInfo.store['lat'];
-    final storeLng = store?.longitude ?? CateringInfo.store['lng'];
+    final storeLat = CateringInfo.store['lat'];
+    final storeLng = CateringInfo.store['lng'];
     final customerLat = customerLocation.value!.latitude;
     final customerLng = customerLocation.value!.longitude;
 
@@ -428,25 +435,6 @@ Mohon konfirmasi ketersediaan dan total harga. Terima kasih.""");
         'Tidak dapat melakukan panggilan',
         snackPosition: SnackPosition.BOTTOM,
       );
-    }
-  }
-
-  // REALTIME SUBSCRIPTION TO STORES TABLE
-  void _setupRealtimeSubscription() {
-    try {
-      final client = Supabase.instance.client;
-      _storesChannel = client.channel('public:delivery_stores')
-        ..onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'delivery_stores',
-          callback: (payload) {
-            refreshStores();
-          },
-        )
-        ..subscribe();
-    } catch (e) {
-      debugPrint('Realtime subscription error: $e');
     }
   }
 }

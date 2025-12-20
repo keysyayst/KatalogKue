@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart'; // Import ini wajib untuk debugPrint
 import 'package:get/get.dart';
 import '../models/product.dart';
 import '../providers/product_api_provider.dart';
@@ -19,9 +20,9 @@ class ProductService extends GetxService {
       isLoading.value = true;
       final products = await _apiProvider.getAllProducts();
       _products.value = products;
-      print('✅ Loaded ${products.length} products from database');
+      debugPrint('✅ Loaded ${products.length} products from database');
     } catch (e) {
-      print('❌ Error loading products: $e');
+      debugPrint('❌ Error loading products: $e');
       // Fallback ke produk lokal jika gagal
       _initializeLocalProducts();
     } finally {
@@ -130,7 +131,7 @@ class ProductService extends GetxService {
       await loadProducts(); // Reload list
       return newProduct;
     } catch (e) {
-      print('❌ Error creating product: $e');
+      debugPrint('❌ Error creating product: $e');
       return null;
     }
   }
@@ -142,7 +143,7 @@ class ProductService extends GetxService {
       await loadProducts(); // Reload list
       return updatedProduct;
     } catch (e) {
-      print('❌ Error updating product: $e');
+      debugPrint('❌ Error updating product: $e');
       return null;
     }
   }
@@ -154,7 +155,7 @@ class ProductService extends GetxService {
       await loadProducts(); // Reload list
       return true;
     } catch (e) {
-      print('❌ Error deleting product: $e');
+      debugPrint('❌ Error deleting product: $e');
       return false;
     }
   }

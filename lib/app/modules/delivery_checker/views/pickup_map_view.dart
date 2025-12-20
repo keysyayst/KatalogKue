@@ -219,28 +219,55 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
 
   // ================= BOTTOM STORE CARD =================
   Widget _buildBottomStoreCard() {
+    final schedule = controller.getStoreSchedule();
+
     return Positioned(
       bottom: 0,
       left: 0,
       right: 0,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
         margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: schedule.isOpen
+                ? [Colors.white, Colors.white]
+                : [Colors.grey.shade100, Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 18,
+              offset: const Offset(0, -6),
             ),
           ],
+          border: Border.all(
+            color: schedule.isOpen
+                ? const Color(0xFFFE8C00).withOpacity(0.12)
+                : Colors.grey.shade200,
+            width: 1,
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(100),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
             Row(
               children: [
                 Container(
@@ -274,25 +301,27 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                              horizontal: 10,
+                              vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.green,
-                              borderRadius: BorderRadius.circular(4),
+                              color: schedule.isOpen
+                                  ? Colors.green
+                                  : Colors.red,
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
-                              'Buka',
-                              style: TextStyle(
+                            child: Text(
+                              schedule.statusLabel,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 10),
                           Text(
-                            '${controller.distanceToStore.value.toStringAsFixed(2)} km',
+                            '${controller.distanceToStore.value.toStringAsFixed(2)} km • ${controller.estimatedTime.value} mnt',
                             style: const TextStyle(
                               color: Colors.grey,
                               fontSize: 13,
@@ -327,13 +356,17 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
               ],
             ),
             const SizedBox(height: 12),
-            const Row(
+            Row(
               children: [
-                Icon(Icons.access_time, color: Color(0xFFFE8C00), size: 20),
-                SizedBox(width: 8),
+                Icon(
+                  Icons.access_time,
+                  color: schedule.isOpen ? const Color(0xFFFE8C00) : Colors.red,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
                 Text(
-                  'Buka • Tutup pukul 22:00',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  schedule.hoursText,
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
               ],
             ),

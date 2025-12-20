@@ -9,8 +9,10 @@ class FavoritePage extends GetView<FavoriteController> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Obx(() {
         final favs = controller.favoriteProducts;
 
@@ -65,6 +67,19 @@ class FavoritePage extends GetView<FavoriteController> {
                                     color: Color(0xFF2C3E50),
                                     height: 1.4,
                                   ),
+                                );
+                              },
+                              child: Text(
+                                'Belum ada produk favorit',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF2C3E50),
+                                  height: 1.4,
                                 ),
                               ),
                             ),
@@ -90,9 +105,7 @@ class FavoritePage extends GetView<FavoriteController> {
                                           Get.find<DashboardController>();
                                       dashboard.changeTabIndex(1);
                                     } catch (e) {
-                                      print(
-                                        "DashboardController not found: $e",
-                                      );
+                                      // ignore
                                     }
                                   },
                                 ),
@@ -124,16 +137,15 @@ class FavoritePage extends GetView<FavoriteController> {
                   '${favs.length} Produk Favorit',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white70
-                        : Colors.grey[600],
+                    fontFamily: 'Poppins',
+                    color: isDark ? Colors.white70 : Colors.grey[600],
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ),
 
-            // Product Grid dengan staggered animation
+            // Product Grid
             SliverPadding(
               padding: const EdgeInsets.all(16),
               sliver: SliverGrid(
@@ -177,6 +189,7 @@ class FavoritePage extends GetView<FavoriteController> {
         title: const Text(
           'Favorit',
           style: TextStyle(
+            fontFamily: 'Poppins',
             fontWeight: FontWeight.bold,
             fontSize: 20,
             color: Colors.white,
@@ -200,6 +213,38 @@ class _EmptyStateIcon extends StatelessWidget {
       Icons.favorite_border_rounded,
       size: 80,
       color: Color(0xFFE67E22),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _opacityAnimation.value,
+          child: Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : const Color(0xFFFFE5D9),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(
+                    0xFFE67E22,
+                  ).withValues(alpha: 0.15 * _opacityAnimation.value),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.favorite_border_rounded,
+              size: 80,
+              color: Color(0xFFE67E22),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -219,6 +264,8 @@ class _AnimatedCTAButtonState extends State<_AnimatedCTAButton> {
 
   @override
   Widget build(BuildContext context) {
+    final scale = _isPressed ? 0.95 : 1.0;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) {
@@ -234,8 +281,18 @@ class _AnimatedCTAButtonState extends State<_AnimatedCTAButton> {
         decoration: BoxDecoration(
           color: const Color(0xFFE67E22),
           borderRadius: BorderRadius.circular(12),
+          boxShadow: _isPressed
+              ? []
+              : [
+                  BoxShadow(
+                    color: const Color(0xFFE67E22).withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
         ),
-        transform: Matrix4.identity()..scale(_isPressed ? 0.95 : 1.0),
+        // FIX: Menggunakan diagonal3Values pengganti scale() yang deprecated
+        transform: Matrix4.diagonal3Values(scale, scale, 1.0),
         child: const Center(
           child: Text(
             'Tambahkan Produk',
@@ -252,7 +309,7 @@ class _AnimatedCTAButtonState extends State<_AnimatedCTAButton> {
   }
 }
 
-// 3. Animated Product Card
+// 3. Animated Product Card (Wrapper)
 class _AnimatedProductCard extends StatefulWidget {
   final int index;
   final Widget child;
@@ -327,6 +384,8 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard>
 
   @override
   Widget build(BuildContext context) {
+    // FIX: Menghapus variable 'isDark' yang tidak digunakan
+
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 300 + (widget.index * 50)),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -363,7 +422,7 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard>
                 scale: _scaleAnimation.value,
                 child: Stack(
                   children: [
-                    // Card Wrapper
+                    // Card Wrapper (Shadow)
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(

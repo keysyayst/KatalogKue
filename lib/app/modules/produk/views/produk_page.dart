@@ -6,7 +6,6 @@ import '../../../widgets/product_card.dart';
 class ProdukPage extends GetView<ProdukController> {
   const ProdukPage({super.key});
 
-  // Brand Colors
   final Color primaryOrange = const Color(0xFFE67E22);
   final Color darkBlueGrey = const Color(0xFF2C3E50);
 
@@ -19,7 +18,6 @@ class ProdukPage extends GetView<ProdukController> {
           ? const Color(0xFF121212)
           : const Color(0xFFFAFAFA),
       body: Obx(() {
-        // ANIMASI 1: SHIMMER LOADING (Pengganti Spinner)
         if (controller.productService.isLoading.value) {
           return _buildShimmerLoading(isDark);
         }
@@ -28,34 +26,34 @@ class ProdukPage extends GetView<ProdukController> {
           onRefresh: controller.refreshProducts,
           color: primaryOrange,
           child: CustomScrollView(
-            // OPTIMASI: Pre-render 500 pixel ke bawah agar scroll ngebut tidak patah-patah (Lag-free)
             cacheExtent: 500,
             slivers: [
-              // ========================================
-              // APP BAR & SEARCH
-              // ========================================
               _buildSliverAppBar(context, isDark),
 
-              // Search Bar (Pinned dibawah AppBar atau scroll away)
+              // Search Bar
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                  padding: const EdgeInsets.fromLTRB(
+                    20,
+                    24,
+                    20,
+                    8,
+                  ), // Padding bawah dikurangi sedikit
                   child: _buildSearchBar(isDark),
                 ),
               ),
 
-              // ========================================
-              // PRODUCT GRID
-              // ========================================
+              // === [BARU] BAGIAN RIWAYAT PENCARIAN ===
+              // Hanya muncul jika ada riwayat DAN kolom search sedang kosong
+              if (controller.searchHistory.isNotEmpty &&
+                  controller.searchQuery.value.isEmpty)
+                SliverToBoxAdapter(child: _buildSearchHistorySection(isDark)),
 
-              // Product Count Header
+              // Header Jumlah Produk
               if (controller.filteredProducts.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
                     child: Text(
                       '${controller.filteredProducts.length} Produk Tersedia',
                       style: TextStyle(
@@ -68,7 +66,7 @@ class ProdukPage extends GetView<ProdukController> {
                   ),
                 ),
 
-              // Empty State
+              // Grid Produk / Empty State
               if (controller.filteredProducts.isEmpty)
                 SliverFillRemaining(
                   child: Center(
@@ -96,7 +94,6 @@ class ProdukPage extends GetView<ProdukController> {
                   ),
                 )
               else
-                // Grid
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
@@ -105,22 +102,19 @@ class ProdukPage extends GetView<ProdukController> {
                   sliver: SliverGrid(
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2, // Mobile 2 columns
-                          childAspectRatio: 0.72, // Ratio kartu
-                          crossAxisSpacing: 12, // Gap horizontal
-                          mainAxisSpacing: 12, // Gap vertikal
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.72,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
                         ),
                     delegate: SliverChildBuilderDelegate((context, index) {
                       final product = controller.filteredProducts[index];
-                      // Pass 'index' untuk animasi staggered (muncul berurutan)
                       return ProductCard(product: product, index: index);
                     }, childCount: controller.filteredProducts.length),
                   ),
                 ),
 
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 80),
-              ), // Bottom padding
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
             ],
           ),
         );
@@ -128,9 +122,88 @@ class ProdukPage extends GetView<ProdukController> {
     );
   }
 
-  // ========================================
-  // WIDGET METHODS
-  // ========================================
+  // === WIDGET RIWAYAT (BARU) ===
+  Widget _buildSearchHistorySection(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header Riwayat
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Terakhir Dicari',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : darkBlueGrey,
+                ),
+              ),
+              // Tombol Hapus Semua
+              GestureDetector(
+                onTap: controller.clearSearchHistory,
+                child: Text(
+                  'Hapus Semua',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: primaryOrange,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // List Horizontal Chips
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            // Menggunakan Row agar scrollable horizontal mulus
+            children: controller.searchHistory.map((history) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: InputChip(
+                  label: Text(
+                    history,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 12,
+                      color: isDark ? Colors.white : darkBlueGrey,
+                    ),
+                  ),
+                  backgroundColor: isDark ? Colors.grey[800] : Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(
+                      color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                    ),
+                  ),
+                  // Aksi Klik: Cari langsung
+                  onPressed: () => controller.applySearchFromHistory(history),
+                  // Aksi Hapus per item
+                  onDeleted: () => controller.removeSearchHistory(history),
+                  deleteIcon: Icon(
+                    Icons.close,
+                    size: 14,
+                    color: Colors.grey[400],
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: const EdgeInsets.all(0),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
 
   Widget _buildSliverAppBar(BuildContext context, bool isDark) {
     return SliverAppBar(
@@ -185,6 +258,7 @@ class ProdukPage extends GetView<ProdukController> {
       ),
       child: TextField(
         controller: controller.searchController,
+        focusNode: controller.searchFocusNode,
         onChanged: controller.searchProducts,
         onSubmitted: (query) {
           controller.saveSearchToHistory(query);
@@ -230,7 +304,6 @@ class ProdukPage extends GetView<ProdukController> {
     );
   }
 
-  // WIDGET SKELETON (SHIMMER MANUAL)
   Widget _buildShimmerLoading(bool isDark) {
     return CustomScrollView(
       slivers: [
@@ -250,51 +323,48 @@ class ProdukPage extends GetView<ProdukController> {
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
             ),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.grey[800] : Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.grey[700] : Colors.white,
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(12),
-                            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[800] : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.grey[700] : Colors.white,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(12),
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 100,
-                              height: 14,
-                              color: isDark ? Colors.grey[700] : Colors.white,
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              width: 60,
-                              height: 12,
-                              color: isDark ? Colors.grey[700] : Colors.white,
-                            ),
-                          ],
-                        ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 14,
+                            color: isDark ? Colors.grey[700] : Colors.white,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: 60,
+                            height: 12,
+                            color: isDark ? Colors.grey[700] : Colors.white,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
-              childCount: 6, // Tampilkan 6 skeleton dummy
-            ),
+                    ),
+                  ],
+                ),
+              );
+            }, childCount: 6),
           ),
         ),
       ],
