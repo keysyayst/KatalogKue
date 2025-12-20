@@ -12,64 +12,7 @@ class MoodNotificationProvider extends GetxService {
   final String _channelName = LocalNotificationProvider.channelName;
   final String _soundFile = LocalNotificationProvider.soundFile;
 
-  // Daftar notifikasi BERURUTAN (13:46 - 14:00)
   final Map<String, MoodConfig> moods = {
-    // TESTING MARATHON (13:46 - 14:00)
-
-    // TEST 1: Cek Suara & Pop-up (Aplikasi Dibuka/Background)
-    'test_1': MoodConfig(
-      hour: 13,
-      minute: 46,
-      title: '🔔 Test 1 (13:46)',
-      body: 'Cek suara custom & pop-up (App Foreground/Background)',
-      productId: 'lidah_kucing',
-    ),
-
-    // TEST 2: Cek Lock Screen (Matikan Layar HP Sekarang)
-    'test_2': MoodConfig(
-      hour: 13,
-      minute: 48,
-      title: '🔔 Test 2 (13:48)',
-      body: 'Saat dilock, layar harus menyala + bunyi',
-      productId: 'nastar',
-    ),
-
-    // TEST 3: Cek Terminated (Matikan Total Aplikasi Sekarang)
-    'test_3': MoodConfig(
-      hour: 13,
-      minute: 50,
-      title: '🔔 Test 3 (13:50)',
-      body: 'Kill App sukses? Klik aku untuk masuk ke Detail Produk',
-      productId: 'kastengel',
-    ),
-
-    // TEST 4: Cek Navigasi
-    'test_4': MoodConfig(
-      hour: 13,
-      minute: 53,
-      title: '🔔 Test 4 (13:53)',
-      body: 'Klik notifikasi ini, harus pindah ke halaman Sagu Keju',
-      productId: 'sagu_keju',
-    ),
-
-    // TEST 5: Tambahan
-    'test_5': MoodConfig(
-      hour: 13,
-      minute: 56,
-      title: '🔔 Test 5 (13:56)',
-      body: 'Tes konsistensi suara custom',
-      productId: 'putri_salju',
-    ),
-
-    // TEST 6: Penutup
-    'test_6': MoodConfig(
-      hour: 14,
-      minute: 00,
-      title: '🔔 Test 6 (14:00)',
-      body: 'Sesi testing selesai. Selamat makan siang!',
-      productId: 'thumbprint',
-    ),
-
     // DAILY SCHEDULE (Jadwal Asli - Tetap Disimpan)
     'morning': MoodConfig(
       hour: 8,
@@ -152,7 +95,7 @@ class MoodNotificationProvider extends GetxService {
             scheduledDate,
             NotificationDetails(
               android: AndroidNotificationDetails(
-                _channelId, 
+                _channelId,
                 _channelName,
                 channelDescription: 'Notifikasi mood-based',
                 importance: Importance.max,

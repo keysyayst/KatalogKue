@@ -9,7 +9,6 @@ import '../modules/auth/views/auth_page.dart';
 // Dashboard import otomatis ada karena di file app.dart
 import '../modules/delivery_checker/bindings/delivery_checker_binding.dart';
 import '../modules/delivery_checker/views/delivery_checker_view.dart';
-import '../modules/location/views/location_experiment_view.dart';
 import '../modules/notification/bindings/notification_binding.dart';
 import '../modules/notification/views/notification_view.dart';
 import '../modules/produk/bindings/produk_binding.dart';
@@ -23,11 +22,9 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  // Ubah initial jadi dashboard (hanya fallback)
   static const initial = Routes.dashboard;
 
   static final routes = [
-    // RUTE SPLASH DIHAPUS
     GetPage(
       name: _Paths.auth,
       page: () => const AuthPage(),
@@ -35,8 +32,8 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.dashboard,
-      page: () => const DashboardPage(), // Ini ngambil dari app.dart
-      binding: DashboardBinding(), // Ini ngambil dari app.dart
+      page: () => const DashboardPage(),
+      binding: DashboardBinding(),
       middlewares: [AuthMiddleware()],
     ),
     GetPage(
@@ -70,11 +67,6 @@ class AppPages {
       name: _Paths.DELIVERY_CHECKER,
       page: () => const DeliveryCheckerView(),
       binding: DeliveryCheckerBinding(),
-    ),
-
-    GetPage(
-      name: Routes.locationExperiment,
-      page: () => const LocationExperimentView(),
     ),
     GetPage(
       name: _Paths.NOTIFICATION,

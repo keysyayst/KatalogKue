@@ -3,8 +3,6 @@ part of 'app_pages.dart';
 abstract class Routes {
   Routes._();
 
-  // SPLASH DIHAPUS
-
   static const dashboard = _Paths.dashboard;
   static const auth = _Paths.auth;
   static const profile = _Paths.profile;
@@ -14,14 +12,12 @@ abstract class Routes {
   static const productDetail = '/product/:id';
   static const DELIVERY_CHECKER = _Paths.DELIVERY_CHECKER;
   static const adminDeliveryStores = _Paths.adminDeliveryStores;
-  static const locationExperiment = _Paths.locationExperiment;
+  // locationExperiment DIHAPUS
   static const NOTIFICATION = _Paths.NOTIFICATION;
 }
 
 abstract class _Paths {
   _Paths._();
-
-  // SPLASH DIHAPUS
 
   static const dashboard = '/dashboard';
   static const auth = '/auth';
@@ -31,6 +27,6 @@ abstract class _Paths {
   static const adminProducts = '/admin/products';
   static const adminDeliveryStores = '/admin/delivery-stores';
   static const DELIVERY_CHECKER = '/delivery-checker';
-  static const locationExperiment = '/location-experiment';
+
   static const NOTIFICATION = '/notification';
 }

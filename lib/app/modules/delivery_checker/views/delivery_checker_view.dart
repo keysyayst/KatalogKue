@@ -6,7 +6,7 @@ import '../controllers/delivery_checker_controller.dart';
 import '../../../app.dart';
 
 class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
-  const DeliveryCheckerView({Key? key}) : super(key: key);
+  const DeliveryCheckerView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -53,18 +53,17 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                         },
                       ),
                     ),
-                    // Hapus kotak putih dan tulisan 'Pesanan'
                   ],
                 ),
               ),
             ),
 
-            // Floating controls and distance badge (hanya tampil jika sheetExtent <= 0.5)
+            // Floating controls and distance badge
             Obx(() {
-              if (controller.sheetExtent.value > 0.5)
+              if (controller.sheetExtent.value > 0.5) {
                 return const SizedBox.shrink();
+              }
 
-              // Hitung posisi bottom dinamis mengikuti sheetExtent
               final double sheetBottom =
                   MediaQuery.of(context).size.height *
                       controller.sheetExtent.value +
@@ -85,7 +84,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
+                            color: Colors.black.withValues(alpha: 0.15),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -158,7 +157,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.12),
+                          color: Colors.black.withValues(alpha: 0.12),
                           blurRadius: 12,
                         ),
                       ],
@@ -168,7 +167,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // drag handle
                           Padding(
                             padding: const EdgeInsets.only(top: 12, bottom: 8),
                             child: Center(
@@ -182,7 +180,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                               ),
                             ),
                           ),
-                          // content
                           const SizedBox(height: 8),
                           _buildStoreInfoCard(),
                           _buildAddressCard(isDark),
@@ -202,7 +199,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // Full screen map used as background for draggable sheet layout
   Widget _buildFullMap() {
     final storeLatLng = LatLng(
       controller.store.value?.latitude ?? 0.0,
@@ -232,7 +228,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
               point: storeLatLng,
               radius: (controller.store.value?.deliveryRadius ?? 0.0) * 1000,
               useRadiusInMeter: true,
-              color: const Color(0xFFFE8C00).withOpacity(0.1),
+              color: const Color(0xFFFE8C00).withValues(alpha: 0.1),
               borderColor: const Color(0xFFFE8C00),
               borderStrokeWidth: 2,
             ),
@@ -261,7 +257,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                   border: Border.all(color: Colors.white, width: 3),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 8,
                       spreadRadius: 1,
                     ),
@@ -281,7 +277,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                   border: Border.all(color: Colors.white, width: 3),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 8,
                       spreadRadius: 1,
                     ),
@@ -296,7 +292,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  //STORE INFO CARD
   Widget _buildStoreInfoCard() {
     final store = controller.store.value;
 
@@ -309,12 +304,14 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFFE8C00).withOpacity(0.1),
-            const Color(0xFFFE8C00).withOpacity(0.05),
+            const Color(0xFFFE8C00).withValues(alpha: 0.1),
+            const Color(0xFFFE8C00).withValues(alpha: 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFE8C00).withOpacity(0.3)),
+        border: Border.all(
+          color: const Color(0xFFFE8C00).withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,7 +361,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
             value: store.address,
           ),
           const SizedBox(height: 8),
-          // Telepon dihilangkan sesuai permintaan
           _buildStoreInfoRow(
             icon: Icons.chat_rounded,
             label: 'WhatsApp',
@@ -377,7 +373,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
             value: store.email,
           ),
           const SizedBox(height: 8),
-          // ====== Jam Operasional Dinamis (Urut Hari) ======
           if (store.operationalHours != null &&
               store.operationalHours!.isNotEmpty)
             Column(
@@ -416,7 +411,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
         ],
@@ -434,7 +429,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: const Color(0xFFFE8C00).withOpacity(0.2),
+            color: const Color(0xFFFE8C00).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Icon(icon, size: 16, color: const Color(0xFFFE8C00)),
@@ -468,13 +463,10 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ================= ADDRESS CARD =================
   Widget _buildAddressCard(bool isDark) {
-    // Address card dihilangkan total agar tidak ada kotak kosong GPS
     return const SizedBox.shrink();
   }
 
-  // ================= DELIVERY INFO CARD =================
   Widget _buildDeliveryInfoCard(bool isDark) {
     final inZone = controller.isInDeliveryZone.value;
 
@@ -483,13 +475,13 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: inZone
-            ? const Color(0xFFFE8C00).withOpacity(0.08)
-            : Colors.red.withOpacity(0.08),
+            ? const Color(0xFFFE8C00).withValues(alpha: 0.08)
+            : Colors.red.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: inZone
-              ? const Color(0xFFFE8C00).withOpacity(0.3)
-              : Colors.red.withOpacity(0.3),
+              ? const Color(0xFFFE8C00).withValues(alpha: 0.3)
+              : Colors.red.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -521,7 +513,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
             ),
           ),
           const SizedBox(height: 24),
-          // Info rows
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -554,7 +545,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
             ),
           ),
           const SizedBox(height: 24),
-          // Action buttons
           Row(
             children: [
               Expanded(
@@ -637,10 +627,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // Simple help bullet widget to keep text compact
-  // (intentionally stateless and small)
-
-  // ================= LOADING STATE =================
   Widget _buildLoadingState() {
     return Container(
       color: Colors.white,
@@ -660,7 +646,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ================= ERROR STATE =================
   Widget _buildLocationError() {
     return Container(
       color: Colors.white,
@@ -743,7 +728,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.grey[800]
-                : const Color(0xFFFE8C00).withOpacity(0.08),
+                : const Color(0xFFFE8C00).withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
@@ -804,6 +789,9 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   }
 }
 
+// ===============================================
+// HELPER CLASS: _HelpBullet (INI YANG DULU HILANG)
+// ===============================================
 class _HelpBullet extends StatelessWidget {
   final String text;
 
