@@ -34,11 +34,20 @@ class ProfileController extends GetxController {
   void onInit() {
     super.onInit();
     debugPrint('🎯 ProfileController onInit called');
-    loadProfile();
     _initConnectivityListener();
+    // Cek status koneksi saat startup, jika online langsung refresh profile dari server
+    Connectivity().checkConnectivity().then((result) async {
+      final hasConnection = result != ConnectivityResult.none;
+      isOnline.value = hasConnection;
+      if (hasConnection) {
+        await refreshProfile();
+      } else {
+        loadProfile();
+      }
+    });
     // Listen to profile changes
     ever(_authService.currentProfile, (profile) {
-      debugPrint('🔄 Profile changed detected: ${profile?.email}');
+      debugPrint('🔄 Profile changed detected: ${profile?.email}');
       loadProfile();
     });
   }
@@ -51,15 +60,10 @@ class ProfileController extends GetxController {
       final wasOnline = isOnline.value;
       final hasConnection = result.any((r) => r != ConnectivityResult.none);
       isOnline.value = hasConnection;
+
       if (!wasOnline && isOnline.value) {
-        try {
-          if (_authService.fetchProfileFromServer != null) {
-            await _authService.fetchProfileFromServer();
-          }
-        } catch (e) {
-          debugPrint('Gagal fetch profile dari server: $e');
-        }
-        loadProfile();
+        debugPrint('🌐 Internet reconnected, reloading profile...');
+        await refreshProfile();
       }
     });
   }
@@ -68,7 +72,7 @@ class ProfileController extends GetxController {
   void onReady() {
     super.onReady();
     debugPrint('✅ ProfileController onReady called');
-    loadProfile();
+    refreshProfile();
   }
 
   @override
@@ -87,6 +91,7 @@ class ProfileController extends GetxController {
   }
 
   Future<void> loadProfile() async {
+    isLoading.value = true;
     final profile = _authService.currentProfile.value;
     if (profile != null) {
       fullNameController.text = profile.fullName ?? '';
@@ -103,6 +108,22 @@ class ProfileController extends GetxController {
     } else {
       debugPrint('⚠ Profile is null in loadProfile()');
     }
+    isLoading.value = false;
+  }
+
+  // ✅ Method untuk pull-to-refresh (seperti di ProdukController)
+  Future<void> refreshProfile({bool showLoading = true}) async {
+    if (showLoading) isLoading.value = true;
+    try {
+      debugPrint('🔄 Refreshing profile from server...');
+      await _authService.fetchProfileFromServer();
+      await loadProfile();
+      debugPrint('✅ Profile refreshed successfully');
+    } catch (e) {
+      debugPrint('❌ Error refreshing profile: $e');
+      await loadProfile();
+    }
+    if (showLoading) isLoading.value = false;
   }
 
   void toggleEdit() {

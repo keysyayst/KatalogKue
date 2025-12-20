@@ -18,7 +18,7 @@ class ProfilePage extends GetView<ProfileController> {
 
       return Scaffold(
         body: RefreshIndicator(
-          onRefresh: controller.loadProfile,
+          onRefresh: () => controller.refreshProfile(showLoading: false),
           child: CustomScrollView(
             slivers: [
               SliverAppBar(
@@ -60,7 +60,6 @@ class ProfilePage extends GetView<ProfileController> {
                             height: 200,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              // PERBAIKAN: Ganti withOpacity -> withValues
                               color: Colors.white.withValues(alpha: 0.1),
                             ),
                           ),
@@ -132,9 +131,7 @@ class ProfilePage extends GetView<ProfileController> {
 
               SliverToBoxAdapter(
                 child: Obx(() {
-                  final profile = controller.profile;
-
-                  if (profile == null) {
+                  if (controller.isLoading.value) {
                     return const Center(
                       child: Padding(
                         padding: EdgeInsets.all(32),
@@ -144,7 +141,15 @@ class ProfilePage extends GetView<ProfileController> {
                       ),
                     );
                   }
-
+                  final profile = controller.profile;
+                  if (profile == null) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32),
+                        child: Text('Data profil tidak ditemukan'),
+                      ),
+                    );
+                  }
                   return Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
