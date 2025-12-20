@@ -4,7 +4,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../controllers/delivery_checker_controller.dart';
 import '../../../app.dart';
-import '../../../data/sources/catering_info.dart';
 
 class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   const DeliveryCheckerView({Key? key}) : super(key: key);
@@ -54,116 +53,91 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'Pesanan',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                    // Hapus kotak putih dan tulisan 'Pesanan'
+                  ],
+                ),
+              ),
+            ),
+
+            // Floating controls and distance badge (hanya tampil jika sheetExtent <= 0.5)
+            Obx(() {
+              if (controller.sheetExtent.value > 0.5)
+                return const SizedBox.shrink();
+
+              // Hitung posisi bottom dinamis mengikuti sheetExtent
+              final double sheetBottom =
+                  MediaQuery.of(context).size.height *
+                      controller.sheetExtent.value +
+                  16;
+
+              return Stack(
+                children: [
+                  Positioned(
+                    left: 16,
+                    bottom: sheetBottom,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.straighten,
+                            color: Color(0xFFFE8C00),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${controller.distanceToStore.value.toStringAsFixed(2)} km',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 16,
+                    bottom: sheetBottom,
+                    child: Column(
+                      children: [
+                        FloatingActionButton(
+                          heroTag: 'centerMe',
+                          onPressed: () async {
+                            if (!controller.isLiveTracking.value) {
+                              controller.startLiveTracking();
+                            }
+                            await controller.centerOnUser();
+                          },
+                          backgroundColor: Colors.white,
+                          elevation: 3,
+                          child: const Icon(
+                            Icons.my_location,
                             color: Color(0xFFFE8C00),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // optional action placeholder
-                    Container(width: 40, height: 40),
-                  ],
-                ),
-              ),
-            ),
-
-            // Floating controls and distance badge
-            Positioned(
-              left: 16,
-              bottom: MediaQuery.of(context).size.height * 0.38 + 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.straighten,
-                      color: Color(0xFFFE8C00),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${controller.distanceToStore.value.toStringAsFixed(2)} km',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            Positioned(
-              right: 16,
-              bottom: MediaQuery.of(context).size.height * 0.38 + 16,
-              child: Column(
-                children: [
-                  FloatingActionButton(
-                    heroTag: 'centerMe',
-                    onPressed: () async {
-                      await controller.centerOnUser();
-                    },
-                    backgroundColor: Colors.white,
-                    elevation: 3,
-                    child: const Icon(
-                      Icons.my_location,
-                      color: Color(0xFFFE8C00),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Obx(
-                    () => FloatingActionButton(
-                      heroTag: 'liveToggle',
-                      onPressed: controller.isLiveTracking.value
-                          ? controller.stopLiveTracking
-                          : controller.startLiveTracking,
-                      backgroundColor: controller.isLiveTracking.value
-                          ? Colors.red
-                          : const Color(0xFFFE8C00),
-                      elevation: 3,
-                      child: Icon(
-                        controller.isLiveTracking.value
-                            ? Icons.pause_circle_filled
-                            : Icons.play_circle_fill,
-                        color: Colors.white,
-                      ),
+                      ],
                     ),
                   ),
                 ],
-              ),
-            ),
+              );
+            }),
 
             // Draggable bottom sheet with details
             DraggableScrollableSheet(
@@ -171,46 +145,52 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
               minChildSize: 0.18,
               maxChildSize: 0.92,
               builder: (context, scrollController) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.12),
-                        blurRadius: 12,
+                return NotificationListener<DraggableScrollableNotification>(
+                  onNotification: (notification) {
+                    controller.sheetExtent.value = notification.extent;
+                    return false;
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(20),
                       ),
-                    ],
-                  ),
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // drag handle
-                        Padding(
-                          padding: const EdgeInsets.only(top: 12, bottom: 8),
-                          child: Center(
-                            child: Container(
-                              width: 48,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 12,
+                        ),
+                      ],
+                    ),
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // drag handle
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12, bottom: 8),
+                            child: Center(
+                              child: Container(
+                                width: 48,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        // content
-                        const SizedBox(height: 8),
-                        _buildStoreInfoCard(),
-                        _buildAddressCard(isDark),
-                        _buildDeliveryInfoCard(isDark),
-                        _buildHelpSection(),
-                        const SizedBox(height: 24),
-                      ],
+                          // content
+                          const SizedBox(height: 8),
+                          _buildStoreInfoCard(),
+                          _buildAddressCard(isDark),
+                          _buildDeliveryInfoCard(isDark),
+                          _buildHelpSection(),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -225,8 +205,8 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   // Full screen map used as background for draggable sheet layout
   Widget _buildFullMap() {
     final storeLatLng = LatLng(
-      CateringInfo.store['lat'],
-      CateringInfo.store['lng'],
+      controller.store.value?.latitude ?? 0.0,
+      controller.store.value?.longitude ?? 0.0,
     );
     final customerLatLng = LatLng(
       controller.customerLocation.value!.latitude,
@@ -250,7 +230,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
           circles: [
             CircleMarker(
               point: storeLatLng,
-              radius: (CateringInfo.store['deliveryRadius']) * 1000,
+              radius: (controller.store.value?.deliveryRadius ?? 0.0) * 1000,
               useRadiusInMeter: true,
               color: const Color(0xFFFE8C00).withOpacity(0.1),
               borderColor: const Color(0xFFFE8C00),
@@ -318,8 +298,11 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
 
   //STORE INFO CARD
   Widget _buildStoreInfoCard() {
-    final store = CateringInfo.store;
+    final store = controller.store.value;
 
+    if (store == null) {
+      return const SizedBox.shrink();
+    }
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -358,7 +341,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      store['name'],
+                      store.name,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -366,7 +349,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                       ),
                     ),
                     Text(
-                      'Pemilik: ${store['owner']}',
+                      'Pemilik: ${store.owner}',
                       style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                     ),
                   ],
@@ -378,26 +361,70 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
           _buildStoreInfoRow(
             icon: Icons.location_on_rounded,
             label: 'Alamat',
-            value: store['address'],
+            value: store.address,
           ),
           const SizedBox(height: 8),
           _buildStoreInfoRow(
             icon: Icons.phone_rounded,
             label: 'Telepon',
-            value: store['phone'],
+            value: store.phone,
           ),
           const SizedBox(height: 8),
           _buildStoreInfoRow(
             icon: Icons.chat_rounded,
             label: 'WhatsApp',
-            value: store['whatsapp'],
+            value: store.whatsapp,
           ),
           const SizedBox(height: 8),
           _buildStoreInfoRow(
             icon: Icons.email_rounded,
             label: 'Email',
-            value: store['email'],
+            value: store.email,
           ),
+          const SizedBox(height: 8),
+          // ====== Jam Operasional Dinamis (Urut Hari) ======
+          if (store.operationalHours != null &&
+              store.operationalHours!.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Jam Operasional',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Color(0xFFFE8C00),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                ...[
+                  'Senin',
+                  'Selasa',
+                  'Rabu',
+                  'Kamis',
+                  'Jumat',
+                  'Sabtu',
+                  'Minggu',
+                ].map((hari) {
+                  final data = store.operationalHours![hari];
+                  final open = data != null ? (data['open'] ?? '-') : '-';
+                  final close = data != null ? (data['close'] ?? '-') : '-';
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        SizedBox(width: 80, child: Text(hari)),
+                        const SizedBox(width: 8),
+                        Text('Buka: $open'),
+                        const SizedBox(width: 12),
+                        Text('Tutup: $close'),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          // ====== END Jam Operasional Dinamis ======
         ],
       ),
     );
@@ -449,59 +476,8 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
 
   // ================= ADDRESS CARD =================
   Widget _buildAddressCard(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFE8C00).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.delivery_dining,
-              color: Color(0xFFFE8C00),
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  controller.locationMethod.value,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Pengiriman dalam ${controller.estimatedTime.value} menit',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.white70 : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    // Address card dihilangkan total agar tidak ada kotak kosong GPS
+    return const SizedBox.shrink();
   }
 
   // ================= DELIVERY INFO CARD =================

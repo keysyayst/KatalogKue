@@ -9,11 +9,11 @@ class DeliveryStore {
   final String phone;
   final String whatsapp;
   final String email;
-  final double deliveryRadius; 
-  final double freeDeliveryRadius; 
-  final int
-  deliveryCostPerKm; 
-  final int minOrder; 
+  final Map<String, dynamic>? operationalHours;
+  final double deliveryRadius;
+  final double freeDeliveryRadius;
+  final int deliveryCostPerKm;
+  final int minOrder;
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -28,6 +28,7 @@ class DeliveryStore {
     required this.phone,
     required this.whatsapp,
     required this.email,
+    this.operationalHours,
     required this.deliveryRadius,
     required this.freeDeliveryRadius,
     required this.deliveryCostPerKm,
@@ -43,15 +44,26 @@ class DeliveryStore {
       name: json['name']?.toString() ?? '',
       owner: json['owner']?.toString() ?? '',
       address: json['address']?.toString() ?? '',
-      latitude: _toDouble(json['latitude']),
-      longitude: _toDouble(json['longitude']),
+      latitude: _toDouble(json['latitude'] ?? json['lat']),
+      longitude: _toDouble(json['longitude'] ?? json['lng']),
       phone: json['phone']?.toString() ?? '',
       whatsapp: json['whatsapp']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
-      deliveryRadius: _toDouble(json['delivery_radius']),
-      freeDeliveryRadius: _toDouble(json['free_delivery_radius']),
-      deliveryCostPerKm: _toInt(json['delivery_cost_per_km']),
-      minOrder: _toInt(json['min_order']),
+      operationalHours: json['operationalhours'] is Map<String, dynamic>
+          ? json['operationalhours'] as Map<String, dynamic>
+          : json['operationalhours'] != null
+          ? Map<String, dynamic>.from(json['operationalhours'])
+          : null,
+      deliveryRadius: _toDouble(
+        json['delivery_radius'] ?? json['deliveryradius'],
+      ),
+      freeDeliveryRadius: _toDouble(
+        json['free_delivery_radius'] ?? json['freedeliveryradius'],
+      ),
+      deliveryCostPerKm: _toInt(
+        json['delivery_cost_per_km'] ?? json['deliverycostperkm'],
+      ),
+      minOrder: _toInt(json['min_order'] ?? json['minorder']),
       isActive: json['is_active'] == true || json['is_active'] == 1,
       createdAt: _toDate(json['created_at']),
       updatedAt: _toDate(json['updated_at']),
@@ -64,15 +76,16 @@ class DeliveryStore {
       'name': name,
       'owner': owner,
       'address': address,
-      'latitude': latitude,
-      'longitude': longitude,
+      'lat': latitude,
+      'lng': longitude,
       'phone': phone,
       'whatsapp': whatsapp,
       'email': email,
-      'delivery_radius': deliveryRadius,
-      'free_delivery_radius': freeDeliveryRadius,
-      'delivery_cost_per_km': deliveryCostPerKm,
-      'min_order': minOrder,
+      'operationalhours': operationalHours,
+      'deliveryradius': deliveryRadius,
+      'freedeliveryradius': freeDeliveryRadius,
+      'deliverycostperkm': deliveryCostPerKm,
+      'minorder': minOrder,
       'is_active': isActive,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -89,6 +102,7 @@ class DeliveryStore {
     String? phone,
     String? whatsapp,
     String? email,
+    Map<String, dynamic>? operationalHours,
     double? deliveryRadius,
     double? freeDeliveryRadius,
     int? deliveryCostPerKm,
@@ -107,6 +121,7 @@ class DeliveryStore {
       phone: phone ?? this.phone,
       whatsapp: whatsapp ?? this.whatsapp,
       email: email ?? this.email,
+      operationalHours: operationalHours ?? this.operationalHours,
       deliveryRadius: deliveryRadius ?? this.deliveryRadius,
       freeDeliveryRadius: freeDeliveryRadius ?? this.freeDeliveryRadius,
       deliveryCostPerKm: deliveryCostPerKm ?? this.deliveryCostPerKm,
