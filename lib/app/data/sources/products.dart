@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart'; // Import ini wajib untuk debugPrint
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../models/product.dart';
 import '../providers/product_api_provider.dart';
@@ -14,7 +14,6 @@ class ProductService extends GetxService {
     loadProducts();
   }
 
-  // Load products from database
   Future<void> loadProducts() async {
     try {
       isLoading.value = true;
@@ -23,7 +22,6 @@ class ProductService extends GetxService {
       debugPrint('✅ Loaded ${products.length} products from database');
     } catch (e) {
       debugPrint('❌ Error loading products: $e');
-      // Fallback ke produk lokal jika gagal
       _initializeLocalProducts();
     } finally {
       isLoading.value = false;
@@ -91,12 +89,10 @@ class ProductService extends GetxService {
     ];
   }
 
-  // Get all products
   List<Product> getAllProducts() {
     return _products.toList();
   }
 
-  // Get favorite products (dari Hive)
   List<Product> getFavoriteProducts() {
     final favoriteIds = _favoriteService.getFavoriteIds();
     return _products
@@ -104,18 +100,15 @@ class ProductService extends GetxService {
         .toList();
   }
 
-  // Toggle favorite
   Future<void> toggleFavorite(String productId) async {
     await _favoriteService.toggleFavorite(productId);
-    _products.refresh(); // Trigger UI update
+    _products.refresh();
   }
 
-  // Check if favorite
   bool isFavorite(String productId) {
     return _favoriteService.isFavorite(productId);
   }
 
-  // Get product by ID
   Product? getProductById(String id) {
     try {
       return _products.firstWhere((product) => product.id == id);
@@ -124,11 +117,10 @@ class ProductService extends GetxService {
     }
   }
 
-  // Create product
   Future<Product?> createProduct(Product product, String userId) async {
     try {
       final newProduct = await _apiProvider.createProduct(product, userId);
-      await loadProducts(); // Reload list
+      await loadProducts();
       return newProduct;
     } catch (e) {
       debugPrint('❌ Error creating product: $e');
@@ -136,11 +128,10 @@ class ProductService extends GetxService {
     }
   }
 
-  // Update product
   Future<Product?> updateProduct(String id, Product product) async {
     try {
       final updatedProduct = await _apiProvider.updateProduct(id, product);
-      await loadProducts(); // Reload list
+      await loadProducts();
       return updatedProduct;
     } catch (e) {
       debugPrint('❌ Error updating product: $e');
@@ -148,11 +139,10 @@ class ProductService extends GetxService {
     }
   }
 
-  // Delete product
   Future<bool> deleteProduct(String id) async {
     try {
       await _apiProvider.deleteProduct(id);
-      await loadProducts(); // Reload list
+      await loadProducts();
       return true;
     } catch (e) {
       debugPrint('❌ Error deleting product: $e');

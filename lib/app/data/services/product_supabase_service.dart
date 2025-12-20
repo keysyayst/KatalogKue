@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart'; // Import wajib untuk debugPrint
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/product.dart';
@@ -6,7 +6,6 @@ import 'dart:io';
 
 class ProductSupabaseService extends GetxService {
   final SupabaseClient _supabase = Supabase.instance.client;
-
   RxList<Product> products = <Product>[].obs;
   var isLoading = false.obs;
 
@@ -16,11 +15,9 @@ class ProductSupabaseService extends GetxService {
     loadProducts();
   }
 
-  // Load all products from Supabase
   Future<void> loadProducts() async {
     try {
       isLoading.value = true;
-
       final response = await _supabase
           .from('products')
           .select()
@@ -37,18 +34,14 @@ class ProductSupabaseService extends GetxService {
     }
   }
 
-  // Add new product
   Future<bool> addProduct(Product product) async {
     try {
       isLoading.value = true;
-
       final userId = _supabase.auth.currentUser?.id;
-
       await _supabase.from('products').insert({
         ...product.toInsertJson(),
         'created_by': userId,
       });
-
       await loadProducts();
       return true;
     } catch (e) {
@@ -60,11 +53,9 @@ class ProductSupabaseService extends GetxService {
     }
   }
 
-  // Update product
   Future<bool> updateProduct(String id, Product product) async {
     try {
       isLoading.value = true;
-
       await _supabase
           .from('products')
           .update({
@@ -72,7 +63,6 @@ class ProductSupabaseService extends GetxService {
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', id);
-
       await loadProducts();
       return true;
     } catch (e) {
@@ -84,13 +74,10 @@ class ProductSupabaseService extends GetxService {
     }
   }
 
-  // Delete product
   Future<bool> deleteProduct(String id) async {
     try {
       isLoading.value = true;
-
       await _supabase.from('products').delete().eq('id', id);
-
       await loadProducts();
       return true;
     } catch (e) {
@@ -102,19 +89,15 @@ class ProductSupabaseService extends GetxService {
     }
   }
 
-  // Upload image to Supabase Storage
   Future<String?> uploadImage(File imageFile, String productId) async {
     try {
       final fileName =
           '${productId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final path = 'products/$fileName';
-
       await _supabase.storage.from('product-images').upload(path, imageFile);
-
       final imageUrl = _supabase.storage
           .from('product-images')
           .getPublicUrl(path);
-
       return imageUrl;
     } catch (e) {
       debugPrint('Error uploading image: $e');
@@ -123,20 +106,16 @@ class ProductSupabaseService extends GetxService {
     }
   }
 
-  // Delete image from storage
   Future<void> deleteImage(String imageUrl) async {
     try {
-      // Extract path from URL
       final uri = Uri.parse(imageUrl);
       final path = uri.pathSegments.last;
-
       await _supabase.storage.from('product-images').remove(['products/$path']);
     } catch (e) {
       debugPrint('Error deleting image: $e');
     }
   }
 
-  // Get product by ID
   Product? getProductById(String id) {
     try {
       return products.firstWhere((product) => product.id == id);
