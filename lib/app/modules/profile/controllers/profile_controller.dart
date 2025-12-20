@@ -4,13 +4,12 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
-import '../../../theme/theme_controller.dart'; // ← TAMBAH INI
+import '../../../theme/theme_controller.dart';
 import '../../../theme/design_system.dart';
 
 class ProfileController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
-  final ThemeController _themeController =
-      Get.find<ThemeController>(); // ← TAMBAH INI
+  final ThemeController _themeController = Get.find<ThemeController>();
 
   // Form controllers
   final fullNameController = TextEditingController();
@@ -30,11 +29,11 @@ class ProfileController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    print('🎯 ProfileController onInit called');
+    debugPrint('🎯 ProfileController onInit called');
     loadProfile();
     // Listen to profile changes
     ever(_authService.currentProfile, (profile) {
-      print('🔄 Profile changed detected: ${profile?.email}');
+      debugPrint('🔄 Profile changed detected: ${profile?.email}');
       loadProfile();
     });
   }
@@ -42,7 +41,7 @@ class ProfileController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    print('✅ ProfileController onReady called');
+    debugPrint('✅ ProfileController onReady called');
     // Load lagi saat view sudah siap, untuk memastikan data tampil
     loadProfile();
   }
@@ -55,7 +54,6 @@ class ProfileController extends GetxController {
     super.onClose();
   }
 
-  // ← TAMBAH GETTER INI
   bool get isDarkMode => _themeController.isDarkMode.value;
 
   void toggleTheme() {
@@ -74,11 +72,11 @@ class ProfileController extends GetxController {
       phoneText.value = profile.phone ?? '';
       emailText.value = profile.email;
 
-      print(
-        '📝 Profile loaded to controllers: ${profile.email}, ${profile.fullName}, ${profile.phone}',
+      debugPrint(
+        '📝 Profile loaded: ${profile.email}, ${profile.fullName}, ${profile.phone}',
       );
     } else {
-      print('⚠ Profile is null in loadProfile()');
+      debugPrint('⚠ Profile is null in loadProfile()');
     }
   }
 
@@ -199,7 +197,7 @@ class ProfileController extends GetxController {
             ),
             const SizedBox(height: 20),
             ListTile(
-              leading: Icon(
+              leading: const Icon(
                 Icons.photo_library,
                 color: DesignColors.primary,
               ),
@@ -210,7 +208,10 @@ class ProfileController extends GetxController {
               },
             ),
             ListTile(
-              leading: Icon(Icons.camera_alt, color: DesignColors.primary),
+              leading: const Icon(
+                Icons.camera_alt,
+                color: DesignColors.primary,
+              ),
               title: const Text('Ambil Foto'),
               onTap: () {
                 Get.back();
@@ -272,7 +273,10 @@ class ProfileController extends GetxController {
               await _authService.signOut();
               Get.offAllNamed(Routes.auth);
             },
-            child: Text('Keluar', style: TextStyle(color: DesignColors.error)),
+            child: const Text(
+              'Keluar',
+              style: TextStyle(color: DesignColors.error),
+            ),
           ),
         ],
       ),

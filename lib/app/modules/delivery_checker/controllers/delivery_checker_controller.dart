@@ -10,6 +10,8 @@ import '../../../data/repositories/delivery_store_repository.dart';
 import '../../../data/models/delivery_store_model.dart';
 import '../../produk/controllers/produk_controller.dart';
 import '../../../data/models/product.dart';
+// IMPORT PENTING: Untuk memunculkan notifikasi lokal
+import '../../notification/providers/local_notification_provider.dart';
 
 class StoreScheduleInfo {
   final bool isOpen;
@@ -47,6 +49,14 @@ class DeliveryCheckerController extends GetxController {
   final RxBool isLiveTracking = false.obs;
   StreamSubscription<Position>? _positionStream;
 
+  // --- FITUR BARU: LOGIKA NOTIFIKASI KEDEKATAN ---
+  // Variable untuk mencegah notifikasi muncul berulang-ulang setiap detik saat user diam
+  final RxBool hasNotifiedNearby = false.obs;
+
+  // Batas radius untuk memicu notifikasi (1.0 = 1 KM)
+  static const double nearbyThresholdKm = 1.0;
+  // ------------------------------------------------
+
   @override
   void onInit() async {
     super.onInit();
@@ -67,7 +77,7 @@ class DeliveryCheckerController extends GetxController {
     super.onClose();
   }
 
-  //WA
+  // WA Logic
   String buildDeliveryText() {
     final jarak = distanceToStore.value.toStringAsFixed(2);
     final ongkir = isInDeliveryZone.value
@@ -111,10 +121,8 @@ class DeliveryCheckerController extends GetxController {
     }
   }
 
-  //get customer location
+  // Check Customer Location
   Future<void> checkCustomerLocation() async {
-    // isLoading diatur di onInit saja agar tidak bentrok
-
     try {
       Position? gpsPos = await locationService.getGPSLocation();
 
@@ -139,7 +147,6 @@ class DeliveryCheckerController extends GetxController {
 
       if (customerLocation.value != null) {
         calculateDeliveryInfo();
-
         _moveCameraTo(customerLocation.value!);
       }
     } catch (e) {
@@ -148,8 +155,6 @@ class DeliveryCheckerController extends GetxController {
         'Gagal mendapatkan lokasi: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
       );
-    } finally {
-      // isLoading diatur di onInit saja agar tidak bentrok
     }
   }
 
@@ -184,6 +189,7 @@ class DeliveryCheckerController extends GetxController {
         'https://www.google.com/maps/search/?api=1&query=${netPos.latitude},${netPos.longitude}';
   }
 
+  // --- LOGIC KALKULASI UTAMA + TRIGGER NOTIFIKASI ---
   void calculateDeliveryInfo() {
     if (customerLocation.value == null) return;
 
@@ -203,6 +209,7 @@ class DeliveryCheckerController extends GetxController {
     distanceToStore.value = distanceMeters / 1000;
     isInDeliveryZone.value = distanceToStore.value <= deliveryRadius;
 
+    // Kalkulasi Biaya
     if (distanceToStore.value <= freeDeliveryRadius) {
       isFreeDelivery.value = true;
       deliveryCost.value = 0;
@@ -213,7 +220,41 @@ class DeliveryCheckerController extends GetxController {
     }
 
     estimatedTime.value = ((distanceToStore.value / 15) * 60).round();
+
+    // --- BAGIAN PENTING: CEK APAKAH PERLU KIRIM NOTIFIKASI ---
+    _checkProximityAndNotify();
   }
+
+  // --- FUNGSI BARU: Logic Notifikasi Dekat Toko ---
+  void _checkProximityAndNotify() {
+    // 1. Jika jarak <= 1 KM (Threshold) DAN belum pernah notif
+    if (distanceToStore.value <= nearbyThresholdKm &&
+        !hasNotifiedNearby.value) {
+      _triggerNearbyNotification();
+      hasNotifiedNearby.value = true; // Tandai sudah notif agar tidak spam
+    }
+    // 2. Jika user menjauh (> 1.5 KM), reset flag agar nanti bisa notif lagi kalau mendekat kembali
+    else if (distanceToStore.value > (nearbyThresholdKm + 0.5)) {
+      hasNotifiedNearby.value = false;
+    }
+  }
+
+  void _triggerNearbyNotification() {
+    debugPrint('📍 User berada di dekat toko! Mengirim notifikasi...');
+
+    // Pastikan Service Notifikasi sudah ter-inject
+    if (Get.isRegistered<LocalNotificationProvider>()) {
+      Get.find<LocalNotificationProvider>().showNotification(
+        title: "Anda sudah dekat! 🎂",
+        body:
+            "Jarak Anda hanya ${distanceToStore.value.toStringAsFixed(1)} km dari toko kami. Mampir yuk?",
+        payload: 'delivery', // Membuka halaman delivery saat notif diklik
+      );
+    } else {
+      debugPrint('❌ LocalNotificationProvider belum terdaftar di GetX');
+    }
+  }
+  // ------------------------------------------------
 
   void refreshStores() {
     if (customerLocation.value != null) {
@@ -237,7 +278,7 @@ class DeliveryCheckerController extends GetxController {
 
     _positionStream = locationService.getLiveLocationStream().listen((pos) {
       customerLocation.value = pos;
-      calculateDeliveryInfo();
+      calculateDeliveryInfo(); // Ini akan memanggil _checkProximityAndNotify
       _moveCameraTo(pos);
     });
   }
@@ -295,15 +336,15 @@ class DeliveryCheckerController extends GetxController {
     final startText = parts.first;
     final endText = parts.length > 1 ? parts.last : '';
 
-    DateTime _parse(String hhmm) {
+    DateTime parseTime(String hhmm) {
       final pieces = hhmm.split(':');
       final h = int.parse(pieces.first);
       final m = pieces.length > 1 ? int.parse(pieces[1]) : 0;
       return DateTime(now.year, now.month, now.day, h, m);
     }
 
-    final start = _parse(startText);
-    final end = endText.isEmpty ? start : _parse(endText);
+    final start = parseTime(startText);
+    final end = endText.isEmpty ? start : parseTime(endText);
     final isOpen = now.isAfter(start) && now.isBefore(end);
 
     final statusLabel = isOpen ? 'Buka sekarang' : 'Tutup sekarang';
@@ -381,13 +422,14 @@ Mohon konfirmasi ketersediaan dan total harga. Terima kasih.""");
   // OPEN GOOGLE MAPS (DIRECTIONS)
   Future<void> openGoogleMaps() async {
     if (customerLocation.value == null) return;
+
+    // Perbaikan: Mendefinisikan variabel yang hilang
     final storeLat = store.value?.latitude ?? 0.0;
     final storeLng = store.value?.longitude ?? 0.0;
-    final customerLat = customerLocation.value!.latitude;
-    final customerLng = customerLocation.value!.longitude;
 
+    // Perbaikan: Menggunakan variabel yang benar untuk URL
     final url =
-        'https://www.google.com/maps/dir/?api=1&origin=$customerLat,$customerLng&destination=$storeLat,$storeLng&travelmode=driving';
+        'https://www.google.com/maps/dir/?api=1&destination=$storeLat,$storeLng';
 
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
