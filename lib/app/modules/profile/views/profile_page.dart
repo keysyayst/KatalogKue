@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
-import '../../../routes/app_pages.dart';
 import '../../../theme/design_system.dart';
 import '../../admin/views/edit_delivery_store_page.dart';
-import 'package:cake_by_mommy/data/services/store_service.dart';
 import 'package:cake_by_mommy/app/data/models/delivery_store_model.dart';
 import 'package:cake_by_mommy/data/models/store.dart';
 import 'package:cake_by_mommy/app/data/repositories/delivery_store_repository.dart';
@@ -64,7 +62,8 @@ class ProfilePage extends GetView<ProfileController> {
                           height: 200,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.1),
+                            // PERBAIKAN: Ganti withOpacity -> withValues
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
                       ),
@@ -76,7 +75,8 @@ class ProfilePage extends GetView<ProfileController> {
                           height: 150,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.1),
+                            // PERBAIKAN: Ganti withOpacity -> withValues
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                         ),
                       ),
@@ -131,8 +131,6 @@ class ProfilePage extends GetView<ProfileController> {
                           tooltip: 'Edit Profil',
                         ),
                 ),
-
-                // removed testing menu per request
               ],
             ),
 
@@ -347,7 +345,7 @@ class ProfilePage extends GetView<ProfileController> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                 color: DesignColors.primary,
                                 width: 2,
                               ),
@@ -386,7 +384,7 @@ class ProfilePage extends GetView<ProfileController> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                 color: DesignColors.primary,
                                 width: 2,
                               ),
@@ -483,7 +481,8 @@ class ProfilePage extends GetView<ProfileController> {
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
+                                    // PERBAIKAN: Ganti withOpacity -> withValues
+                                    color: Colors.black.withValues(alpha: 0.08),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -521,7 +520,8 @@ class ProfilePage extends GetView<ProfileController> {
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
+                                    // PERBAIKAN: Ganti withOpacity -> withValues
+                                    color: Colors.black.withValues(alpha: 0.08),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -565,12 +565,12 @@ class ProfilePage extends GetView<ProfileController> {
                               ),
                             ),
                             alignment: Alignment.center,
-                            child: Row(
+                            child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.logout, color: DesignColors.error),
-                                const SizedBox(width: 8),
-                                const Text(
+                                SizedBox(width: 8),
+                                Text(
                                   'Keluar',
                                   style: TextStyle(
                                     fontFamily: DesignText.family,

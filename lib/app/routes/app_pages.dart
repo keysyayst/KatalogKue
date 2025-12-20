@@ -71,15 +71,7 @@ class AppPages {
       page: () => const DeliveryCheckerView(),
       binding: DeliveryCheckerBinding(),
     ),
-    GetPage(
-      name: _Paths.adminDeliveryStores,
-      page: () => const AdminDeliveryStoresPage(),
-      binding: AdminBinding(),
-      middlewares: [AuthMiddleware()],
-    ),
-    // Halaman adminDeliveryStores dihapus karena hanya ada 1 toko
 
-    // --- PAGE TESTING (MODUL 5) ---
     GetPage(
       name: Routes.locationExperiment,
       page: () => const LocationExperimentView(),
