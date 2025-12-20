@@ -207,8 +207,48 @@ class ProdukPage extends GetView<ProdukController> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [primaryOrange, const Color(0xFFFF9F43)],
+              colors: [primaryOrange, const Color.fromARGB(255, 201, 109, 11)],
             ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -40 + 20,
+                top: -40 - 10,
+                child: Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.08),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 40 - 15,
+                top: 20 + 10,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.05),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -20 + 10,
+                bottom: -20,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFFF9F43).withOpacity(0.3),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
