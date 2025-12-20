@@ -30,8 +30,11 @@ class FavoritePage extends GetView<FavoriteController> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Animated Icon
-                        _AnimatedEmptyStateIcon(),
+                        // Simple Icon without animation (with opacity)
+                        Opacity(
+                          opacity: 0.4,
+                          child: _EmptyStateIcon(),
+                        ),
                         const SizedBox(height: 32),
 
                         // Text & Button
@@ -39,17 +42,30 @@ class FavoritePage extends GetView<FavoriteController> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Fade in text
-                            TweenAnimationBuilder<double>(
-                              duration: const Duration(milliseconds: 600),
-                              tween: Tween(begin: 0.0, end: 1.0),
-                              curve: Curves.easeOut,
-                              builder: (context, value, child) {
-                                return Opacity(
-                                  opacity: value,
-                                  child: Transform.translate(
-                                    offset: Offset(0, 20 * (1 - value)),
-                                    child: child,
+                            // Fade in text (with opacity)
+                            Opacity(
+                              opacity: 0.5,
+                              child: TweenAnimationBuilder<double>(
+                                duration: const Duration(milliseconds: 600),
+                                tween: Tween(begin: 0.0, end: 1.0),
+                                curve: Curves.easeOut,
+                                builder: (context, value, child) {
+                                  return Opacity(
+                                    opacity: value,
+                                    child: Transform.translate(
+                                      offset: Offset(0, 20 * (1 - value)),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  'Belum ada produk',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF2C3E50),
+                                    height: 1.4,
                                   ),
                                 );
                               },
@@ -70,7 +86,7 @@ class FavoritePage extends GetView<FavoriteController> {
 
                             const SizedBox(height: 32),
 
-                            // Animated Button
+                            // Animated Button (opacity removed)
                             TweenAnimationBuilder<double>(
                               duration: const Duration(milliseconds: 800),
                               tween: Tween(begin: 0.0, end: 1.0),
@@ -189,40 +205,14 @@ class FavoritePage extends GetView<FavoriteController> {
 // ANIMATED WIDGETS
 // ========================================
 
-// 1. Animated Empty State Icon
-class _AnimatedEmptyStateIcon extends StatefulWidget {
-  @override
-  State<_AnimatedEmptyStateIcon> createState() =>
-      _AnimatedEmptyStateIconState();
-}
-
-class _AnimatedEmptyStateIconState extends State<_AnimatedEmptyStateIcon>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _opacityAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _opacityAnimation = Tween<double>(
-      begin: 0.6,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+// 1. Simple Empty State Icon (No Animation, No Circle)
+class _EmptyStateIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    return const Icon(
+      Icons.favorite_border_rounded,
+      size: 80,
+      color: Color(0xFFE67E22),
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnimatedBuilder(
@@ -259,7 +249,7 @@ class _AnimatedEmptyStateIconState extends State<_AnimatedEmptyStateIcon>
   }
 }
 
-// 2. Animated CTA Button
+// 2. Animated CTA Button (No Orange Shadow)
 class _AnimatedCTAButton extends StatefulWidget {
   final VoidCallback onPressed;
 
@@ -305,7 +295,7 @@ class _AnimatedCTAButtonState extends State<_AnimatedCTAButton> {
         transform: Matrix4.diagonal3Values(scale, scale, 1.0),
         child: const Center(
           child: Text(
-            'Jelajahi Produk',
+            'Tambahkan Produk',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
