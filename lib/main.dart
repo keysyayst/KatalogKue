@@ -27,9 +27,9 @@ Future<void> initServices() async {
   try {
     tz_data.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
-    print('✅ Timezone initialized');
+    debugPrint('✅ Timezone initialized');
   } catch (e) {
-    print('❌ Timezone init error: $e');
+    debugPrint('❌ Timezone init error: $e');
   }
 
   // ========== SUPABASE SETUP ==========
@@ -52,13 +52,13 @@ Future<void> initServices() async {
   // ========== FIREBASE SETUP ==========
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print('Firebase initialized');
+  debugPrint('Firebase initialized');
 
   // ========== SHARED PREFERENCES ==========
   // Initialize SharedPreferences untuk menyimpan settings notifikasi
   final prefs = await SharedPreferences.getInstance();
   Get.put(prefs);
-  print('SharedPreferences initialized');
+  debugPrint('SharedPreferences initialized');
 
   // ========== EXISTING SERVICES ==========
   // Initialize Hive for favorites
@@ -86,13 +86,13 @@ Future<void> initServices() async {
     await Get.putAsync(() => LocalNotificationProvider().init()).timeout(
       const Duration(seconds: 10),
       onTimeout: () {
-        print('⚠️ LocalNotificationProvider init timeout, continuing...');
+        debugPrint('⚠️ LocalNotificationProvider init timeout, continuing...');
         return LocalNotificationProvider();
       },
     );
-    print('Local Notification Service initialized');
+    debugPrint('Local Notification Service initialized');
   } catch (e) {
-    print('❌ LocalNotificationProvider error: $e');
+    debugPrint('❌ LocalNotificationProvider error: $e');
   }
 
   // Initialize Firebase Messaging Service
@@ -100,13 +100,13 @@ Future<void> initServices() async {
     await Get.putAsync(() => FirebaseMessagingProvider().init()).timeout(
       const Duration(seconds: 10),
       onTimeout: () {
-        print('⚠️ FirebaseMessagingProvider init timeout, continuing...');
+        debugPrint('⚠️ FirebaseMessagingProvider init timeout, continuing...');
         return FirebaseMessagingProvider();
       },
     );
-    print('Firebase Messaging Service initialized');
+    debugPrint('Firebase Messaging Service initialized');
   } catch (e) {
-    print('❌ FirebaseMessagingProvider error: $e');
+    debugPrint('❌ FirebaseMessagingProvider error: $e');
   }
 
   // Initialize Mood-Based Notification Service
@@ -114,16 +114,16 @@ Future<void> initServices() async {
     await Get.putAsync(() => MoodNotificationProvider().init()).timeout(
       const Duration(seconds: 10),
       onTimeout: () {
-        print('⚠️ MoodNotificationProvider init timeout, continuing...');
+        debugPrint('⚠️ MoodNotificationProvider init timeout, continuing...');
         return MoodNotificationProvider();
       },
     );
-    print('Mood Notification Service initialized');
+    debugPrint('Mood Notification Service initialized');
   } catch (e) {
-    print('❌ MoodNotificationProvider error: $e');
+    debugPrint('❌ MoodNotificationProvider error: $e');
   }
 
-  print('All services initialized successfully!');
+  debugPrint('All services initialized successfully!');
 }
 
 void main() async {
@@ -132,7 +132,7 @@ void main() async {
 
   // Load file .env
   await dotenv.load(fileName: '.env');
-  print('Environment variables loaded');
+  debugPrint('Environment variables loaded');
 
   // Initialize all services
   await initServices();

@@ -1,4 +1,3 @@
-// lib/app/modules/produk/controllers/produk_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -16,7 +15,9 @@ class ProdukController extends GetxController {
 
   // Controller untuk text field pencarian
   final TextEditingController searchController = TextEditingController();
-  final FocusNode searchFocusNode = FocusNode(); // TAMBAHAN UNTUK FOCUS
+
+  // ✅ PENTING: FocusNode untuk fitur auto-focus dari Home
+  final FocusNode searchFocusNode = FocusNode();
 
   // List produk
   final RxList<Product> products = <Product>[].obs;
@@ -42,7 +43,6 @@ class ProdukController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    // Reload products saat controller ready
     refreshProducts();
   }
 
@@ -54,7 +54,6 @@ class ProdukController extends GetxController {
   }
 
   Future<void> refreshProducts() async {
-    // Clear search saat refresh
     clearSearch();
     await productService.loadProducts();
     loadProducts();
@@ -105,18 +104,20 @@ class ProdukController extends GetxController {
     searchController.text = query;
     searchQuery.value = query;
     searchProducts(query);
-    // Pindahkan query yang diklik ke paling atas history
     saveSearchToHistory(query);
+    searchFocusNode.unfocus(); // Tutup keyboard saat pilih history
   }
 
-  // ================== FOCUS SEARCH (BARU) ==================
+  // ================== FOCUS SEARCH (FITUR DARI HOME) ==================
 
   /// Method untuk fokus ke search field dan membuka keyboard
-  /// Dipanggil dari HomeController saat user tap search bar
+  /// Dipanggil dari HomeController saat user tap search bar di Home
   void focusSearch() {
     // Request focus dengan delay kecil untuk memastikan widget sudah ter-render
     Future.delayed(const Duration(milliseconds: 100), () {
-      searchFocusNode.requestFocus();
+      if (searchFocusNode.canRequestFocus) {
+        searchFocusNode.requestFocus();
+      }
     });
   }
 
@@ -130,10 +131,7 @@ class ProdukController extends GetxController {
   Future<void> loadNutritionData(String productName) async {
     try {
       isLoadingNutrition(true);
-
       final data = await nutritionService.getNutritionData(productName);
-
-      // data bertipe NutritionData? → handle null
       if (data != null) {
         nutritionData.value = data;
       } else {
@@ -146,17 +144,13 @@ class ProdukController extends GetxController {
     }
   }
 
-  /// Dipanggil ketika user memilih sebuah produk (dari grid atau dari tempat lain)
   void selectProduct(Product product) {
     selectedProduct.value = product;
     loadNutritionData(product.title);
   }
 
-  /// Mengatur tab pada DetailProdukPage (Deskripsi / Komposisi / Nutrisi)
   void changeTab(int index) {
     currentTabIndex.value = index;
-
-    // Load nutrition data saat tab nutrisi dibuka pertama kali
     if (index == 2 &&
         selectedProduct.value != null &&
         nutritionData.value == null) {
@@ -167,7 +161,7 @@ class ProdukController extends GetxController {
   @override
   void onClose() {
     searchController.dispose();
-    searchFocusNode.dispose(); // TAMBAHAN: dispose focus node
+    searchFocusNode.dispose(); // Dispose focus node
     super.onClose();
   }
 }
