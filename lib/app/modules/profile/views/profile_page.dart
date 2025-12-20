@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
 import '../../../routes/app_pages.dart';
+import '../../../theme/design_system.dart';
 
 class ProfilePage extends GetView<ProfileController> {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Cek mode gelap/terang dari theme context
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Build reaktif berdasarkan ThemeController.isDarkMode
+    return Obx(() {
+      final isDark = controller.isDarkMode;
 
-    return Scaffold(
+      return Scaffold(
       body: CustomScrollView(
         slivers: [
           // ========================================
@@ -21,7 +23,7 @@ class ProfilePage extends GetView<ProfileController> {
             expandedHeight: 80,
             floating: false,
             pinned: true,
-            backgroundColor: const Color(0xFFFE8C00),
+            backgroundColor: DesignColors.primary,
             foregroundColor: Colors.white,
             automaticallyImplyLeading: false, // Hilangkan back button
             flexibleSpace: FlexibleSpaceBar(
@@ -32,8 +34,9 @@ class ProfilePage extends GetView<ProfileController> {
               title: const Text(
                 'Profil Saya',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                  fontFamily: DesignText.family,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 24,
                   color: Colors.white,
                 ),
               ),
@@ -42,7 +45,7 @@ class ProfilePage extends GetView<ProfileController> {
                   gradient: LinearGradient(
                     begin: Alignment.topRight,
                     end: Alignment.bottomLeft,
-                    colors: [Color(0xFFFE8C00), Color(0xFFFF6B00)],
+                    colors: [DesignColors.primary, DesignColors.darkPrimary],
                   ),
                 ),
                 child: Stack(
@@ -113,28 +116,7 @@ class ProfilePage extends GetView<ProfileController> {
                       ),
               ),
 
-              // 3. (BARU) TITIK TIGA -> MENU TESTING (MODUL 5)
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, color: Colors.white),
-                onSelected: (value) {
-                  if (value == 'testing') {
-                    // Arahkan ke halaman Testing
-                    Get.toNamed(Routes.locationExperiment);
-                  }
-                },
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
-                    value: 'testing',
-                    child: Row(
-                      children: [
-                        Icon(Icons.science, color: Colors.black54),
-                        SizedBox(width: 8),
-                        Text('Testing (Modul 5)'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              // removed testing menu per request
             ],
           ),
 
@@ -149,7 +131,7 @@ class ProfilePage extends GetView<ProfileController> {
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(color: Color(0xFFFE8C00)),
+                    child: CircularProgressIndicator(color: DesignColors.primary),
                   ),
                 );
               }
@@ -165,7 +147,7 @@ class ProfilePage extends GetView<ProfileController> {
                         Obx(
                           () => CircleAvatar(
                             radius: 70,
-                            backgroundColor: const Color(0xFFFE8C00),
+                            backgroundColor: DesignColors.primary,
                             child: controller.isUploadingAvatar.value
                                 ? const CircularProgressIndicator(
                                     valueColor: AlwaysStoppedAnimation<Color>(
@@ -201,26 +183,32 @@ class ProfilePage extends GetView<ProfileController> {
                         Positioned(
                           bottom: 0,
                           right: 0,
-                          child: GestureDetector(
-                            onTap: controller.showAvatarPicker,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFE8C00),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isDark
-                                      ? const Color(0xFF121212)
-                                      : Colors.white,
-                                  width: 3,
+                          child: SizedBox(
+                            width: 46,
+                            height: 46,
+                                child: _AnimatedButton(
+                                  onTap: controller.showAvatarPicker,
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: DesignColors.primary,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isDark
+                                            ? const Color(0xFF1B1B1B)
+                                            : Colors.white,
+                                        width: 3,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.camera_alt,
+                                      size: 20,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt,
-                                size: 20,
-                                color: Colors.white,
-                              ),
-                            ),
                           ),
                         ),
                       ],
@@ -228,19 +216,23 @@ class ProfilePage extends GetView<ProfileController> {
 
                     const SizedBox(height: 16),
 
-                    // Role Badge
-                    Container(
+                    // Role Badge (animated color transition)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         color: controller.isAdmin
-                            ? Colors.red.withOpacity(0.2)
-                            : Colors.blue.withOpacity(0.2),
+                            ? (isDark ? DesignColors.error.withValues(alpha: 0.12) : DesignColors.error.withValues(alpha: 0.06))
+                            : (isDark ? DesignColors.info.withValues(alpha: 0.10) : DesignColors.info.withValues(alpha: 0.08)),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: controller.isAdmin ? Colors.red : Colors.blue,
+                          color: controller.isAdmin
+                              ? DesignColors.error
+                              : DesignColors.info,
                           width: 1,
                         ),
                       ),
@@ -252,18 +244,22 @@ class ProfilePage extends GetView<ProfileController> {
                                 ? Icons.admin_panel_settings
                                 : Icons.person,
                             color: controller.isAdmin
-                                ? Colors.red
-                                : Colors.blue,
+                                ? DesignColors.error
+                                : DesignColors.info,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
+                          const Text(
+                            '',
+                          ),
                           Text(
                             controller.isAdmin ? 'Administrator' : 'User',
                             style: TextStyle(
+                              fontFamily: DesignText.family,
                               color: controller.isAdmin
-                                  ? Colors.red
-                                  : Colors.blue,
-                              fontWeight: FontWeight.bold,
+                                  ? DesignColors.error
+                                  : (isDark ? Colors.white : Colors.black),
+                              fontWeight: FontWeight.w600,
                               fontSize: 14,
                             ),
                           ),
@@ -272,6 +268,8 @@ class ProfilePage extends GetView<ProfileController> {
                     ),
 
                     const SizedBox(height: 32),
+
+                    const SizedBox(height: 8),
 
                     // Email (read-only)
                     Obx(
@@ -309,7 +307,7 @@ class ProfilePage extends GetView<ProfileController> {
                           prefixIcon: Icon(
                             Icons.person,
                             color: controller.isEditing.value
-                                ? const Color(0xFFFE8C00)
+                                ? DesignColors.primary
                                 : Colors.grey,
                           ),
                           filled: true,
@@ -323,8 +321,8 @@ class ProfilePage extends GetView<ProfileController> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFFE8C00),
+                            borderSide: BorderSide(
+                              color: DesignColors.primary,
                               width: 2,
                             ),
                           ),
@@ -346,7 +344,7 @@ class ProfilePage extends GetView<ProfileController> {
                           prefixIcon: Icon(
                             Icons.phone,
                             color: controller.isEditing.value
-                                ? const Color(0xFFFE8C00)
+                                ? DesignColors.primary
                                 : Colors.grey,
                           ),
                           filled: true,
@@ -360,8 +358,8 @@ class ProfilePage extends GetView<ProfileController> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFFE8C00),
+                            borderSide: BorderSide(
+                              color: DesignColors.primary,
                               width: 2,
                             ),
                           ),
@@ -371,13 +369,13 @@ class ProfilePage extends GetView<ProfileController> {
 
                     const SizedBox(height: 24),
 
-                    // Info Card
-                    Container(
+                    // Info Card (animated background color)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF1E1E1E)
-                            : Colors.grey[100],
+                        color: isDark ? const Color(0xFF1E1E1E) : DesignColors.lightPrimary,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -387,7 +385,7 @@ class ProfilePage extends GetView<ProfileController> {
                             children: [
                               const Icon(
                                 Icons.info_outline,
-                                color: Color(0xFFFE8C00),
+                                color: DesignColors.primary,
                                 size: 20,
                               ),
                               const SizedBox(width: 8),
@@ -423,50 +421,63 @@ class ProfilePage extends GetView<ProfileController> {
 
                     // Admin Panel Button (Hanya jika admin)
                     if (controller.isAdmin) ...[
-                      // Kelola Toko Delivery (NEW)
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton.icon(
-                          onPressed: () =>
-                              Get.toNamed(Routes.adminDeliveryStores),
-                          icon: const Icon(Icons.store),
-                          label: const Text(
-                            'Kelola Toko Delivery',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFE8C00),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        // Kelola Toko Delivery (NEW) - animated
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: _AnimatedButton(
+                            onTap: () => Get.toNamed(Routes.adminDeliveryStores),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: DesignColors.primary,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              alignment: Alignment.center,
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.store, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Text('Kelola Toko Delivery', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
                       const SizedBox(height: 16),
                       // Kelola Produk (NEW)
                       SizedBox(
                         width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton.icon(
-                          onPressed: () => Get.toNamed('/admin/products'),
-                          icon: const Icon(Icons.dashboard),
-                          label: const Text(
-                            'Kelola Produk',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
+                        height: 56,
+                        child: _AnimatedButton(
+                          onTap: () => Get.toNamed('/admin/products'),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: DesignColors.darkPrimary,
                               borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.dashboard, color: Colors.white),
+                                SizedBox(width: 8),
+                                Text('Kelola Produk', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                              ],
                             ),
                           ),
                         ),
@@ -474,25 +485,34 @@ class ProfilePage extends GetView<ProfileController> {
                       const SizedBox(height: 16),
                     ],
 
-                    // Logout Button
+                    // Logout Button (animated)
                     SizedBox(
                       width: double.infinity,
-                      height: 50,
-                      child: OutlinedButton.icon(
-                        onPressed: controller.logout,
-                        icon: const Icon(Icons.logout, color: Colors.red),
-                        label: const Text(
-                          'Keluar',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.red, width: 2),
-                          shape: RoundedRectangleBorder(
+                      height: 56,
+                      child: _AnimatedButton(
+                        onTap: controller.logout,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: DesignColors.error, width: 2),
+                          ),
+                          alignment: Alignment.center,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.logout, color: DesignColors.error),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Keluar',
+                                style: TextStyle(
+                                  fontFamily: DesignText.family,
+                                  color: Color(0xFFE74C3C),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -507,6 +527,7 @@ class ProfilePage extends GetView<ProfileController> {
         ],
       ),
     );
+    });
   }
 
   Widget _buildInfoRow({
@@ -517,7 +538,7 @@ class ProfilePage extends GetView<ProfileController> {
   }) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: const Color(0xFFFE8C00)),
+        Icon(icon, size: 18, color: DesignColors.primary),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -562,5 +583,53 @@ class ProfilePage extends GetView<ProfileController> {
       'Desember',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+}
+
+// A small animated button used across this page to add modern micro-interactions
+class _AnimatedButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final Widget child;
+  const _AnimatedButton({required this.onTap, required this.child});
+
+  @override
+  State<_AnimatedButton> createState() => _AnimatedButtonState();
+}
+
+class _AnimatedButtonState extends State<_AnimatedButton> {
+  bool _pressed = false;
+
+  void _onTapDown(TapDownDetails _) {
+    setState(() => _pressed = true);
+  }
+
+  void _onTapUp(TapUpDetails _) async {
+    setState(() => _pressed = false);
+    await Future.delayed(const Duration(milliseconds: 60));
+    widget.onTap();
+  }
+
+  void _onTapCancel() {
+    setState(() => _pressed = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      child: AnimatedScale(
+        scale: _pressed ? 0.985 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutBack,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 120),
+          opacity: _pressed ? 0.95 : 1.0,
+          child: widget.child,
+        ),
+      ),
+    );
   }
 }

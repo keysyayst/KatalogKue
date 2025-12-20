@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../theme/design_system.dart';
 import '../../../data/models/delivery_store_model.dart';
 import '../../../data/repositories/delivery_store_repository.dart';
 import '../../delivery_checker/controllers/delivery_checker_controller.dart';
@@ -41,7 +42,7 @@ class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Error: $e'), backgroundColor: DesignColors.error),
         );
       }
     }
@@ -75,7 +76,8 @@ class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(isEdit ? 'Edit Toko' : 'Tambah Toko Baru'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesignRadius.large)),
+          title: Text(isEdit ? 'Edit Toko' : 'Tambah Toko Baru', style: const TextStyle(fontFamily: DesignText.family)),
           content: SingleChildScrollView(
             child: Form(
               key: formKey,
@@ -91,9 +93,12 @@ class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFFE8C00)),
-                      borderRadius: BorderRadius.circular(8),
-                      color: const Color(0xFFFE8C00).withOpacity(0.05),
+                      border: Border.all(color: DesignColors.primary),
+                      borderRadius: BorderRadius.circular(DesignRadius.small),
+                      color: DesignColors.primary.withOpacity(0.06),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 2)),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,6 +135,7 @@ class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
                             },
                             icon: const Icon(Icons.map),
                             label: const Text('Pilih di Map'),
+                            style: ElevatedButton.styleFrom(backgroundColor: DesignColors.primary),
                           ),
                         ),
                       ],
@@ -153,6 +159,7 @@ class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
               child: const Text('Batal'),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: DesignColors.primary),
               onPressed: () async {
                 if (!formKey.currentState!.validate()) return;
 
@@ -201,10 +208,8 @@ class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
                     }
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          isEdit ? 'Toko diupdate' : 'Toko ditambah',
-                        ),
-                        backgroundColor: Colors.green,
+                        content: Text(isEdit ? 'Toko diupdate' : 'Toko ditambah'),
+                        backgroundColor: DesignColors.success,
                       ),
                     );
                   }
@@ -213,7 +218,7 @@ class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Error: $e'),
-                        backgroundColor: Colors.red,
+                        backgroundColor: DesignColors.error,
                       ),
                     );
                   }
@@ -251,45 +256,105 @@ class _AdminDeliveryStoresPageState extends State<AdminDeliveryStoresPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kelola Toko Delivery'),
-        backgroundColor: const Color(0xFFFE8C00),
+        backgroundColor: DesignColors.primary,
         foregroundColor: Colors.white,
+        elevation: 2,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _stores.isEmpty
-          ? const Center(child: Text('Belum ada toko'))
-          : ListView.builder(
-              itemCount: _stores.length,
-              itemBuilder: (context, index) {
-                final store = _stores[index];
-                return ListTile(
-                  title: Text(store.name),
-                  subtitle: Text(store.address),
-                  trailing: PopupMenuButton(
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        child: const Text('Edit'),
-                        onTap: () => _showAddStoreDialog(store: store),
-                      ),
-                      PopupMenuItem(
-                        child: const Text('Hapus'),
-                        onTap: () async {
-                          await _repository.deleteStore(store.id);
-                          _loadStores();
-                          if (Get.isRegistered<DeliveryCheckerController>()) {
-                            Get.find<DeliveryCheckerController>()
-                                .refreshStores();
-                          }
-                        },
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.storefront, size: 64, color: DesignColors.lightGrey),
+                      const SizedBox(height: 12),
+                      const Text('Belum ada toko'),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () => _showAddStoreDialog(),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Tambah Toko'),
+                        style: ElevatedButton.styleFrom(backgroundColor: DesignColors.primary),
                       ),
                     ],
                   ),
-                );
-              },
-            ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _stores.length,
+                  itemBuilder: (context, index) {
+                    final store = _stores[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesignRadius.medium)),
+                      elevation: 4,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(12),
+                        leading: CircleAvatar(
+                          backgroundColor: DesignColors.lightPrimary,
+                          child: const Icon(Icons.store, color: Colors.white),
+                        ),
+                        title: Text(store.name, style: const TextStyle(fontFamily: DesignText.family, fontWeight: FontWeight.w600)),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(store.address, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: store.isActive ? DesignColors.success.withOpacity(0.12) : DesignColors.lightGrey.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(store.isActive ? 'Aktif' : 'Nonaktif', style: TextStyle(color: store.isActive ? DesignColors.success : DesignColors.lightGrey, fontSize: 12)),
+                                ),
+                                const SizedBox(width: 8),
+                                Text('Min: Rp ${store.minOrder}', style: const TextStyle(fontSize: 12)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Switch(
+                              value: store.isActive,
+                              activeColor: DesignColors.primary,
+                              onChanged: (v) async {
+                                await _repository.updateStore(store.id, store.copyWith(isActive: v));
+                                _loadStores();
+                              },
+                            ),
+                            PopupMenuButton(
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  child: const Text('Edit'),
+                                  onTap: () => Future.delayed(const Duration(milliseconds: 10), () => _showAddStoreDialog(store: store)),
+                                ),
+                                PopupMenuItem(
+                                  child: const Text('Hapus'),
+                                  onTap: () async {
+                                    await _repository.deleteStore(store.id);
+                                    _loadStores();
+                                    if (Get.isRegistered<DeliveryCheckerController>()) {
+                                      Get.find<DeliveryCheckerController>().refreshStores();
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddStoreDialog(),
-        backgroundColor: const Color(0xFFFE8C00),
+        backgroundColor: DesignColors.primary,
         child: const Icon(Icons.add),
       ),
     );
