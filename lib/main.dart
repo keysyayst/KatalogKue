@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart'; // WAJIB IMPORT
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -16,8 +17,10 @@ import 'firebase_options.dart';
 import 'app/modules/notification/providers/firebase_messaging_provider.dart';
 import 'app/modules/notification/providers/local_notification_provider.dart';
 import 'app/modules/notification/providers/mood_notification_provider.dart';
+import 'app/routes/app_pages.dart';
 
 Future<void> initServices() async {
+  // 1. Timezone
   try {
     tz_data.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
@@ -26,26 +29,26 @@ Future<void> initServices() async {
     debugPrint('❌ Timezone init error: $e');
   }
 
+  // 2. Supabase
   final supabaseUrl = dotenv.env['SUPABASE_URL'];
   final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
 
-  if (supabaseUrl == null ||
-      supabaseUrl.isEmpty ||
-      supabaseAnonKey == null ||
-      supabaseAnonKey.isEmpty) {
-    throw Exception(
-      'Environment variables SUPABASE_URL atau SUPABASE_ANON_KEY tidak ditemukan.',
-    );
+  if (supabaseUrl != null && supabaseAnonKey != null) {
+    await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+  } else {
+    debugPrint('❌ Supabase Env Missing');
   }
 
-  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+  // 3. Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint('Firebase initialized');
 
+  // 4. Shared Preferences
   final prefs = await SharedPreferences.getInstance();
   Get.put(prefs);
   debugPrint('SharedPreferences initialized');
 
+  // 5. Hive Services
   final favoriteService = FavoriteHiveService();
   await favoriteService.init();
   Get.put(favoriteService);
@@ -54,56 +57,50 @@ Future<void> initServices() async {
   await searchHistoryService.init();
   Get.put(searchHistoryService);
 
+  // 6. Core Services
   Get.put(AuthService());
   Get.put(ProductService());
   Get.put(LocationService());
 
+  // 7. Notification Services
   try {
     await Get.putAsync(() => LocalNotificationProvider().init()).timeout(
-      const Duration(seconds: 10),
-      onTimeout: () {
-        debugPrint('⚠️ LocalNotificationProvider init timeout, continuing...');
-        return LocalNotificationProvider();
-      },
+      const Duration(seconds: 5),
+      onTimeout: () => LocalNotificationProvider(),
     );
-    debugPrint('Local Notification Service initialized');
-  } catch (e) {
-    debugPrint('❌ LocalNotificationProvider error: $e');
-  }
-
-  try {
     await Get.putAsync(() => FirebaseMessagingProvider().init()).timeout(
-      const Duration(seconds: 10),
-      onTimeout: () {
-        debugPrint('⚠️ FirebaseMessagingProvider init timeout, continuing...');
-        return FirebaseMessagingProvider();
-      },
+      const Duration(seconds: 5),
+      onTimeout: () => FirebaseMessagingProvider(),
     );
-    debugPrint('Firebase Messaging Service initialized');
-  } catch (e) {
-    debugPrint('❌ FirebaseMessagingProvider error: $e');
-  }
-
-  try {
     await Get.putAsync(() => MoodNotificationProvider().init()).timeout(
-      const Duration(seconds: 10),
-      onTimeout: () {
-        debugPrint('⚠️ MoodNotificationProvider init timeout, continuing...');
-        return MoodNotificationProvider();
-      },
+      const Duration(seconds: 5),
+      onTimeout: () => MoodNotificationProvider(),
     );
-    debugPrint('Mood Notification Service initialized');
   } catch (e) {
-    debugPrint('❌ MoodNotificationProvider error: $e');
+    debugPrint('❌ Notification Services error: $e');
   }
 
   debugPrint('All services initialized successfully!');
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  // TAHAN SPLASH NATIVE (Agar loading tidak terlihat user)
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
   await dotenv.load(fileName: '.env');
-  debugPrint('Environment variables loaded');
+
+  // Jalankan semua service
   await initServices();
-  runApp(const App());
+
+  // Cek Status Login
+  final authService = Get.find<AuthService>();
+  final initialRoute = authService.isLoggedIn ? Routes.dashboard : Routes.auth;
+
+  // Jalankan App
+  runApp(App(initialRoute: initialRoute));
+
+  // Lepaskan Splash Native
+  FlutterNativeSplash.remove();
 }

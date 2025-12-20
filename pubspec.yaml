@@ -31,6 +31,7 @@ dependencies:
   timezone: ^0.9.4
   cached_network_image: ^3.3.1 
   path_provider: ^2.1.5
+  flutter_native_splash: ^2.4.3 # <-- SUDAH PINDAH KE SINI (BENAR)
 
 dev_dependencies:
   flutter_test:
@@ -39,10 +40,19 @@ dev_dependencies:
   hive_generator: ^2.0.1
   build_runner: ^2.4.6
   font_awesome_flutter: ^10.7.0
+  # flutter_native_splash SUDAH DIHAPUS DARI SINI (BENAR)
+
+# KONFIGURASI NATIVE SPLASH
+flutter_native_splash:
+  color: "#fde8cb"
+  image: assets/images/logo.png
+  android_12:
+    image: assets/images/logo.png
+    icon_background_color: "#fde8cb"
+  fullscreen: true
 
 flutter:
   uses-material-design: true
-
   assets:
     - .env
     - assets/images/browniescup.png
