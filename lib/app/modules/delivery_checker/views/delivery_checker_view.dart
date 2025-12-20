@@ -364,12 +364,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
             value: store.address,
           ),
           const SizedBox(height: 8),
-          _buildStoreInfoRow(
-            icon: Icons.phone_rounded,
-            label: 'Telepon',
-            value: store.phone,
-          ),
-          const SizedBox(height: 8),
+          // Telepon dihilangkan sesuai permintaan
           _buildStoreInfoRow(
             icon: Icons.chat_rounded,
             label: 'WhatsApp',
@@ -424,7 +419,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                 }).toList(),
               ],
             ),
-          // ====== END Jam Operasional Dinamis ======
         ],
       ),
     );
@@ -569,15 +563,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                   label: 'WhatsApp',
                   color: const Color(0xFF25D366),
                   onTap: controller.openWhatsApp,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _actionButton(
-                  icon: Icons.phone,
-                  label: 'Telepon',
-                  color: const Color(0xFF2196F3),
-                  onTap: controller.callPhone,
                 ),
               ),
             ],

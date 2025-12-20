@@ -32,7 +32,6 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ================= FULL SCREEN MAP =================
   Widget _buildFullScreenMap() {
     final storeLatLng = LatLng(
       CateringInfo.store['lat'],
@@ -56,7 +55,6 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.example.katalog',
         ),
-        // Polyline dari user ke toko
         PolylineLayer(
           polylines: [
             Polyline(
@@ -67,7 +65,7 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
             ),
           ],
         ),
-        // Marker Toko
+
         MarkerLayer(
           markers: [
             Marker(
@@ -128,7 +126,6 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
                 ],
               ),
             ),
-            // Marker User (Live Location)
             Marker(
               point: customerLatLng,
               width: 60,
@@ -136,7 +133,6 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Outer circle (pulsing effect)
                   Container(
                     width: 60,
                     height: 60,
@@ -145,7 +141,6 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
                       color: Colors.blue.withOpacity(0.2),
                     ),
                   ),
-                  // Inner circle
                   Container(
                     width: 24,
                     height: 24,
@@ -170,7 +165,6 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ================= TOP BAR =================
   Widget _buildTopBar() {
     return Positioned(
       top: 0,
@@ -210,14 +204,13 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
                 ),
               ),
             ),
-            const SizedBox(width: 48), // Balance for close button
+            const SizedBox(width: 48),
           ],
         ),
       ),
     );
   }
 
-  // ================= BOTTOM STORE CARD =================
   Widget _buildBottomStoreCard() {
     final schedule = controller.getStoreSchedule();
 
@@ -428,7 +421,6 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ================= MY LOCATION BUTTON =================
   Widget _buildMyLocationButton() {
     return Positioned(
       right: 16,
@@ -458,7 +450,6 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ================= LOADING STATE =================
   Widget _buildLoadingState() {
     return Container(
       color: Colors.white,
@@ -478,7 +469,6 @@ class PickupMapView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  // ================= ERROR STATE =================
   Widget _buildLocationError() {
     return Container(
       color: Colors.white,
