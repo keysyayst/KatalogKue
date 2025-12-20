@@ -139,15 +139,12 @@ class _ProductCardState extends State<ProductCard>
                             top: 8,
                             child: GestureDetector(
                               onTap: () async {
-                                await productService.toggleFavorite(
-                                  widget.product.id,
-                                );
-                                setState(() {});
                                 try {
-                                  Get.find<FavoriteController>()
-                                      .refreshFavorites();
+                                  final favoriteController = Get.find<FavoriteController>();
+                                  await favoriteController.toggleFavorite(widget.product.id);
+                                  setState(() {});
                                 } catch (e) {
-                                  // ignore
+                                  debugPrint('Error toggle favorite: $e');
                                 }
                               },
                               child: Container(
