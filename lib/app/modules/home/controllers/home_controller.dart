@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 import '../../../data/models/product.dart';
-import '../../../data/sources/products.dart';
 import '../../../app.dart';
 import '../../delivery_checker/controllers/delivery_checker_controller.dart';
 import '../../produk/controllers/produk_controller.dart';
@@ -15,32 +14,29 @@ class HomeController extends GetxController {
   final ProductSupabaseService _productService =
       Get.find<ProductSupabaseService>();
   final isLoadingProducts = true.obs;
-
-  List<Product> get rekomendasiProducts {
-    return _productService.products.take(8).toList();
-  }
-
   final currentBannerIndex = 0.obs;
   final PageController bannerController = PageController();
   final favoriteCount = 0.obs;
   final pendingOrderCount = 0.obs;
 
+  List<Product> get rekomendasiProducts {
+    return _productService.products.take(8).toList();
+  }
+
   final promoBanners = <Map<String, String>>[
     {
-      'image':
-          'https://smartpluspro.com/app/repository/upload/2025_Boleci%20Copyright/4_April/Resep/nastar-gluten-free.jpg', // Nastar cookies
+      'image': 'https://smartpluspro.com/.../nastar-gluten-free.jpg',
       'title': 'Nastar Spesial',
       'subtitle': 'Kue kering favorit keluarga!',
     },
     {
       'image':
-          'https://img.freepik.com/free-photo/delicious-dessert-table_23-2151901934.jpg?t=st=1766220929~exp=1766224529~hmac=b5294fa190446488af0971936f2e6cc126f575c2e44ced87e15a43b81b936c6f&w=1060', // Brownies
+          'https://img.freepik.com/.../delicious-dessert-table_23-2151901934.jpg',
       'title': 'Brownies Cup Lezat ',
       'subtitle': 'Mulai dari Rp 50K per box',
     },
     {
-      'image':
-          'https://lh6.googleusercontent.com/proxy/noSGK21lOQeuOTzzOC_i6oZT9h8CZPs9SP6WF0ro-IF474UoDHZN26xXU9Ds2UMKQEu0zQfagp1sow30SSRo8YfGTDSrUWDSTPREk3XcSea7vCmXG-P_UIWQs-VormEvhVRmMGi1Sy79x8DGFIiJkgjfbvvJAgvnqrbALnDHapZ28yRhXt3Tceypa4woMgyFoA05qw', // Thumbprint cookies
+      'image': 'https://lh6.googleusercontent.com/.../thumbprint_cookies.jpg',
       'title': 'Thumbprint Premium',
       'subtitle': 'Renyah dengan selai pilihan!',
     },
@@ -57,7 +53,6 @@ class HomeController extends GetxController {
     _loadProducts();
     _initConnectivityListener();
     _productService.loadProducts();
-    // Cek status koneksi saat startup, jika online langsung reload data
     Connectivity().checkConnectivity().then((result) {
       final hasConnection = result != ConnectivityResult.none;
       isOnline.value = hasConnection;
@@ -86,21 +81,24 @@ class HomeController extends GetxController {
 
   Future<void> reloadAllData() async {
     isLoadingProducts.value = true;
-    if (Get.isRegistered<ProductSupabaseService>()) {
-      await Get.find<ProductSupabaseService>().loadProducts();
-      update(); // Trigger UI update for rekomendasiProducts
-    }
-
-    if (Get.isRegistered<FavoriteController>()) {
-      await Get.find<FavoriteController>().fetchFavorites();
-    }
-
-    if (Get.isRegistered<ProfileController>()) {
-      await Get.find<ProfileController>().loadProfile();
-    }
-
-    if (Get.isRegistered<DeliveryCheckerController>()) {
-      await Get.find<DeliveryCheckerController>().fetchStore();
+    try {
+      if (Get.isRegistered<ProductSupabaseService>()) {
+        await Get.find<ProductSupabaseService>().loadProducts();
+        update();
+      }
+      if (Get.isRegistered<FavoriteController>()) {
+        await Get.find<FavoriteController>().fetchFavorites();
+      }
+      if (Get.isRegistered<ProfileController>()) {
+        await Get.find<ProfileController>().loadProfile();
+      }
+      if (Get.isRegistered<DeliveryCheckerController>()) {
+        await Get.find<DeliveryCheckerController>().fetchStore();
+      }
+    } catch (e) {
+      debugPrint('Error reloadAllData: $e');
+    } finally {
+      isLoadingProducts.value = false;
     }
   }
 
@@ -127,9 +125,10 @@ class HomeController extends GetxController {
             duration: const Duration(milliseconds: 400),
             curve: Curves.easeInOut,
           );
+          currentBannerIndex.value = nextPage;
           _startBannerAutoSlide();
         } catch (e) {
-          // Silent error
+          debugPrint('Banner auto-slide error: $e');
         }
       }
     });
