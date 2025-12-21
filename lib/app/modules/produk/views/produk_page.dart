@@ -17,93 +17,121 @@ class ProdukPage extends GetView<ProdukController> {
       backgroundColor: isDark
           ? const Color(0xFF121212)
           : const Color(0xFFFAFAFA),
-      body: Obx(() {
-        if (controller.productService.isLoading.value) {
-          return _buildShimmerLoading(isDark);
-        }
+      body: RefreshIndicator(
+        onRefresh: controller.refreshProducts,
+        color: primaryOrange,
+        child: CustomScrollView(
+          // OPTIMASI 2: Keyboard otomatis turun saat scroll
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          cacheExtent: 1000, // Preload item lebih banyak agar scroll smooth
+          slivers: [
+            _buildSliverAppBar(context, isDark),
 
-        return RefreshIndicator(
-          onRefresh: controller.refreshProducts,
-          color: primaryOrange,
-          child: CustomScrollView(
-            cacheExtent: 500,
-            slivers: [
-              _buildSliverAppBar(context, isDark),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
-                  child: _buildSearchBar(isDark),
-                ),
+            // Search Bar (Static, tidak perlu rebuild terus menerus)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                child: _buildSearchBar(isDark),
               ),
-              if (controller.searchHistory.isNotEmpty &&
-                  controller.searchQuery.value.isEmpty)
-                SliverToBoxAdapter(child: _buildSearchHistorySection(isDark)),
-              if (controller.filteredProducts.isNotEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                    child: Text(
-                      '${controller.filteredProducts.length} Produk Tersedia',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'Poppins',
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
+            ),
+
+            // Bagian Reactive (History, Count, Grid, Loading)
+            // OPTIMASI 1: Obx dipecah ke dalam sliver agar lebih granular
+            Obx(() {
+              // Loading State
+              if (controller.productService.isLoading.value) {
+                return _buildShimmerSliver(isDark);
+              }
+
+              return SliverMainAxisGroup(
+                slivers: [
+                  // History Section
+                  if (controller.searchHistory.isNotEmpty &&
+                      controller.searchQuery.value.isEmpty)
+                    SliverToBoxAdapter(
+                      child: _buildSearchHistorySection(isDark),
                     ),
-                  ),
-                ),
-              if (controller.filteredProducts.isEmpty)
-                SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search_off,
-                          size: 64,
-                          color: Colors.grey[300],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          controller.searchQuery.value.isEmpty
-                              ? 'Belum ada produk'
-                              : 'Produk tidak ditemukan',
+
+                  // Product Count
+                  if (controller.filteredProducts.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                        child: Text(
+                          '${controller.filteredProducts.length} Produk Tersedia',
                           style: TextStyle(
+                            fontSize: 14,
                             fontFamily: 'Poppins',
-                            fontSize: 16,
-                            color: Colors.grey[600],
+                            color: isDark ? Colors.white70 : Colors.grey[600],
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.72,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
+
+                  // Empty State
+                  if (controller.filteredProducts.isEmpty)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: Colors.grey[300],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              controller.searchQuery.value.isEmpty
+                                  ? 'Belum ada produk'
+                                  : 'Produk tidak ditemukan',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
                         ),
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final product = controller.filteredProducts[index];
-                      return ProductCard(product: product, index: index);
-                    }, childCount: controller.filteredProducts.length),
-                  ),
-                ),
-              const SliverToBoxAdapter(child: SizedBox(height: 80)),
-            ],
-          ),
-        );
-      }),
+                      ),
+                    )
+                  else
+                    // Product Grid
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.72,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                            ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final product = controller.filteredProducts[index];
+                          // Tambahkan UniqueKey jika perlu untuk performa list dinamis
+                          return ProductCard(
+                            key: ValueKey(product.id),
+                            product: product,
+                            index: index,
+                          );
+                        }, childCount: controller.filteredProducts.length),
+                      ),
+                    ),
+
+                  // Bottom Padding
+                  const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                ],
+              );
+            }),
+          ],
+        ),
+      ),
     );
   }
 
@@ -207,48 +235,8 @@ class ProdukPage extends GetView<ProdukController> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [primaryOrange, const Color.fromARGB(255, 201, 109, 11)],
+              colors: [primaryOrange, const Color(0xFFFF9F43)],
             ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                right: -40 + 20,
-                top: -40 - 10,
-                child: Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.08),
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 40 - 15,
-                top: 20 + 10,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: -20 + 10,
-                bottom: -20,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFFFF9F43).withOpacity(0.3),
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -321,70 +309,61 @@ class ProdukPage extends GetView<ProdukController> {
     );
   }
 
-  Widget _buildShimmerLoading(bool isDark) {
-    return CustomScrollView(
-      slivers: [
-        _buildSliverAppBar(Get.context!, isDark),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-            child: _buildSearchBar(isDark),
-          ),
+  // Mengubah return type menjadi Widget agar bisa masuk SliverMainAxisGroup tapi perlu dibungkus
+  // Karena SliverMainAxisGroup mengharapkan Slivers, kita kembalikan SliverPadding langsung.
+  Widget _buildShimmerSliver(bool isDark) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.72,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
         ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.72,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
+        delegate: SliverChildBuilderDelegate((context, index) {
+          return Container(
+            decoration: BoxDecoration(
+              color: isDark ? Colors.grey[800] : Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
             ),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[800] : Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.grey[700] : Colors.white,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(12),
-                          ),
-                        ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.grey[700] : Colors.white,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(12),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 100,
-                            height: 14,
-                            color: isDark ? Colors.grey[700] : Colors.white,
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            width: 60,
-                            height: 12,
-                            color: isDark ? Colors.grey[700] : Colors.white,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              );
-            }, childCount: 6),
-          ),
-        ),
-      ],
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 14,
+                        color: isDark ? Colors.grey[700] : Colors.white,
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: 60,
+                        height: 12,
+                        color: isDark ? Colors.grey[700] : Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }, childCount: 6),
+      ),
     );
   }
 }
