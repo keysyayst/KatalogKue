@@ -49,13 +49,14 @@ class DeliveryCheckerController extends GetxController {
   final RxBool isLiveTracking = false.obs;
   StreamSubscription<Position>? _positionStream;
 
-  // --- FITUR BARU: LOGIKA NOTIFIKASI KEDEKATAN ---
-  // Variable untuk mencegah notifikasi muncul berulang-ulang setiap detik saat user diam
-  final RxBool hasNotifiedNearby = false.obs;
+  // --- FITUR BARU: STATE NOTIFIKASI BERTINGKAT ---
+  final RxBool hasNotifiedFree =
+      false.obs; // State untuk notif Zona Gratis Ongkir
+  final RxBool hasNotifiedClose = false.obs; // State untuk notif Zona Dekat
 
-  // Batas radius untuk memicu notifikasi (1.0 = 1 KM)
-  static const double nearbyThresholdKm = 1.0;
-  // ------------------------------------------------
+  // Batas "Dekat" kita set 2 KM
+  static const double thresholdCloseKm = 2.0;
+  // -----------------------------------------------
 
   @override
   void onInit() async {
@@ -221,40 +222,63 @@ class DeliveryCheckerController extends GetxController {
 
     estimatedTime.value = ((distanceToStore.value / 15) * 60).round();
 
-    // --- BAGIAN PENTING: CEK APAKAH PERLU KIRIM NOTIFIKASI ---
-    _checkProximityAndNotify();
+    // --- CEK NOTIFIKASI ZONASI ---
+    _checkZonedNotification();
   }
 
-  // --- FUNGSI BARU: Logic Notifikasi Dekat Toko ---
-  void _checkProximityAndNotify() {
-    // 1. Jika jarak <= 1 KM (Threshold) DAN belum pernah notif
-    if (distanceToStore.value <= nearbyThresholdKm &&
-        !hasNotifiedNearby.value) {
-      _triggerNearbyNotification();
-      hasNotifiedNearby.value = true; // Tandai sudah notif agar tidak spam
+  // --- FUNGSI BARU: Logic Notifikasi Bertingkat ---
+  void _checkZonedNotification() {
+    final dist = distanceToStore.value;
+
+    // Ambil radius gratis dari data toko (Default 5.0 km jika data null)
+    // Ini membuat "Batas 5KM" menjadi dinamis sesuai settingan admin toko
+    final double freeRadius = store.value?.freeDeliveryRadius ?? 5.0;
+
+    // --- ZONA 1: SANGAT DEKAT (<= 2 KM) ---
+    if (dist <= thresholdCloseKm) {
+      if (!hasNotifiedClose.value) {
+        _sendNotification(
+          "Kamu sudah dekat! 🎂",
+          "Kamu sudah dekat dengan toko! Mampir yuk.",
+        );
+        hasNotifiedClose.value = true;
+        // Kita set free juga true agar tidak muncul double notif (close & free)
+        hasNotifiedFree.value = true;
+      }
     }
-    // 2. Jika user menjauh (> 1.5 KM), reset flag agar nanti bisa notif lagi kalau mendekat kembali
-    else if (distanceToStore.value > (nearbyThresholdKm + 0.5)) {
-      hasNotifiedNearby.value = false;
+    // Reset jika menjauh > 2.5 KM
+    else if (dist > (thresholdCloseKm + 0.5)) {
+      hasNotifiedClose.value = false;
+    }
+
+    // --- ZONA 2: GRATIS ONGKIR (Antara 2 KM s/d Batas Gratis 5KM) ---
+    // Logika: Jarak > 2KM (biar ga tabrakan sama notif dekat) TAPI masih <= Batas Gratis
+    if (dist > thresholdCloseKm && dist <= freeRadius) {
+      if (!hasNotifiedFree.value) {
+        _sendNotification(
+          "Gratis Ongkir Nih! 🚚",
+          "Jarak kamu ${dist.toStringAsFixed(1)} km dari toko, dapet gratis ongkir nih",
+        );
+        hasNotifiedFree.value = true;
+      }
+    }
+    // Reset jika menjauh dari batas gratis (+0.5 km buffer)
+    else if (dist > (freeRadius + 0.5)) {
+      hasNotifiedFree.value = false;
     }
   }
 
-  void _triggerNearbyNotification() {
-    debugPrint('📍 User berada di dekat toko! Mengirim notifikasi...');
-
-    // Pastikan Service Notifikasi sudah ter-inject
+  void _sendNotification(String title, String body) {
+    debugPrint('🔔 Sending Notification: $title');
     if (Get.isRegistered<LocalNotificationProvider>()) {
       Get.find<LocalNotificationProvider>().showNotification(
-        title: "Anda sudah dekat! 🎂",
-        body:
-            "Jarak Anda hanya ${distanceToStore.value.toStringAsFixed(1)} km dari toko kami. Mampir yuk?",
-        payload: 'delivery', // Membuka halaman delivery saat notif diklik
+        title: title,
+        body: body,
+        payload: 'delivery',
       );
-    } else {
-      debugPrint('❌ LocalNotificationProvider belum terdaftar di GetX');
     }
   }
-  // ------------------------------------------------
+  // -----------------------------------------------------------
 
   void refreshStores() {
     if (customerLocation.value != null) {
@@ -278,7 +302,7 @@ class DeliveryCheckerController extends GetxController {
 
     _positionStream = locationService.getLiveLocationStream().listen((pos) {
       customerLocation.value = pos;
-      calculateDeliveryInfo(); // Ini akan memanggil _checkProximityAndNotify
+      calculateDeliveryInfo(); // Ini akan memanggil _checkZonedNotification secara live
       _moveCameraTo(pos);
     });
   }
@@ -423,11 +447,12 @@ Mohon konfirmasi ketersediaan dan total harga. Terima kasih.""");
   Future<void> openGoogleMaps() async {
     if (customerLocation.value == null) return;
 
-    // Perbaikan: Mendefinisikan variabel yang hilang
+    // ignore: unused_local_variable
     final storeLat = store.value?.latitude ?? 0.0;
+    // ignore: unused_local_variable
     final storeLng = store.value?.longitude ?? 0.0;
 
-    // Perbaikan: Menggunakan variabel yang benar untuk URL
+    // Menggunakan Google Maps Intent
     final url =
         'https://www.google.com/maps/dir/?api=1&destination=$storeLat,$storeLng';
 
