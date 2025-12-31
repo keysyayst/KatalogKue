@@ -19,7 +19,6 @@ class AdminMiddleware extends GetMiddleware {
   RouteSettings? redirect(String? route) {
     final authService = Get.find<AuthService>();
 
-    // Jika bukan admin, redirect ke dashboard
     if (!authService.isAdmin) {
       Get.snackbar(
         'Akses Ditolak',

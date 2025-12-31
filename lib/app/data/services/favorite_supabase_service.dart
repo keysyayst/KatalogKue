@@ -22,13 +22,11 @@ class FavoriteSupabaseService extends GetxService {
   }
 
   Future<List<String>> getFavoriteIds(String userId) async {
-    // Di Supabase v2, select() langsung mengembalikan List<Map<String, dynamic>>
     final response = await _supabase
         .from(table)
         .select('product_id')
         .eq('user_id', userId);
 
-    // Casting agar aman
     final data = List<Map<String, dynamic>>.from(response);
 
     return data.map((e) => e['product_id'] as String).toList();

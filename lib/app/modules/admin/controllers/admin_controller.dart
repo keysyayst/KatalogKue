@@ -610,8 +610,6 @@ class AdminController extends GetxController {
     );
   }
 
-  // ========== FITUR BARU: TAMBAH PRODUK DARI MEALDB ==========
-
   /// Tampilkan dialog pilihan: Manual atau dari MealDB
   void showAddProductOptionsDialog() {
     Get.dialog(
@@ -651,7 +649,6 @@ class AdminController extends GetxController {
   /// Browse desserts dari MealDB API
   void showMealDBBrowser() async {
     try {
-      // Show loading dialog
       Get.dialog(
         const Center(
           child: Card(
@@ -676,7 +673,7 @@ class AdminController extends GetxController {
       );
 
       final desserts = await _mealDBProvider.getDesserts();
-      Get.back(); // Close loading dialog
+      Get.back(); 
 
       if (desserts.isEmpty) {
         Get.snackbar(
@@ -687,14 +684,12 @@ class AdminController extends GetxController {
         return;
       }
 
-      // Show desserts in dialog/bottomsheet
       Get.dialog(
         Dialog(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
             child: Column(
               children: [
-                // Header
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: const BoxDecoration(
@@ -727,7 +722,6 @@ class AdminController extends GetxController {
                     ],
                   ),
                 ),
-                // List of desserts
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
@@ -783,7 +777,7 @@ class AdminController extends GetxController {
         ),
       );
     } catch (e) {
-      Get.back(); // Close loading if still open
+      Get.back(); 
       Get.snackbar(
         'Error',
         'Gagal mengambil data: $e',
@@ -794,12 +788,9 @@ class AdminController extends GetxController {
     }
   }
 
-  /// Proses setelah user pilih meal dari list
   void selectMealFromDB(Meal meal) async {
     try {
-      Get.back(); // Close meal browser
-
-      // Show loading
+      Get.back();
       Get.dialog(
         const Center(
           child: Card(
@@ -823,7 +814,6 @@ class AdminController extends GetxController {
         barrierDismissible: false,
       );
 
-      // 1. Get detail meal (untuk ingredients)
       final mealDetail = await _mealDBProvider.getMealDetail(meal.idMeal);
 
       if (mealDetail == null) {
@@ -838,10 +828,8 @@ class AdminController extends GetxController {
         return;
       }
 
-      // 2. Fetch nutrition data dari USDA API
       Map<String, dynamic>? nutritionData;
       try {
-        // Improve search query untuk nutrition
         final searchQuery = _improveMealNameForNutrition(mealDetail.strMeal);
         print('🔍 Nutrition search query: $searchQuery');
 
@@ -864,15 +852,13 @@ class AdminController extends GetxController {
         }
       } catch (e) {
         print('⚠️ Failed to fetch nutrition: $e');
-        // Continue tanpa nutrition data
       }
 
-      Get.back(); // Close loading
+      Get.back();
 
-      // 3. Show form untuk konfirmasi/edit data sebelum save
       showMealConfirmationForm(mealDetail, nutritionData);
     } catch (e) {
-      Get.back(); // Close loading
+      Get.back(); 
       Get.snackbar(
         'Error',
         'Terjadi kesalahan: $e',
@@ -883,11 +869,9 @@ class AdminController extends GetxController {
     }
   }
 
-  /// Form konfirmasi sebelum save produk dari MealDB
   void showMealConfirmationForm(Meal meal, Map<String, dynamic>? nutrition) {
-    // Set data ke form
     titleController.text = meal.strMeal;
-    priceController.text = '100.000/kg'; // Default price
+    priceController.text = '100.000/kg';
     locationController.text = meal.strArea ?? 'International';
     descriptionController.text =
         meal.strInstructions ?? 'Dessert lezat dari TheMealDB';
@@ -900,7 +884,6 @@ class AdminController extends GetxController {
           constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
           child: Column(
             children: [
-              // Header
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: const BoxDecoration(
@@ -934,14 +917,12 @@ class AdminController extends GetxController {
                   ],
                 ),
               ),
-              // Content
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Image Preview
                       if (meal.strMealThumb.isNotEmpty)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
@@ -958,8 +939,6 @@ class AdminController extends GetxController {
                           ),
                         ),
                       const SizedBox(height: 16),
-
-                      // Nutrition Info Banner
                       if (nutrition != null)
                         Container(
                           padding: const EdgeInsets.all(12),
@@ -1121,8 +1100,6 @@ class AdminController extends GetxController {
       ),
     );
   }
-
-  /// Save produk dari MealDB ke database
   Future<void> saveMealProduct(Map<String, dynamic>? nutrition) async {
     if (titleController.text.trim().isEmpty ||
         priceController.text.trim().isEmpty ||
@@ -1165,13 +1142,13 @@ class AdminController extends GetxController {
         composition: compositionController.text.trim().isEmpty
             ? null
             : compositionController.text.trim(),
-        nutrition: nutrition, // Include nutrition data
+        nutrition: nutrition,
       );
 
       final result = await _productService.createProduct(product, userId);
 
       if (result != null) {
-        Get.back(); // Close dialog
+        Get.back();
         Get.snackbar(
           'Berhasil',
           'Produk dari TheMealDB berhasil ditambahkan${nutrition != null ? ' dengan data nutrisi' : ''}',
@@ -1203,15 +1180,10 @@ class AdminController extends GetxController {
     }
   }
 
-  /// Helper: Improve meal name untuk nutrition search
-  /// Mapping nama dessert ke term yang lebih umum untuk USDA API
   String _improveMealNameForNutrition(String mealName) {
-    // Convert to lowercase untuk matching
     final nameLower = mealName.toLowerCase();
-
-    // Mapping spesifik dessert ke kategori nutrition
     final Map<String, String> mappings = {
-      // Cakes
+
       'cake': 'cake',
       'chocolate cake': 'chocolate cake',
       'vanilla cake': 'vanilla cake',
@@ -1220,7 +1192,7 @@ class AdminController extends GetxController {
       'cheesecake': 'cheesecake',
       'pound cake': 'pound cake',
 
-      // Pies & Tarts
+
       'pie': 'pie',
       'apple pie': 'apple pie',
       'pumpkin pie': 'pumpkin pie',
@@ -1228,29 +1200,25 @@ class AdminController extends GetxController {
       'pecan pie': 'pecan pie',
       'tart': 'tart',
 
-      // Cookies & Biscuits
+
       'cookie': 'cookie',
       'chocolate chip': 'chocolate chip cookie',
       'oatmeal cookie': 'oatmeal cookie',
       'sugar cookie': 'sugar cookie',
       'biscuit': 'cookie',
 
-      // Brownies & Bars
       'brownie': 'brownie',
       'blondie': 'blondie',
 
-      // Puddings & Custards
       'pudding': 'pudding',
       'custard': 'custard',
       'tiramisu': 'tiramisu',
       'mousse': 'chocolate mousse',
 
-      // Ice Cream & Frozen
       'ice cream': 'ice cream',
       'sorbet': 'sorbet',
       'gelato': 'ice cream',
 
-      // Pastries
       'croissant': 'croissant',
       'danish': 'danish pastry',
       'eclair': 'eclair',
@@ -1258,7 +1226,6 @@ class AdminController extends GetxController {
       'donut': 'doughnut',
       'doughnut': 'doughnut',
 
-      // Other desserts
       'pancake': 'pancake',
       'waffle': 'waffle',
       'crepe': 'crepe',
@@ -1268,15 +1235,12 @@ class AdminController extends GetxController {
       'parfait': 'parfait',
     };
 
-    // Cek apakah ada exact match atau partial match
     for (var entry in mappings.entries) {
       if (nameLower.contains(entry.key)) {
         return entry.value;
       }
     }
 
-    // Jika tidak ada match, coba extract keyword penting
-    // Remove common words yang tidak penting untuk nutrition search
     String cleaned = mealName
         .replaceAll(
           RegExp(r'\b(with|and|or|the|a|an)\b', caseSensitive: false),
@@ -1284,7 +1248,6 @@ class AdminController extends GetxController {
         )
         .trim();
 
-    // Limit ke 2-3 kata pertama (lebih spesifik)
     List<String> words = cleaned.split(' ');
     if (words.length > 3) {
       cleaned = words.take(3).join(' ');
