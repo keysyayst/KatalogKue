@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../controllers/delivery_checker_controller.dart';
 import '../../../app.dart';
+// import catering_info dihapus karena unused
 
 class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   const DeliveryCheckerView({super.key});
@@ -181,9 +182,19 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          _buildStoreInfoCard(),
-                          _buildAddressCard(isDark),
+                          // INFO TOKO (Header)
+                          _buildStoreHeader(),
+
+                          // INFO LOKASI & KONTAK
+                          _buildContactInfo(),
+
+                          // JADWAL OPERASIONAL (TABEL DENGAN INDIKATOR VISUAL)
+                          _buildVisualScheduleTable(),
+
+                          // INFO PENGIRIMAN
                           _buildDeliveryInfoCard(isDark),
+
+                          // BANTUAN
                           _buildHelpSection(),
                           const SizedBox(height: 24),
                         ],
@@ -292,128 +303,260 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  Widget _buildStoreInfoCard() {
+  // --- HEADER TOKO ---
+  Widget _buildStoreHeader() {
     final store = controller.store.value;
+    if (store == null) return const SizedBox.shrink();
 
-    if (store == null) {
-      return const SizedBox.shrink();
-    }
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFFFE8C00).withValues(alpha: 0.1),
-            const Color(0xFFFE8C00).withValues(alpha: 0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFFE8C00).withValues(alpha: 0.3),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFE8C00), Color(0xFFFF6B00)],
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.store_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFE8C00), Color(0xFFFF6B00)],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      store.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Color(0xFFFE8C00),
-                      ),
-                    ),
-                    Text(
-                      'Pemilik: ${store.owner}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.store_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  store.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: Color(0xFFFE8C00),
+                  ),
+                ),
+                Text(
+                  'Pemilik: ${store.owner}',
+                  style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- INFO KONTAK ---
+  Widget _buildContactInfo() {
+    final store = controller.store.value;
+    if (store == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Column(
+        children: [
           _buildStoreInfoRow(
             icon: Icons.location_on_rounded,
             label: 'Alamat',
             value: store.address,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           _buildStoreInfoRow(
             icon: Icons.chat_rounded,
             label: 'WhatsApp',
             value: store.whatsapp,
           ),
-          const SizedBox(height: 8),
-          _buildStoreInfoRow(
-            icon: Icons.email_rounded,
-            label: 'Email',
-            value: store.email,
+        ],
+      ),
+    );
+  }
+
+  // --- TABEL JADWAL DENGAN INDIKATOR VISUAL (BAB 3.1.f) ---
+  Widget _buildVisualScheduleTable() {
+    final store = controller.store.value;
+    if (store == null) return const SizedBox.shrink();
+
+    // Dapatkan hari ini dalam Bahasa Indonesia
+    final now = DateTime.now();
+    final List<String> days = [
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
+    ];
+    // weekday: 1=Senin ... 7=Minggu
+    final currentDayName = days[now.weekday - 1];
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          const SizedBox(height: 8),
-          if (store.operationalHours != null &&
-              store.operationalHours!.isNotEmpty)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Jam Operasional',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: Color(0xFFFE8C00),
-                  ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(
+                Icons.access_time_filled,
+                size: 18,
+                color: Color(0xFFFE8C00),
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Jadwal Operasional',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.black87,
                 ),
-                const SizedBox(height: 4),
-                ...[
-                  'Senin',
-                  'Selasa',
-                  'Rabu',
-                  'Kamis',
-                  'Jumat',
-                  'Sabtu',
-                  'Minggu',
-                ].map((hari) {
-                  final data = store.operationalHours![hari];
-                  final open = data != null ? (data['open'] ?? '-') : '-';
-                  final close = data != null ? (data['close'] ?? '-') : '-';
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Row(
-                      children: [
-                        SizedBox(width: 80, child: Text(hari)),
-                        const SizedBox(width: 8),
-                        Text('Buka: $open'),
-                        const SizedBox(width: 12),
-                        Text('Tutup: $close'),
-                      ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(),
+          const SizedBox(height: 8),
+
+          // GENERATE TABLE ROWS
+          ...days.map(
+            (hari) {
+              String open = '-';
+              String close = '-';
+
+              // Logika pencarian data jam kerja
+              if (store.operationalHours != null) {
+                store.operationalHours!.forEach((key, value) {
+                  if (key.toLowerCase().contains(hari.toLowerCase())) {
+                    if (value is Map) {
+                      open = value['open'] ?? '-';
+                      close = value['close'] ?? '-';
+                    } else {
+                      open = value.toString();
+                      close = '';
+                    }
+                  }
+                });
+              }
+
+              // INDIKATOR VISUAL: Highlight Hari Ini
+              final isToday = (hari == currentDayName);
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                decoration: isToday
+                    ? BoxDecoration(
+                        color: const Color(
+                          0xFFFE8C00,
+                        ).withValues(alpha: 0.1), // Highlight Background
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFFE8C00),
+                          width: 1,
+                        ),
+                      )
+                    : null,
+                child: Row(
+                  children: [
+                    // Visual Indicator 1: Dot Status
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isToday ? Colors.green : Colors.grey[300],
+                      ),
                     ),
-                  );
-                }),
-              ],
-            ),
+                    const SizedBox(width: 12),
+
+                    // Hari
+                    SizedBox(
+                      width: 70,
+                      child: Text(
+                        hari,
+                        style: TextStyle(
+                          fontWeight: isToday
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isToday ? Colors.black : Colors.grey[600],
+                        ),
+                      ),
+                    ),
+
+                    // Jam
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            open,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: open.toLowerCase() == 'tutup'
+                                  ? Colors.red
+                                  : Colors.black87,
+                            ),
+                          ),
+                          if (close.isNotEmpty && close != '-') ...[
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4),
+                              child: Text('-'),
+                            ),
+                            Text(
+                              close,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+
+                          const Spacer(),
+
+                          // Visual Indicator 2: Badge "HARI INI"
+                          if (isToday)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'HARI INI',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ), // Hapus .toList() di sini karena sudah di dalam spread operator (...)
         ],
       ),
     );
@@ -427,14 +570,14 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFFFE8C00).withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(6),
+            color: const Color(0xFFFE8C00).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 16, color: const Color(0xFFFE8C00)),
+          child: Icon(icon, size: 18, color: const Color(0xFFFE8C00)),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,21 +606,17 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
     );
   }
 
-  Widget _buildAddressCard(bool isDark) {
-    return const SizedBox.shrink();
-  }
-
   Widget _buildDeliveryInfoCard(bool isDark) {
     final inZone = controller.isInDeliveryZone.value;
 
     return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: inZone
             ? const Color(0xFFFE8C00).withValues(alpha: 0.08)
             : Colors.red.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: inZone
               ? const Color(0xFFFE8C00).withValues(alpha: 0.3)
@@ -488,14 +627,14 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
         children: [
           Icon(
             inZone ? Icons.check_circle : Icons.cancel,
-            size: 64,
+            size: 48,
             color: inZone ? const Color(0xFFFE8C00) : Colors.red,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             inZone ? 'Lokasi Terjangkau!' : 'Di Luar Jangkauan',
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: inZone
                   ? (isDark ? Colors.white : Colors.black)
@@ -512,12 +651,12 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
               height: 1.5,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               children: [
@@ -544,7 +683,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
@@ -560,13 +699,13 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: 48,
             child: ElevatedButton.icon(
               onPressed: controller.openGoogleMaps,
               icon: const Icon(Icons.directions, size: 22),
               label: const Text(
-                'Buka Petunjuk Arah',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                'Petunjuk Arah',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFE8C00),
@@ -586,7 +725,7 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   // ================= HELP / FAQ =================
   Widget _buildHelpSection() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      margin: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
@@ -789,9 +928,6 @@ class DeliveryCheckerView extends GetView<DeliveryCheckerController> {
   }
 }
 
-// ===============================================
-// HELPER CLASS: _HelpBullet (INI YANG DULU HILANG)
-// ===============================================
 class _HelpBullet extends StatelessWidget {
   final String text;
 
