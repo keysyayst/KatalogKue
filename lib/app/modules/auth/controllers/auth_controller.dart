@@ -7,14 +7,10 @@ import '../../../routes/app_pages.dart';
 class AuthController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
 
-  // Form controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final nameController = TextEditingController();
-  final phoneController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  // State
   var isLogin = true.obs;
   var isLoading = false.obs;
   var obscurePassword = true.obs;
@@ -25,8 +21,6 @@ class AuthController extends GetxController {
   void onClose() {
     emailController.dispose();
     passwordController.dispose();
-    nameController.dispose();
-    phoneController.dispose();
     confirmPasswordController.dispose();
     super.onClose();
   }
@@ -48,15 +42,11 @@ class AuthController extends GetxController {
   void clearForm() {
     emailController.clear();
     passwordController.clear();
-    nameController.clear();
-    phoneController.clear();
     confirmPasswordController.clear();
     errorMessage.value = '';
   }
 
-// ========================================
 // LOGIN - SIMPLIFIED
-// ========================================
 Future<void> login() async {
   errorMessage.value = '';
   
@@ -82,7 +72,6 @@ Future<void> login() async {
       );
     }
   } on AuthException catch (e) {
-    // ✅ Semua error (termasuk network) sudah di-convert ke AuthException
     if (e.statusCode == 'NETWORK_ERROR' || e.statusCode == 'TIMEOUT') {
       errorMessage.value = e.message;
     } else {
@@ -95,9 +84,7 @@ Future<void> login() async {
   }
 }
 
-// ========================================
 // REGISTER - SIMPLIFIED
-// ========================================
 Future<void> register() async {
   errorMessage.value = '';
   
@@ -109,8 +96,6 @@ Future<void> register() async {
     final response = await _authService.signUp(
       email: emailController.text.trim(),
       password: passwordController.text,
-      fullName: nameController.text.trim(),
-      phone: phoneController.text.trim(),
     );
 
     if (response.user != null) {
@@ -141,10 +126,7 @@ Future<void> register() async {
   }
 }
 
-
-  // ========================================
   // VALIDATION
-  // ========================================
   bool _validateLoginForm() {
     if (emailController.text.trim().isEmpty) {
       errorMessage.value = 'Email tidak boleh kosong';
@@ -170,10 +152,6 @@ Future<void> register() async {
   }
 
   bool _validateRegisterForm() {
-    if (nameController.text.trim().isEmpty) {
-      errorMessage.value = 'Nama lengkap tidak boleh kosong';
-      return false;
-    }
 
     if (emailController.text.trim().isEmpty) {
       errorMessage.value = 'Email tidak boleh kosong';
@@ -182,11 +160,6 @@ Future<void> register() async {
 
     if (!GetUtils.isEmail(emailController.text.trim())) {
       errorMessage.value = 'Format email tidak valid';
-      return false;
-    }
-
-    if (phoneController.text.trim().isEmpty) {
-      errorMessage.value = 'Nomor telepon tidak boleh kosong';
       return false;
     }
 
@@ -208,9 +181,7 @@ Future<void> register() async {
     return true;
   }
 
-  // ========================================
   // ERROR HANDLING
-  // ========================================
   void _handleAuthException(AuthException exception, {required bool isLogin}) {
     switch (exception.statusCode) {
       case '400':

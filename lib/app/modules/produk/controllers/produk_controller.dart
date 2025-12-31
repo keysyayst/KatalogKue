@@ -43,19 +43,20 @@ class ProdukController extends GetxController {
     _initConnectivityListener();
   }
 
-  void _initConnectivityListener() {
-    final connectivity = Connectivity();
-    _connectivitySubscription = connectivity.onConnectivityChanged.listen((
-      List<ConnectivityResult> result,
-    ) {
-      final wasOnline = isOnline.value;
-      final hasConnection = result.any((r) => r != ConnectivityResult.none);
-      isOnline.value = hasConnection;
-      if (!wasOnline && isOnline.value) {
-        refreshProducts();
-      }
-    });
-  }
+void _initConnectivityListener() {
+  final connectivity = Connectivity();
+  _connectivitySubscription = connectivity.onConnectivityChanged.listen((
+    List<ConnectivityResult> result,
+  ) {
+    final wasOnline = isOnline.value;
+    final hasConnection = result.any((r) => r != ConnectivityResult.none);
+    isOnline.value = hasConnection;
+    if (!wasOnline && isOnline.value) {
+      refreshProducts();
+    }
+  });
+}
+
 
   @override
   void onReady() {
@@ -70,18 +71,23 @@ class ProdukController extends GetxController {
   }
 
   Future<void> refreshProducts() async {
-    // Reset filter saat refresh
-    searchQuery.value = '';
-    searchController.clear();
-    minPriceFilter.value = 0.0;
-    maxPriceFilter.value = 1000000.0;
-    selectedSort.value = 'default';
+    try {
+      // Reset filter saat refresh
+      searchQuery.value = '';
+      searchController.clear();
+      minPriceFilter.value = 0.0;
+      maxPriceFilter.value = 1000000.0;
+      selectedSort.value = 'default';
 
-    await productService.loadProducts();
-    loadProducts();
+      await productService.loadProducts();
+      loadProducts();
+    } catch (e) {
+      debugPrint('Error refreshProducts: $e');
+    } finally {
+    }
   }
 
-  // --- LOGIKA UTAMA SEARCH, SORT, & FILTER (BAB 4) ---
+  // LOGIKA UTAMA SEARCH, SORT, & FILTER
   void applyFilters() {
     List<Product> tempProducts = List.from(products);
 
