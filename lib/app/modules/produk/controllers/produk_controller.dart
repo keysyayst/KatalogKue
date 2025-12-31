@@ -9,6 +9,8 @@ import '../../../data/services/search_history_hive_service.dart';
 import '../../../data/sources/products.dart';
 
 class ProdukController extends GetxController {
+  // Untuk status menu sort terbuka/tidak
+  final RxBool isSortMenuOpen = false.obs;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   final RxBool isOnline = true.obs;
   final ProductService productService = Get.find<ProductService>();
@@ -43,20 +45,19 @@ class ProdukController extends GetxController {
     _initConnectivityListener();
   }
 
-void _initConnectivityListener() {
-  final connectivity = Connectivity();
-  _connectivitySubscription = connectivity.onConnectivityChanged.listen((
-    List<ConnectivityResult> result,
-  ) {
-    final wasOnline = isOnline.value;
-    final hasConnection = result.any((r) => r != ConnectivityResult.none);
-    isOnline.value = hasConnection;
-    if (!wasOnline && isOnline.value) {
-      refreshProducts();
-    }
-  });
-}
-
+  void _initConnectivityListener() {
+    final connectivity = Connectivity();
+    _connectivitySubscription = connectivity.onConnectivityChanged.listen((
+      List<ConnectivityResult> result,
+    ) {
+      final wasOnline = isOnline.value;
+      final hasConnection = result.any((r) => r != ConnectivityResult.none);
+      isOnline.value = hasConnection;
+      if (!wasOnline && isOnline.value) {
+        refreshProducts();
+      }
+    });
+  }
 
   @override
   void onReady() {
@@ -83,8 +84,7 @@ void _initConnectivityListener() {
       loadProducts();
     } catch (e) {
       debugPrint('Error refreshProducts: $e');
-    } finally {
-    }
+    } finally {}
   }
 
   // LOGIKA UTAMA SEARCH, SORT, & FILTER

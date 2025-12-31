@@ -70,13 +70,9 @@ class DashboardController extends GetxController {
     super.onClose();
   }
 
-  void changeTabIndex(int index) async {
+  void changeTabIndex(int index) {
     try {
-      await pageController.animateToPage(
-        index,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOut,
-      );
+      pageController.jumpToPage(index);
       tabIndex.value = index;
     } catch (_) {
       tabIndex.value = index;
@@ -101,7 +97,9 @@ class DashboardPage extends GetView<DashboardController> {
       body: Obx(
         () => PageView(
           controller: controller.pageController,
-          physics: const NeverScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(), // Aktifkan swipe gesture
+          onPageChanged:
+              controller.changeTabIndex, // Sinkronkan dengan bottom nav
           children: pages,
         ),
       ),
