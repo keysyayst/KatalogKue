@@ -9,8 +9,8 @@ import '../../../data/services/search_history_hive_service.dart';
 import '../../../data/sources/products.dart';
 
 class ProdukController extends GetxController {
-  // Untuk status menu sort terbuka/tidak
   final RxBool isSortMenuOpen = false.obs;
+
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   final RxBool isOnline = true.obs;
   final ProductService productService = Get.find<ProductService>();
@@ -31,11 +31,14 @@ class ProdukController extends GetxController {
   final RxBool isLoadingNutrition = false.obs;
   final RxInt currentTabIndex = 0.obs;
 
-  // --- TAMBAHAN UNTUK FITUR SORT & FILTER (BAB 4) ---
+  // --- FILTER VARIABLES ---
   final RxString selectedSort = 'default'.obs;
   final RxDouble minPriceFilter = 0.0.obs;
-  final RxDouble maxPriceFilter = 1000000.0.obs; // Default max 1 juta
-  // --------------------------------------------------
+  final RxDouble maxPriceFilter = 1000000.0.obs;
+
+  // Filter Kalori (Toggle)
+  final RxBool isLowCalorie = false.obs;
+  // -----------------------
 
   @override
   void onInit() {
@@ -67,68 +70,65 @@ class ProdukController extends GetxController {
 
   void loadProducts() {
     products.value = productService.getAllProducts();
-    // Saat load awal, langsung terapkan filter default
     applyFilters();
   }
 
   Future<void> refreshProducts() async {
     try {
-      // Reset filter saat refresh
+      // Reset filter
       searchQuery.value = '';
       searchController.clear();
       minPriceFilter.value = 0.0;
       maxPriceFilter.value = 1000000.0;
       selectedSort.value = 'default';
+      isLowCalorie.value = false;
 
       await productService.loadProducts();
       loadProducts();
     } catch (e) {
       debugPrint('Error refreshProducts: $e');
-    } finally {}
+    }
   }
 
-  // LOGIKA UTAMA SEARCH, SORT, & FILTER
+  // --- LOGIKA FILTER UTAMA ---
   void applyFilters() {
     List<Product> tempProducts = List.from(products);
 
-    // 1. FILTER: Search Query
+    // 1. Search
     if (searchQuery.value.isNotEmpty) {
-      tempProducts = tempProducts.where((Product product) {
-        return product.title.toLowerCase().contains(
+      tempProducts = tempProducts.where((p) {
+        return p.title.toLowerCase().contains(
               searchQuery.value.toLowerCase(),
             ) ||
-            product.location.toLowerCase().contains(
-              searchQuery.value.toLowerCase(),
-            );
+            p.location.toLowerCase().contains(searchQuery.value.toLowerCase());
       }).toList();
     }
 
-    // 2. FILTER: Harga (Price Range)
+    // 2. Harga
     tempProducts = tempProducts.where((p) {
       String cleanPrice = p.price.replaceAll(RegExp(r'[^0-9]'), '');
       double price = double.tryParse(cleanPrice) ?? 0;
       return price >= minPriceFilter.value && price <= maxPriceFilter.value;
     }).toList();
 
-    // 3. SORT: Pengurutan
+    // 3. Kalori (< 300)
+    if (isLowCalorie.value) {
+      tempProducts = tempProducts.where((p) {
+        double cal = 999.0;
+        if (p.nutrition != null && p.nutrition!['calories'] != null) {
+          cal = double.tryParse(p.nutrition!['calories'].toString()) ?? 999.0;
+        }
+        return cal < 300.0;
+      }).toList();
+    }
+
+    // 4. Sort
     switch (selectedSort.value) {
       case 'price_low':
-        tempProducts.sort((a, b) {
-          double pA =
-              double.tryParse(a.price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-          double pB =
-              double.tryParse(b.price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-          return pA.compareTo(pB);
-        });
+        tempProducts.sort((a, b) => _getPrice(a).compareTo(_getPrice(b)));
         break;
       case 'price_high':
-        tempProducts.sort((a, b) {
-          double pA =
-              double.tryParse(a.price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-          double pB =
-              double.tryParse(b.price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-          return pB.compareTo(pA);
-        });
+        tempProducts.sort((a, b) => _getPrice(b).compareTo(_getPrice(a)));
         break;
       case 'a_z':
         tempProducts.sort((a, b) => a.title.compareTo(b.title));
@@ -141,6 +141,11 @@ class ProdukController extends GetxController {
     filteredProducts.value = tempProducts;
   }
 
+  double _getPrice(Product p) {
+    return double.tryParse(p.price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+  }
+
+  // --- ACTIONS ---
   void searchProducts(String query) {
     searchQuery.value = query;
     applyFilters();
@@ -156,15 +161,20 @@ class ProdukController extends GetxController {
     maxPriceFilter.value = max;
     applyFilters();
   }
-  // --------------------------------------------------
 
+  void toggleLowCalorie(bool val) {
+    isLowCalorie.value = val;
+    applyFilters();
+  }
+
+  // History Logic
   void clearSearch() {
     searchController.clear();
     searchProducts('');
   }
 
   void saveSearchToHistory(String query) {
-    if (query.trim().isNotEmpty) {
+    if (query.isNotEmpty) {
       searchHistoryService.addSearch(query);
       loadSearchHistory();
     }
@@ -174,8 +184,8 @@ class ProdukController extends GetxController {
     searchHistory.value = searchHistoryService.getSearchHistory();
   }
 
-  void removeSearchHistory(String query) {
-    searchHistoryService.removeSearch(query);
+  void removeSearchHistory(String q) {
+    searchHistoryService.removeSearch(q);
     loadSearchHistory();
   }
 
@@ -184,19 +194,17 @@ class ProdukController extends GetxController {
     loadSearchHistory();
   }
 
-  void applySearchFromHistory(String query) {
-    searchController.text = query;
-    searchQuery.value = query;
+  void applySearchFromHistory(String q) {
+    searchController.text = q;
+    searchQuery.value = q;
     applyFilters();
-    saveSearchToHistory(query);
+    saveSearchToHistory(q);
     searchFocusNode.unfocus();
   }
 
   void focusSearch() {
     Future.delayed(const Duration(milliseconds: 100), () {
-      if (searchFocusNode.canRequestFocus) {
-        searchFocusNode.requestFocus();
-      }
+      if (searchFocusNode.canRequestFocus) searchFocusNode.requestFocus();
     });
   }
 
@@ -204,6 +212,7 @@ class ProdukController extends GetxController {
     searchFocusNode.unfocus();
   }
 
+  // Nutrition Logic
   Future<void> loadNutritionData(String productName) async {
     try {
       isLoadingNutrition(true);
