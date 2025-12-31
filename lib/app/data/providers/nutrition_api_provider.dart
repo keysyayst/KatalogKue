@@ -4,7 +4,6 @@ import '../models/nutrition_model.dart';
 class NutritionApiProvider {
   final Dio _dio = Dio();
 
-  // API key dari https://fdc.nal.usda.gov/api-key-signup.html
   final String apiKey = 'IDPV7tHrlLTREq2QxlfXNBZMEdUWhy5wdW8kM68i';
   final String baseUrl = 'https://api.nal.usda.gov/fdc/v1';
 
@@ -21,7 +20,7 @@ class NutritionApiProvider {
           'dataType': [
             'Foundation',
             'SR Legacy',
-          ], // Tipe data yang paling akurat
+          ],
         },
       );
 
@@ -39,7 +38,7 @@ class NutritionApiProvider {
           return nutritionData;
         } else {
           print('⚠ No nutrition data found for: $foodName');
-          return null; // Return null instead of dummy
+          return null;
         }
       }
 
@@ -50,10 +49,10 @@ class NutritionApiProvider {
       if (e.response != null) {
         print('Response: ${e.response?.data}');
       }
-      return null; // Return null instead of dummy
+      return null;
     } catch (e) {
       print('❌ Error fetching nutrition: $e');
-      return null; // Return null instead of dummy
+      return null;
     }
   }
 }

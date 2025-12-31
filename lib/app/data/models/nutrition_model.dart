@@ -45,7 +45,6 @@ class NutritionData {
     );
   }
 
-  // Dummy data untuk fallback
   factory NutritionData.dummy() {
     return NutritionData(
       name: 'Cookies',
