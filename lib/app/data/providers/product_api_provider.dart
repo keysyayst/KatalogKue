@@ -5,7 +5,6 @@ import '../models/product.dart';
 class ProductApiProvider {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Get all products
   Future<List<Product>> getAllProducts() async {
     try {
       final response = await _supabase
@@ -20,7 +19,6 @@ class ProductApiProvider {
     }
   }
 
-  // Get product by ID
   Future<Product?> getProductById(String id) async {
     try {
       final response = await _supabase
@@ -37,7 +35,6 @@ class ProductApiProvider {
     }
   }
 
-  // Create product
   Future<Product> createProduct(Product product, String userId) async {
     try {
       final data = product.toInsertJson();
@@ -57,7 +54,6 @@ class ProductApiProvider {
     }
   }
 
-  // Update product
   Future<Product> updateProduct(String id, Product product) async {
     try {
       final data = product.toInsertJson();
@@ -78,7 +74,6 @@ class ProductApiProvider {
     }
   }
 
-  // Delete product
   Future<void> deleteProduct(String id) async {
     try {
       await _supabase.from('products').delete().eq('id', id);

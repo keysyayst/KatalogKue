@@ -5,7 +5,6 @@ class MealDBApiProvider {
   final Dio _dio = Dio();
   final String baseUrl = 'https://www.themealdb.com/api/json/v1/1';
 
-  /// Ambil semua desserts
   Future<List<Meal>> getDesserts() async {
     try {
       print('🍰 Fetching desserts from TheMealDB...');
@@ -34,7 +33,6 @@ class MealDBApiProvider {
     }
   }
 
-  /// Ambil detail meal berdasarkan ID (untuk ingredients & instructions)
   Future<Meal?> getMealDetail(String mealId) async {
     try {
       print('🔍 Fetching meal detail for ID: $mealId');
@@ -63,7 +61,6 @@ class MealDBApiProvider {
     }
   }
 
-  /// Search meals by name
   Future<List<Meal>> searchMeals(String query) async {
     try {
       print('🔍 Searching meals: $query');

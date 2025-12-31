@@ -3,7 +3,7 @@ class ProfileModel {
   final String email;
   final String? fullName;
   final String? phone;
-  final String role; // 'admin' or 'user'
+  final String role;
   final String? avatarUrl;
   final DateTime createdAt;
   final DateTime updatedAt;

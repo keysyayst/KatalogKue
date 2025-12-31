@@ -55,7 +55,6 @@ class Product {
     };
   }
 
-  // For insert (tanpa id)
   Map<String, dynamic> toInsertJson() {
     return {
       'title': title,
@@ -68,7 +67,6 @@ class Product {
     };
   }
 
-  // Helper untuk parse composition string ke list
   List<String> get compositionList {
     if (composition == null || composition!.isEmpty) return [];
     return composition!

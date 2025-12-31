@@ -20,7 +20,6 @@ class Meal {
   });
 
   factory Meal.fromJson(Map<String, dynamic> json) {
-    // Extract ingredients and measurements (API punya strIngredient1-20, strMeasure1-20)
     List<String> ingredients = [];
     List<String> measurements = [];
 
@@ -57,7 +56,6 @@ class Meal {
     };
   }
 
-  // Convert ingredients ke format composition untuk database
   String get compositionText {
     if (ingredients.isEmpty) return '';
 

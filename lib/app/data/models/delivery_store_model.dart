@@ -1,4 +1,3 @@
-// Model data DeliveryStore
 class DeliveryStore {
   final String id;
   final String name;
