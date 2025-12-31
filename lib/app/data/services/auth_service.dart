@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../models/profile_model.dart';
 
 class AuthService extends GetxService {
@@ -16,7 +14,6 @@ class AuthService extends GetxService {
   void onInit() {
     super.onInit();
 
-    // Listen perubahan auth
     _supabase.auth.onAuthStateChange.listen((data) {
       currentUser.value = data.session?.user;
       if (data.session?.user != null) {
@@ -26,7 +23,6 @@ class AuthService extends GetxService {
       }
     });
 
-    // Set user awal kalau sudah login
     currentUser.value = _supabase.auth.currentUser;
     if (currentUser.value != null) {
       loadProfile();
@@ -40,12 +36,10 @@ class AuthService extends GetxService {
     return role == 'admin';
   }
 
-  // Untuk kebutuhan auto‑reload profile dari controller lain
   Future<void> fetchProfileFromServer() async {
     await loadProfile();
   }
 
-  // ================= SIGN IN =================
   Future<AuthResponse> signIn({
     required String email,
     required String password,
@@ -87,7 +81,6 @@ class AuthService extends GetxService {
     }
   }
 
-  // ================= SIGN UP =================
   Future<AuthResponse> signUp({
     required String email,
     required String password,
@@ -129,7 +122,6 @@ class AuthService extends GetxService {
     }
   }
 
-  // ================= LOAD PROFILE =================
   Future<void> loadProfile() async {
     try {
       final userId = currentUser.value?.id;
@@ -147,7 +139,6 @@ class AuthService extends GetxService {
     }
   }
 
-  // ================= UPDATE PROFILE =================
   Future<void> updateProfile({
     String? fullName,
     String? phone,
@@ -174,13 +165,11 @@ class AuthService extends GetxService {
     }
   }
 
-  // ================= UPLOAD AVATAR =================
   Future<String?> uploadAvatar(File file) async {
     try {
       final userId = currentUser.value?.id;
       if (userId == null) return null;
 
-      // Hapus avatar lama
       final oldAvatarUrl = currentProfile.value?.avatarUrl;
       if (oldAvatarUrl != null && oldAvatarUrl.isNotEmpty) {
         try {
@@ -209,7 +198,6 @@ class AuthService extends GetxService {
     }
   }
 
-  // ================= SIGN OUT =================
   Future<void> signOut() async {
     await _supabase.auth.signOut();
     currentUser.value = null;

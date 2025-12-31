@@ -17,8 +17,6 @@ class LocationService extends GetxService {
     checkLocationPermission();
   }
 
-  // PERMISSION HANDLING
-
   Future<bool> checkLocationPermission() async {
     PermissionStatus status = await Permission.location.status;
     isLocationPermissionGranted.value = status.isGranted;
@@ -36,11 +34,9 @@ class LocationService extends GetxService {
     return status.isGranted;
   }
 
-  // GPS LOCATION (HIGH ACCURACY)
 
   Future<Position?> getGPSLocation() async {
     try {
-      // Check if location service enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         Get.snackbar(
@@ -51,7 +47,6 @@ class LocationService extends GetxService {
         return null;
       }
 
-      // Check permission
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -69,7 +64,6 @@ class LocationService extends GetxService {
         return null;
       }
 
-      // Get position
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: const Duration(seconds: 10),
@@ -97,13 +91,10 @@ class LocationService extends GetxService {
     }
   }
 
-  // NETWORK LOCATION (LOWER ACCURACY)
 
   Future<Position?> getNetworkLocation() async {
     try {
       loc.Location location = loc.Location();
-
-      // Check if service enabled
       bool serviceEnabled = await location.serviceEnabled();
       if (!serviceEnabled) {
         serviceEnabled = await location.requestService();
@@ -112,7 +103,6 @@ class LocationService extends GetxService {
         }
       }
 
-      // Check permission
       loc.PermissionStatus permissionGranted = await location.hasPermission();
       if (permissionGranted == loc.PermissionStatus.denied) {
         permissionGranted = await location.requestPermission();
@@ -121,7 +111,6 @@ class LocationService extends GetxService {
         }
       }
 
-      // Get location
       loc.LocationData locationData = await location.getLocation();
 
       Position position = Position(
@@ -154,8 +143,6 @@ class LocationService extends GetxService {
     }
   }
 
-  // SMART LOCATION (GPS FIRST, FALLBACK TO NETWORK)
-
   Future<Position?> getCurrentLocation() async {
     Position? position = await getGPSLocation();
     position ??= await getNetworkLocation();
@@ -163,18 +150,14 @@ class LocationService extends GetxService {
     return position;
   }
 
-  // LIVE LOCATION STREAM
-
   Stream<Position> getLiveLocationStream() {
     const LocationSettings locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 10, // Update every 10 meters
+      distanceFilter: 10,
     );
 
     return Geolocator.getPositionStream(locationSettings: locationSettings);
   }
-
-  // CALCULATE DISTANCE
 
   double calculateDistance(
     double startLat,
@@ -185,8 +168,6 @@ class LocationService extends GetxService {
     return Geolocator.distanceBetween(startLat, startLng, endLat, endLng);
   }
 
-  // FORMAT DISTANCE
-
   String formatDistance(double meters) {
     if (meters < 1000) {
       return '${meters.toStringAsFixed(0)} m';
@@ -194,8 +175,6 @@ class LocationService extends GetxService {
       return '${(meters / 1000).toStringAsFixed(2)} km';
     }
   }
-
-  // CALCULATE BEARING (DIRECTION)
 
   double calculateBearing(
     double startLat,

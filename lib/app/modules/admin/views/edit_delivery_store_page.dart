@@ -14,7 +14,6 @@ class EditDeliveryStorePage extends StatefulWidget {
 }
 
 class _EditDeliveryStorePageState extends State<EditDeliveryStorePage> {
-  // Controller untuk jam operasional (Senin-Minggu)
   late Map<String, TextEditingController> openHourCtrls;
   late Map<String, TextEditingController> closeHourCtrls;
   final List<String> days = [
@@ -46,7 +45,6 @@ class _EditDeliveryStorePageState extends State<EditDeliveryStorePage> {
   void initState() {
     super.initState();
     final s = widget.store;
-    // Init controller jam operasional
     openHourCtrls = {
       for (var d in days)
         d: TextEditingController(text: s?.operationalHours?[d]?['open'] ?? ''),
@@ -105,7 +103,6 @@ class _EditDeliveryStorePageState extends State<EditDeliveryStorePage> {
       final storeId =
           widget.store?.id ??
           '${DateTime.now().millisecondsSinceEpoch}-${nameCtrl.text.hashCode}';
-      // Build operationalHours map
       final operationalHours = {
         for (var d in days)
           d: {
@@ -239,7 +236,6 @@ class _EditDeliveryStorePageState extends State<EditDeliveryStorePage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // ====== Jam Operasional ======
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
@@ -287,7 +283,6 @@ class _EditDeliveryStorePageState extends State<EditDeliveryStorePage> {
                         ],
                       ),
                     ),
-                    // ====== END Jam Operasional ======
                     _buildTextField('Telepon', phoneCtrl),
                     _buildTextField('WhatsApp', whatsappCtrl),
                     _buildTextField('Email', emailCtrl),
