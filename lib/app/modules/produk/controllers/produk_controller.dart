@@ -71,21 +71,23 @@ void _initConnectivityListener() {
   }
 
   Future<void> refreshProducts() async {
-    // Reset filter saat refresh
-    searchQuery.value = '';
-    searchController.clear();
-    minPriceFilter.value = 0.0;
-    maxPriceFilter.value = 1000000.0;
-    selectedSort.value = 'default';
+    try {
+      // Reset filter saat refresh
+      searchQuery.value = '';
+      searchController.clear();
+      minPriceFilter.value = 0.0;
+      maxPriceFilter.value = 1000000.0;
+      selectedSort.value = 'default';
 
-    await productService.loadProducts();
-    loadProducts();
-  } catch (e) {
-    debugPrint('Error refreshProducts: $e');
-  } finally {
+      await productService.loadProducts();
+      loadProducts();
+    } catch (e) {
+      debugPrint('Error refreshProducts: $e');
+    } finally {
+    }
   }
 
-  // --- LOGIKA UTAMA SEARCH, SORT, & FILTER (BAB 4) ---
+  // LOGIKA UTAMA SEARCH, SORT, & FILTER
   void applyFilters() {
     List<Product> tempProducts = List.from(products);
 
