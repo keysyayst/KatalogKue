@@ -29,12 +29,12 @@ class ProdukPage extends GetView<ProdukController> {
             // Search Bar
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
                 child: _buildSearchBar(isDark),
               ),
             ),
 
-            // === FITUR BARU: SORT & FILTER UI (BAB 4) ===
+            // === BARIS FILTER: SORT | HARGA | KALORI ===
             SliverToBoxAdapter(child: _buildSortFilterBar(context, isDark)),
 
             // ===========================================
@@ -135,11 +135,11 @@ class ProdukPage extends GetView<ProdukController> {
     );
   }
 
-  // --- WIDGET BARU: SORT & FILTER UI ---
+  // --- WIDGET BARU: SORT & FILTER UI (SEJAJAR) ---
   Widget _buildSortFilterBar(BuildContext context, bool isDark) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
           // 1. TOMBOL SORT
@@ -269,6 +269,50 @@ class ProdukPage extends GetView<ProdukController> {
               );
             }),
           ),
+
+          const SizedBox(width: 10),
+
+          // 3. FILTER KALORI (CHIP) - DISEBELAH HARGA
+          Obx(() {
+            final isSelected = controller.isLowCalorie.value;
+            return FilterChip(
+              // Ikon api hijau
+              avatar: isSelected
+                  ? null
+                  : const Icon(
+                      Icons.local_fire_department,
+                      size: 16,
+                      color: Colors.green,
+                    ),
+              label: Text(
+                "Kalori < 300",
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark ? Colors.white70 : darkBlueGrey),
+                ),
+              ),
+              selected: isSelected,
+              onSelected: (bool selected) {
+                controller.toggleLowCalorie(selected);
+              },
+              backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              selectedColor: Colors.green, // Warna Hijau saat aktif
+              checkmarkColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: isSelected
+                      ? Colors.green
+                      : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            );
+          }),
         ],
       ),
     );
