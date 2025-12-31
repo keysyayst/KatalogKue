@@ -14,13 +14,13 @@ class HomePage extends GetView<HomeController> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
+      drawer: _buildLeftMenu(context),
       body: SafeArea(
         top: false,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(child: _buildSimpleHeader(context)),
-            SliverToBoxAdapter(child: _buildQuickActions(context)),
             SliverToBoxAdapter(child: _buildPromoBanner(context)),
 
             SliverToBoxAdapter(
@@ -150,9 +150,10 @@ class HomePage extends GetView<HomeController> {
   Widget _buildSimpleHeader(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(0, statusBarHeight + 16, 0, 16),
+      padding: EdgeInsets.fromLTRB(0, statusBarHeight + (isLandscape ? 8 : 16), 0, (isLandscape ? 8 : 16)),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -163,6 +164,7 @@ class HomePage extends GetView<HomeController> {
         // Tidak pakai const karena ada variabel
       ),
       child: Stack(
+        clipBehavior: Clip.hardEdge,
         children: [
           Positioned(
             right: -40 + 20,
@@ -200,48 +202,69 @@ class HomePage extends GetView<HomeController> {
               ),
             ),
           ),
-          // Search bar di bawah, tidak terlalu ke atas
+          // Search bar dan menu (hamburger) sejajar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            child: Row(
               children: [
-                Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
+                Builder(
+                  builder: (ctx) {
+                    return SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: Icon(
+                            Icons.menu_rounded,
+                            color: isDark ? Colors.white : Colors.white,
+                          ),
+                          onPressed: () => Scaffold.of(ctx).openDrawer(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
                       borderRadius: BorderRadius.circular(8),
-                      onTap: () {
-                        controller.navigateToSearch();
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.search,
-                              color: Color(0xFFE67E22),
-                              size: 22,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Cari kue...',
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white38
-                                      : const Color(0xFF95A5A6),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () {
+                          controller.navigateToSearch();
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.search,
+                                color: Color(0xFFE67E22),
+                                size: 22,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Cari kue...',
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white38
+                                        : const Color(0xFF95A5A6),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -251,6 +274,63 @@ class HomePage extends GetView<HomeController> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLeftMenu(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Drawer(
+      child: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF7F7F7),
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF2C3E50),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite_rounded, color: Color(0xFFE91E63)),
+              title: const Text('Favorit'),
+              onTap: () {
+                Navigator.of(context).pop();
+                controller.onQuickActionPressed('favorite');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.chat_bubble, color: Color(0xFF25D366)),
+              title: const Text('Order Now'),
+              onTap: () {
+                Navigator.of(context).pop();
+                controller.onQuickActionPressed('order_now');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.grid_view_rounded, color: Color(0xFFE67E22)),
+              title: const Text('Produk'),
+              onTap: () {
+                Navigator.of(context).pop();
+                controller.onQuickActionPressed('products');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.store_rounded, color: Color(0xFF27AE60)),
+              title: const Text('Ambil Ditempat'),
+              onTap: () {
+                Navigator.of(context).pop();
+                controller.onQuickActionPressed('pickup');
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -455,6 +535,7 @@ class HomePage extends GetView<HomeController> {
                     right: 20,
                     bottom: 20,
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
