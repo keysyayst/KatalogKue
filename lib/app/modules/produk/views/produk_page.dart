@@ -145,7 +145,12 @@ class ProdukPage extends GetView<ProdukController> {
           // 1. TOMBOL SORT
           Obx(
             () => PopupMenuButton<String>(
-              onSelected: controller.changeSort,
+              onSelected: (val) {
+                controller.changeSort(val);
+                controller.isSortMenuOpen.value = false;
+              },
+              onCanceled: () => controller.isSortMenuOpen.value = false,
+              onOpened: () => controller.isSortMenuOpen.value = true,
               itemBuilder: (context) => [
                 const PopupMenuItem(value: 'default', child: Text('Default')),
                 const PopupMenuItem(
@@ -159,6 +164,7 @@ class ProdukPage extends GetView<ProdukController> {
                 const PopupMenuItem(value: 'a_z', child: Text('Nama (A-Z)')),
                 const PopupMenuItem(value: 'z_a', child: Text('Nama (Z-A)')),
               ],
+              offset: const Offset(0, 48),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -191,6 +197,18 @@ class ProdukPage extends GetView<ProdukController> {
                             : primaryOrange,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Obx(
+                      () => Icon(
+                        controller.isSortMenuOpen.value
+                            ? Icons.keyboard_arrow_down
+                            : Icons.chevron_right,
+                        size: 18,
+                        color: controller.selectedSort.value == 'default'
+                            ? (isDark ? Colors.white54 : Colors.black45)
+                            : primaryOrange,
                       ),
                     ),
                   ],
@@ -279,107 +297,108 @@ class ProdukPage extends GetView<ProdukController> {
           color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Filter Harga",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    fontFamily: 'Poppins',
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Get.back(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Obx(
-              () => Column(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  RangeSlider(
-                    // FIX ERROR: Tambahkan clamp dan samakan max dengan controller
-                    values: RangeValues(
-                      controller.minPriceFilter.value.clamp(0, 1000000),
-                      controller.maxPriceFilter.value.clamp(0, 1000000),
+                  Text(
+                    "Filter Harga",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontFamily: 'Poppins',
+                      color: isDark ? Colors.white : Colors.black,
                     ),
-                    min: 0,
-                    max: 1000000, // MAX SUDAH DIPERBAIKI (1 JUTA)
-                    divisions: 100, // Divisions diperbanyak agar smooth
-                    activeColor: primaryOrange,
-                    inactiveColor: Colors.grey[300],
-                    labels: RangeLabels(
-                      "Rp ${_formatCurrency(controller.minPriceFilter.value)}",
-                      "Rp ${_formatCurrency(controller.maxPriceFilter.value)}",
-                    ),
-                    onChanged: (RangeValues values) {
-                      controller.changePriceRange(values.start, values.end);
-                    },
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Rp ${_formatCurrency(controller.minPriceFilter.value)}",
-                        style: TextStyle(
-                          color: isDark ? Colors.white70 : Colors.grey[600],
-                        ),
-                      ),
-                      Text(
-                        "Rp ${_formatCurrency(controller.maxPriceFilter.value)}",
-                        style: TextStyle(
-                          color: isDark ? Colors.white70 : Colors.grey[600],
-                        ),
-                      ),
-                    ],
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Get.back(),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Get.back(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryOrange,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+              const SizedBox(height: 20),
+              Obx(
+                () => Column(
+                  children: [
+                    RangeSlider(
+                      values: RangeValues(
+                        controller.minPriceFilter.value.clamp(0, 1000000),
+                        controller.maxPriceFilter.value.clamp(0, 1000000),
+                      ),
+                      min: 0,
+                      max: 1000000,
+                      divisions: 100,
+                      activeColor: primaryOrange,
+                      inactiveColor: Colors.grey[300],
+                      labels: RangeLabels(
+                        "Rp ${_formatCurrency(controller.minPriceFilter.value)}",
+                        "Rp ${_formatCurrency(controller.maxPriceFilter.value)}",
+                      ),
+                      onChanged: (RangeValues values) {
+                        controller.changePriceRange(values.start, values.end);
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Rp ${_formatCurrency(controller.minPriceFilter.value)}",
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.grey[600],
+                          ),
+                        ),
+                        Text(
+                          "Rp ${_formatCurrency(controller.maxPriceFilter.value)}",
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                child: const Text(
-                  "Terapkan Filter",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Get.back(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryOrange,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    "Terapkan Filter",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  controller.changePriceRange(0, 1000000); // Reset range
-                  Get.back();
-                },
-                child: const Text(
-                  "Reset",
-                  style: TextStyle(color: Colors.grey),
+              const SizedBox(height: 8),
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    controller.changePriceRange(0, 1000000);
+                    Get.back();
+                  },
+                  child: const Text(
+                    "Reset",
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
