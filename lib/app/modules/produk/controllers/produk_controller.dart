@@ -29,6 +29,12 @@ class ProdukController extends GetxController {
   final RxBool isLoadingNutrition = false.obs;
   final RxInt currentTabIndex = 0.obs;
 
+  // --- TAMBAHAN UNTUK FITUR SORT & FILTER (BAB 4) ---
+  final RxString selectedSort = 'default'.obs;
+  final RxDouble minPriceFilter = 0.0.obs;
+  final RxDouble maxPriceFilter = 1000000.0.obs; // Default max 1 juta
+  // --------------------------------------------------
+
   @override
   void onInit() {
     super.onInit();
@@ -59,26 +65,92 @@ class ProdukController extends GetxController {
 
   void loadProducts() {
     products.value = productService.getAllProducts();
-    filteredProducts.value = products;
+    // Saat load awal, langsung terapkan filter default
+    applyFilters();
   }
 
   Future<void> refreshProducts() async {
-    clearSearch();
+    // Reset filter saat refresh
+    searchQuery.value = '';
+    searchController.clear();
+    minPriceFilter.value = 0.0;
+    maxPriceFilter.value = 1000000.0;
+    selectedSort.value = 'default';
+
     await productService.loadProducts();
     loadProducts();
   }
 
-  void searchProducts(String query) {
-    searchQuery.value = query;
-    if (query.isEmpty) {
-      filteredProducts.value = products;
-    } else {
-      filteredProducts.value = products.where((Product product) {
-        return product.title.toLowerCase().contains(query.toLowerCase()) ||
-            product.location.toLowerCase().contains(query.toLowerCase());
+  // --- LOGIKA UTAMA SEARCH, SORT, & FILTER (BAB 4) ---
+  void applyFilters() {
+    List<Product> tempProducts = List.from(products);
+
+    // 1. FILTER: Search Query
+    if (searchQuery.value.isNotEmpty) {
+      tempProducts = tempProducts.where((Product product) {
+        return product.title.toLowerCase().contains(
+              searchQuery.value.toLowerCase(),
+            ) ||
+            product.location.toLowerCase().contains(
+              searchQuery.value.toLowerCase(),
+            );
       }).toList();
     }
+
+    // 2. FILTER: Harga (Price Range)
+    tempProducts = tempProducts.where((p) {
+      String cleanPrice = p.price.replaceAll(RegExp(r'[^0-9]'), '');
+      double price = double.tryParse(cleanPrice) ?? 0;
+      return price >= minPriceFilter.value && price <= maxPriceFilter.value;
+    }).toList();
+
+    // 3. SORT: Pengurutan
+    switch (selectedSort.value) {
+      case 'price_low':
+        tempProducts.sort((a, b) {
+          double pA =
+              double.tryParse(a.price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+          double pB =
+              double.tryParse(b.price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+          return pA.compareTo(pB);
+        });
+        break;
+      case 'price_high':
+        tempProducts.sort((a, b) {
+          double pA =
+              double.tryParse(a.price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+          double pB =
+              double.tryParse(b.price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+          return pB.compareTo(pA);
+        });
+        break;
+      case 'a_z':
+        tempProducts.sort((a, b) => a.title.compareTo(b.title));
+        break;
+      case 'z_a':
+        tempProducts.sort((a, b) => b.title.compareTo(a.title));
+        break;
+    }
+
+    filteredProducts.value = tempProducts;
   }
+
+  void searchProducts(String query) {
+    searchQuery.value = query;
+    applyFilters();
+  }
+
+  void changeSort(String value) {
+    selectedSort.value = value;
+    applyFilters();
+  }
+
+  void changePriceRange(double min, double max) {
+    minPriceFilter.value = min;
+    maxPriceFilter.value = max;
+    applyFilters();
+  }
+  // --------------------------------------------------
 
   void clearSearch() {
     searchController.clear();
@@ -109,7 +181,7 @@ class ProdukController extends GetxController {
   void applySearchFromHistory(String query) {
     searchController.text = query;
     searchQuery.value = query;
-    searchProducts(query);
+    applyFilters();
     saveSearchToHistory(query);
     searchFocusNode.unfocus();
   }

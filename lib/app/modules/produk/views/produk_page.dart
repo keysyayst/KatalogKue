@@ -21,13 +21,12 @@ class ProdukPage extends GetView<ProdukController> {
         onRefresh: controller.refreshProducts,
         color: primaryOrange,
         child: CustomScrollView(
-          // OPTIMASI 2: Keyboard otomatis turun saat scroll
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          cacheExtent: 1000, // Preload item lebih banyak agar scroll smooth
+          cacheExtent: 1000,
           slivers: [
             _buildSliverAppBar(context, isDark),
 
-            // Search Bar (Static, tidak perlu rebuild terus menerus)
+            // Search Bar
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
@@ -35,8 +34,10 @@ class ProdukPage extends GetView<ProdukController> {
               ),
             ),
 
-            // Bagian Reactive (History, Count, Grid, Loading)
-            // OPTIMASI 1: Obx dipecah ke dalam sliver agar lebih granular
+            // === FITUR BARU: SORT & FILTER UI (BAB 4) ===
+            SliverToBoxAdapter(child: _buildSortFilterBar(context, isDark)),
+
+            // ===========================================
             Obx(() {
               // Loading State
               if (controller.productService.isLoading.value) {
@@ -114,7 +115,6 @@ class ProdukPage extends GetView<ProdukController> {
                             ),
                         delegate: SliverChildBuilderDelegate((context, index) {
                           final product = controller.filteredProducts[index];
-                          // Tambahkan UniqueKey jika perlu untuk performa list dinamis
                           return ProductCard(
                             key: ValueKey(product.id),
                             product: product,
@@ -132,6 +132,263 @@ class ProdukPage extends GetView<ProdukController> {
           ],
         ),
       ),
+    );
+  }
+
+  // --- WIDGET BARU: SORT & FILTER UI ---
+  Widget _buildSortFilterBar(BuildContext context, bool isDark) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Row(
+        children: [
+          // 1. TOMBOL SORT
+          Obx(
+            () => PopupMenuButton<String>(
+              onSelected: controller.changeSort,
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'default', child: Text('Default')),
+                const PopupMenuItem(
+                  value: 'price_low',
+                  child: Text('Harga Terendah'),
+                ),
+                const PopupMenuItem(
+                  value: 'price_high',
+                  child: Text('Harga Tertinggi'),
+                ),
+                const PopupMenuItem(value: 'a_z', child: Text('Nama (A-Z)')),
+                const PopupMenuItem(value: 'z_a', child: Text('Nama (Z-A)')),
+              ],
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: controller.selectedSort.value == 'default'
+                        ? Colors.grey.withOpacity(0.3)
+                        : primaryOrange,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.sort,
+                      size: 18,
+                      color: controller.selectedSort.value == 'default'
+                          ? (isDark ? Colors.white : Colors.black)
+                          : primaryOrange,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      _getSortLabel(controller.selectedSort.value),
+                      style: TextStyle(
+                        color: controller.selectedSort.value == 'default'
+                            ? (isDark ? Colors.white : Colors.black)
+                            : primaryOrange,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 10),
+
+          // 2. TOMBOL FILTER HARGA
+          GestureDetector(
+            onTap: () {
+              _showFilterBottomSheet(context, isDark);
+            },
+            child: Obx(() {
+              // Cek filter aktif
+              bool isFilterActive =
+                  controller.maxPriceFilter.value < 1000000.0 ||
+                  controller.minPriceFilter.value > 0.0;
+
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isFilterActive
+                        ? primaryOrange
+                        : Colors.grey.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.filter_list,
+                      size: 18,
+                      color: isFilterActive
+                          ? primaryOrange
+                          : (isDark ? Colors.white : Colors.black),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Filter Harga",
+                      style: TextStyle(
+                        color: isFilterActive
+                            ? primaryOrange
+                            : (isDark ? Colors.white : Colors.black),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getSortLabel(String value) {
+    switch (value) {
+      case 'price_low':
+        return 'Harga Terendah';
+      case 'price_high':
+        return 'Harga Tertinggi';
+      case 'a_z':
+        return 'Nama (A-Z)';
+      case 'z_a':
+        return 'Nama (Z-A)';
+      default:
+        return 'Urutkan';
+    }
+  }
+
+  void _showFilterBottomSheet(BuildContext context, bool isDark) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Filter Harga",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    fontFamily: 'Poppins',
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Get.back(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Obx(
+              () => Column(
+                children: [
+                  RangeSlider(
+                    // FIX ERROR: Tambahkan clamp dan samakan max dengan controller
+                    values: RangeValues(
+                      controller.minPriceFilter.value.clamp(0, 1000000),
+                      controller.maxPriceFilter.value.clamp(0, 1000000),
+                    ),
+                    min: 0,
+                    max: 1000000, // MAX SUDAH DIPERBAIKI (1 JUTA)
+                    divisions: 100, // Divisions diperbanyak agar smooth
+                    activeColor: primaryOrange,
+                    inactiveColor: Colors.grey[300],
+                    labels: RangeLabels(
+                      "Rp ${_formatCurrency(controller.minPriceFilter.value)}",
+                      "Rp ${_formatCurrency(controller.maxPriceFilter.value)}",
+                    ),
+                    onChanged: (RangeValues values) {
+                      controller.changePriceRange(values.start, values.end);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Rp ${_formatCurrency(controller.minPriceFilter.value)}",
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.grey[600],
+                        ),
+                      ),
+                      Text(
+                        "Rp ${_formatCurrency(controller.maxPriceFilter.value)}",
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Get.back(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryOrange,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: const Text(
+                  "Terapkan Filter",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  controller.changePriceRange(0, 1000000); // Reset range
+                  Get.back();
+                },
+                child: const Text(
+                  "Reset",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatCurrency(double value) {
+    return value.toInt().toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
     );
   }
 
@@ -309,8 +566,6 @@ class ProdukPage extends GetView<ProdukController> {
     );
   }
 
-  // Mengubah return type menjadi Widget agar bisa masuk SliverMainAxisGroup tapi perlu dibungkus
-  // Karena SliverMainAxisGroup mengharapkan Slivers, kita kembalikan SliverPadding langsung.
   Widget _buildShimmerSliver(bool isDark) {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
