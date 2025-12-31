@@ -458,9 +458,9 @@ class AdminController extends GetxController {
                                 );
                         } else {
                           // Placeholder
-                          imageWidget = Container(
-                            height: 150,
-                            color: Colors.grey[300],
+                          imageWidget = SizedBox(
+                            height: 120,
+                            width: 120,
                             child: const Icon(
                               Icons.add_photo_alternate,
                               size: 50,
@@ -635,7 +635,7 @@ class AdminController extends GetxController {
                 Icons.restaurant_menu,
                 color: Color(0xFFFE8C00),
               ),
-              title: const Text('Dari TheMealDB'),
+              title: const Text('Dari Otomatis'),
               subtitle: const Text('Pilih dari database dessert'),
               onTap: () {
                 Get.back();

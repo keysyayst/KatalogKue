@@ -25,18 +25,20 @@ class HomeController extends GetxController {
 
   final promoBanners = <Map<String, String>>[
     {
-      'image': 'https://smartpluspro.com/.../nastar-gluten-free.jpg',
+      'image':
+          'https://smartpluspro.com/app/repository/upload/2025_Boleci%20Copyright/4_April/Resep/nastar-gluten-free.jpg',
       'title': 'Nastar Spesial',
       'subtitle': 'Kue kering favorit keluarga!',
     },
     {
       'image':
-          'https://img.freepik.com/.../delicious-dessert-table_23-2151901934.jpg',
+          'https://img.freepik.com/free-photo/delicious-dessert-table_23-2151901934.jpg?t=st=1766220929~exp=1766224529~hmac=b5294fa190446488af0971936f2e6cc126f575c2e44ced87e15a43b81b936c6f&w=1060',
       'title': 'Brownies Cup Lezat ',
       'subtitle': 'Mulai dari Rp 50K per box',
     },
     {
-      'image': 'https://lh6.googleusercontent.com/.../thumbprint_cookies.jpg',
+      'image':
+          'https://lh6.googleusercontent.com/proxy/noSGK21lOQeuOTzzOC_i6oZT9h8CZPs9SP6WF0ro-IF474UoDHZN26xXU9Ds2UMKQEu0zQfagp1sow30SSRo8YfGTDSrUWDSTPREk3XcSea7vCmXG-P_UIWQs-VormEvhVRmMGi1Sy79x8DGFIiJkgjfbvvJAgvnqrbALnDHapZ28yRhXt3Tceypa4woMgyFoA05qw',
       'title': 'Thumbprint Premium',
       'subtitle': 'Renyah dengan selai pilihan!',
     },
@@ -149,7 +151,6 @@ class HomeController extends GetxController {
         navigateToTab(2);
         break;
       case 'order_now':
-        // Langsung buka WhatsApp (pakai logic dari DeliveryCheckerController)
         if (Get.isRegistered<DeliveryCheckerController>()) {
           Get.find<DeliveryCheckerController>().openWhatsApp();
         } else {

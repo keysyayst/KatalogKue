@@ -37,19 +37,20 @@ class ProdukController extends GetxController {
     _initConnectivityListener();
   }
 
-  void _initConnectivityListener() {
-    final connectivity = Connectivity();
-    _connectivitySubscription = connectivity.onConnectivityChanged.listen((
-      List<ConnectivityResult> result,
-    ) {
-      final wasOnline = isOnline.value;
-      final hasConnection = result.any((r) => r != ConnectivityResult.none);
-      isOnline.value = hasConnection;
-      if (!wasOnline && isOnline.value) {
-        refreshProducts();
-      }
-    });
-  }
+void _initConnectivityListener() {
+  final connectivity = Connectivity();
+  _connectivitySubscription = connectivity.onConnectivityChanged.listen((
+    List<ConnectivityResult> result,
+  ) {
+    final wasOnline = isOnline.value;
+    final hasConnection = result.any((r) => r != ConnectivityResult.none);
+    isOnline.value = hasConnection;
+    if (!wasOnline && isOnline.value) {
+      refreshProducts();
+    }
+  });
+}
+
 
   @override
   void onReady() {
@@ -62,11 +63,17 @@ class ProdukController extends GetxController {
     filteredProducts.value = products;
   }
 
-  Future<void> refreshProducts() async {
-    clearSearch();
+Future<void> refreshProducts() async {
+  clearSearch();
+  try {
     await productService.loadProducts();
     loadProducts();
+  } catch (e) {
+    debugPrint('Error refreshProducts: $e');
+  } finally {
   }
+}
+
 
   void searchProducts(String query) {
     searchQuery.value = query;

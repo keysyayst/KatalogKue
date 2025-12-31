@@ -76,58 +76,6 @@ class AuthPage extends GetView<AuthController> {
                     ),
                   ),
                 
-                // Form
-                if (!controller.isLogin.value) ...[
-                  // Full Name field
-                  TextField(
-                    controller: controller.nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Nama Lengkap',
-                      prefixIcon: const Icon(Icons.person, color: Color(0xFFFE8C00)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFFFE8C00), width: 2),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.red, width: 1),
-                      ),
-                    ),
-                    onChanged: (_) {
-                      if (controller.errorMessage.value.isNotEmpty) {
-                        controller.errorMessage.value = '';
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Phone field
-                  TextField(
-                    controller: controller.phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
-                      labelText: 'No. Telepon',
-                      prefixIcon: const Icon(Icons.phone, color: Color(0xFFFE8C00)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFFFE8C00), width: 2),
-                      ),
-                    ),
-                    onChanged: (_) {
-                      if (controller.errorMessage.value.isNotEmpty) {
-                        controller.errorMessage.value = '';
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                
                 // Email field
                 TextField(
                   controller: controller.emailController,

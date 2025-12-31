@@ -91,17 +91,11 @@ class AuthService extends GetxService {
   Future<AuthResponse> signUp({
     required String email,
     required String password,
-    String? fullName,
-    String? phone,
   }) async {
     try {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        data: {
-          'full_name': fullName ?? '',
-          'phone': phone ?? '',
-        },
       );
 
       if (response.user != null) {
