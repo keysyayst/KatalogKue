@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
 import '../../../theme/design_system.dart';
 import '../../admin/views/edit_delivery_store_page.dart';
+import '../../admin/views/statistik_page.dart'; // [BARU] Import Statistik Page
 import 'package:cake_by_mommy/app/data/models/delivery_store_model.dart';
 import 'package:cake_by_mommy/data/models/store.dart';
 import 'package:cake_by_mommy/app/data/repositories/delivery_store_repository.dart';
@@ -72,7 +73,6 @@ class ProfilePage extends GetView<ProfileController> {
                             height: 150,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              // PERBAIKAN: Ganti withOpacity -> withValues
                               color: Colors.white.withValues(alpha: 0.1),
                             ),
                           ),
@@ -96,7 +96,6 @@ class ProfilePage extends GetView<ProfileController> {
                           : 'Mode Gelap',
                     ),
                   ),
-
                   Obx(
                     () => controller.isEditing.value
                         ? Row(
@@ -128,7 +127,6 @@ class ProfilePage extends GetView<ProfileController> {
                   ),
                 ],
               ),
-
               SliverToBoxAdapter(
                 child: Obx(() {
                   if (controller.isLoading.value) {
@@ -193,7 +191,6 @@ class ProfilePage extends GetView<ProfileController> {
                                       ),
                               ),
                             ),
-
                             Positioned(
                               bottom: 0,
                               right: 0,
@@ -227,7 +224,6 @@ class ProfilePage extends GetView<ProfileController> {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 16),
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
@@ -288,11 +284,8 @@ class ProfilePage extends GetView<ProfileController> {
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 32),
-
                         const SizedBox(height: 8),
-
                         Obx(
                           () => TextField(
                             key: ValueKey(controller.emailText.value),
@@ -314,9 +307,7 @@ class ProfilePage extends GetView<ProfileController> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 16),
-
                         Obx(
                           () => TextField(
                             key: ValueKey(controller.fullNameText.value),
@@ -351,9 +342,7 @@ class ProfilePage extends GetView<ProfileController> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 16),
-
                         Obx(
                           () => TextField(
                             key: ValueKey(controller.phoneText.value),
@@ -389,9 +378,7 @@ class ProfilePage extends GetView<ProfileController> {
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 24),
-
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
@@ -442,10 +429,11 @@ class ProfilePage extends GetView<ProfileController> {
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 24),
 
+                        // === MENU KHUSUS ADMIN ===
                         if (controller.isAdmin) ...[
+                          // 1. KELOLA TOKO DELIVERY
                           SizedBox(
                             width: double.infinity,
                             height: 56,
@@ -476,7 +464,6 @@ class ProfilePage extends GetView<ProfileController> {
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      // PERBAIKAN: Ganti withOpacity -> withValues
                                       color: Colors.black.withValues(
                                         alpha: 0.08,
                                       ),
@@ -505,6 +492,8 @@ class ProfilePage extends GetView<ProfileController> {
                             ),
                           ),
                           const SizedBox(height: 16),
+
+                          // 2. KELOLA PRODUK (CRUD)
                           SizedBox(
                             width: double.infinity,
                             height: 56,
@@ -516,7 +505,6 @@ class ProfilePage extends GetView<ProfileController> {
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      // PERBAIKAN: Ganti withOpacity -> withValues
                                       color: Colors.black.withValues(
                                         alpha: 0.08,
                                       ),
@@ -545,8 +533,50 @@ class ProfilePage extends GetView<ProfileController> {
                             ),
                           ),
                           const SizedBox(height: 16),
+
+                          // 3. STATISTIK TOKO (BARU - CHART)
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: _AnimatedButton(
+                              onTap: () => Get.to(() => const StatistikPage()),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.blueAccent,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.08,
+                                      ),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                alignment: Alignment.center,
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.bar_chart, color: Colors.white),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Statistik Toko',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                         ],
 
+                        // TOMBOL LOGOUT
                         SizedBox(
                           width: double.infinity,
                           height: 56,

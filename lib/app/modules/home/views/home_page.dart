@@ -109,7 +109,7 @@ class HomePage extends GetView<HomeController> {
                     decoration: BoxDecoration(
                       color: const Color(
                         0xFFE67E22,
-                      ).withOpacity(isDark ? 0.2 : 0.1),
+                      ).withValues(alpha: isDark ? 0.2 : 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -135,7 +135,7 @@ class HomePage extends GetView<HomeController> {
           SizedBox(
             width: 200,
             child: LinearProgressIndicator(
-              backgroundColor: const Color(0xFFE67E22).withOpacity(0.2),
+              backgroundColor: const Color(0xFFE67E22).withValues(alpha: 0.2),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 Color(0xFFE67E22), // TETAP ORANGE
               ),
@@ -150,18 +150,22 @@ class HomePage extends GetView<HomeController> {
   Widget _buildSimpleHeader(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final double statusBarHeight = MediaQuery.of(context).padding.top;
-    final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(0, statusBarHeight + (isLandscape ? 8 : 16), 0, (isLandscape ? 8 : 16)),
+      padding: EdgeInsets.fromLTRB(
+        0,
+        statusBarHeight + (isLandscape ? 8 : 16),
+        0,
+        (isLandscape ? 8 : 16),
+      ),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [Color(0xFFE67E22), Color(0xFFD35400)],
         ),
-        // Lingkaran dekoratif statis
-        // Tidak pakai const karena ada variabel
       ),
       child: Stack(
         clipBehavior: Clip.hardEdge,
@@ -174,7 +178,7 @@ class HomePage extends GetView<HomeController> {
               height: 160,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -186,7 +190,7 @@ class HomePage extends GetView<HomeController> {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -198,7 +202,7 @@ class HomePage extends GetView<HomeController> {
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFD35400).withOpacity(0.3),
+                color: const Color(0xFFD35400).withValues(alpha: 0.3),
               ),
             ),
           ),
@@ -298,7 +302,10 @@ class HomePage extends GetView<HomeController> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.favorite_rounded, color: Color(0xFFE91E63)),
+              leading: const Icon(
+                Icons.favorite_rounded,
+                color: Color(0xFFE91E63),
+              ),
               title: const Text('Favorit'),
               onTap: () {
                 Navigator.of(context).pop();
@@ -314,7 +321,10 @@ class HomePage extends GetView<HomeController> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.grid_view_rounded, color: Color(0xFFE67E22)),
+              leading: const Icon(
+                Icons.grid_view_rounded,
+                color: Color(0xFFE67E22),
+              ),
               title: const Text('Produk'),
               onTap: () {
                 Navigator.of(context).pop();
@@ -322,126 +332,15 @@ class HomePage extends GetView<HomeController> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.store_rounded, color: Color(0xFF27AE60)),
+              leading: const Icon(
+                Icons.store_rounded,
+                color: Color(0xFF27AE60),
+              ),
               title: const Text('Ambil Ditempat'),
               onTap: () {
                 Navigator.of(context).pop();
                 controller.onQuickActionPressed('pickup');
               },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final actions = [
-      {
-        'icon': Icons.favorite_rounded,
-        'color': const Color(0xFFE91E63), // TETAP PINK
-        'label': 'Favorit',
-        'action': 'favorite',
-      },
-      {
-        'icon': Icons.chat_bubble,
-        'color': const Color(0xFF25D366), // WhatsApp green
-        'label': 'Order\nNow',
-        'action': 'order_now',
-      },
-      {
-        'icon': Icons.grid_view_rounded,
-        'color': const Color(0xFFE67E22), // TETAP ORANGE
-        'label': 'Produk',
-        'action': 'products',
-      },
-      {
-        'icon': Icons.store_rounded,
-        'color': const Color(0xFF27AE60), // TETAP GREEN
-        'label': 'Ambil\nDitempat',
-        'action': 'pickup',
-      },
-    ];
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: actions.map((action) {
-          return _buildQuickActionItem(
-            context: context,
-            icon: action['icon'] as IconData,
-            color: action['color'] as Color,
-            label: action['label'] as String,
-            onTap: () =>
-                controller.onQuickActionPressed(action['action'] as String),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildQuickActionItem({
-    required BuildContext context,
-    required IconData icon,
-    required Color color,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: SizedBox(
-        width: 70,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-                border: Border.all(
-                  color: isDark ? Colors.white12 : const Color(0xFFE0E0E0),
-                  width: 1.5,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Icon(icon, color: color, size: 28), // COLOR TETAP
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 28,
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.white : const Color(0xFF2C3E50),
-                  height: 1.3,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.visible,
-              ),
             ),
           ],
         ),
@@ -467,7 +366,7 @@ class HomePage extends GetView<HomeController> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -503,8 +402,8 @@ class HomePage extends GetView<HomeController> {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              const Color(0xFFE67E22).withOpacity(0.3),
-                              const Color(0xFFD35400).withOpacity(0.3),
+                              const Color(0xFFE67E22).withValues(alpha: 0.3),
+                              const Color(0xFFD35400).withValues(alpha: 0.3),
                             ],
                           ),
                         ),
@@ -525,7 +424,7 @@ class HomePage extends GetView<HomeController> {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withOpacity(0.75),
+                          Colors.black.withValues(alpha: 0.75),
                         ],
                       ),
                     ),
