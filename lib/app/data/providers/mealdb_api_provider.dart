@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart'; // Import ini buat debugPrint
 import 'package:dio/dio.dart';
 import '../models/meal_model.dart';
 
@@ -7,7 +8,7 @@ class MealDBApiProvider {
 
   Future<List<Meal>> getDesserts() async {
     try {
-      print('🍰 Fetching desserts from TheMealDB...');
+      debugPrint('🍰 Fetching desserts from TheMealDB...');
 
       final response = await _dio.get(
         '$baseUrl/filter.php',
@@ -19,23 +20,23 @@ class MealDBApiProvider {
             .map((meal) => Meal.fromJson(meal))
             .toList();
 
-        print('✅ Found ${meals.length} desserts');
+        debugPrint('✅ Found ${meals.length} desserts');
         return meals;
       }
 
       return [];
     } on DioException catch (e) {
-      print('❌ Dio Error fetching desserts: ${e.message}');
+      debugPrint('❌ Dio Error fetching desserts: ${e.message}');
       rethrow;
     } catch (e) {
-      print('❌ Error fetching desserts: $e');
+      debugPrint('❌ Error fetching desserts: $e');
       rethrow;
     }
   }
 
   Future<Meal?> getMealDetail(String mealId) async {
     try {
-      print('🔍 Fetching meal detail for ID: $mealId');
+      debugPrint('🔍 Fetching meal detail for ID: $mealId');
 
       final response = await _dio.get(
         '$baseUrl/lookup.php',
@@ -46,24 +47,24 @@ class MealDBApiProvider {
         final meals = response.data['meals'] as List;
         if (meals.isNotEmpty) {
           final meal = Meal.fromJson(meals[0]);
-          print('✅ Meal detail fetched: ${meal.strMeal}');
+          debugPrint('✅ Meal detail fetched: ${meal.strMeal}');
           return meal;
         }
       }
 
       return null;
     } on DioException catch (e) {
-      print('❌ Dio Error fetching meal detail: ${e.message}');
+      debugPrint('❌ Dio Error fetching meal detail: ${e.message}');
       rethrow;
     } catch (e) {
-      print('❌ Error fetching meal detail: $e');
+      debugPrint('❌ Error fetching meal detail: $e');
       rethrow;
     }
   }
 
   Future<List<Meal>> searchMeals(String query) async {
     try {
-      print('🔍 Searching meals: $query');
+      debugPrint('🔍 Searching meals: $query');
 
       final response = await _dio.get(
         '$baseUrl/search.php',
@@ -75,16 +76,16 @@ class MealDBApiProvider {
             .map((meal) => Meal.fromJson(meal))
             .toList();
 
-        print('✅ Found ${meals.length} meals');
+        debugPrint('✅ Found ${meals.length} meals');
         return meals;
       }
 
       return [];
     } on DioException catch (e) {
-      print('❌ Dio Error searching meals: ${e.message}');
+      debugPrint('❌ Dio Error searching meals: ${e.message}');
       return [];
     } catch (e) {
-      print('❌ Error searching meals: $e');
+      debugPrint('❌ Error searching meals: $e');
       return [];
     }
   }
