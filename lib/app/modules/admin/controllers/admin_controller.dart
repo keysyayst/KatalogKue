@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:translator/translator.dart'; // Pastikan package ini ada
+
 import '../../../data/models/product.dart';
 import '../../../data/models/meal_model.dart';
 import '../../../data/providers/product_api_provider.dart';
@@ -17,6 +19,9 @@ class AdminController extends GetxController {
   final MealDBApiProvider _mealDBProvider = MealDBApiProvider();
   final NutritionApiProvider _nutritionProvider = NutritionApiProvider();
   final ImagePicker _imagePicker = ImagePicker();
+
+  // Translator
+  final GoogleTranslator _translator = GoogleTranslator();
 
   // Form controllers
   final titleController = TextEditingController();
@@ -175,7 +180,6 @@ class AdminController extends GetxController {
         // Upload gambar baru jika ada file yang dipilih
         if (selectedImageFile.value != null) {
           isUploadingImage.value = true;
-
           final imageBytes = await selectedImageFile.value!.readAsBytes();
           final fileName =
               'product_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -213,6 +217,8 @@ class AdminController extends GetxController {
           composition: compositionController.text.trim().isEmpty
               ? null
               : compositionController.text.trim(),
+          nutrition: editingProduct.value!.nutrition,
+          // HAPUS CATEGORY DI SINI (Error 1)
         );
 
         result = await _productService.updateProduct(
@@ -233,7 +239,6 @@ class AdminController extends GetxController {
           return;
         }
 
-        // 1. Buat produk dulu dengan placeholder image
         final tempProduct = Product(
           id: '',
           title: titleController.text.trim(),
@@ -246,14 +251,13 @@ class AdminController extends GetxController {
           composition: compositionController.text.trim().isEmpty
               ? null
               : compositionController.text.trim(),
+          // HAPUS CATEGORY DI SINI (Error 2)
         );
 
         result = await _productService.createProduct(tempProduct, userId);
 
-        // 2. Jika ada gambar, upload dan update produk
         if (result != null && selectedImageFile.value != null) {
           isUploadingImage.value = true;
-
           final imageBytes = await selectedImageFile.value!.readAsBytes();
           final fileName =
               'product_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -267,7 +271,6 @@ class AdminController extends GetxController {
           isUploadingImage.value = false;
 
           if (uploadedUrl != null) {
-            // Update produk dengan URL gambar yang benar
             final updatedProduct = Product(
               id: result.id,
               title: result.title,
@@ -276,6 +279,8 @@ class AdminController extends GetxController {
               image: uploadedUrl,
               description: result.description,
               composition: result.composition,
+              nutrition: result.nutrition,
+              // HAPUS CATEGORY DI SINI (Error 3)
             );
 
             result = await _productService.updateProduct(
@@ -295,7 +300,7 @@ class AdminController extends GetxController {
       }
 
       if (result != null) {
-        Get.back(); // Close dialog/form
+        Get.back();
         Get.snackbar(
           'Berhasil',
           editingProduct.value != null
@@ -340,7 +345,6 @@ class AdminController extends GetxController {
             onPressed: () async {
               Get.back();
               isLoading.value = true;
-
               final success = await _productService.deleteProduct(product.id);
               isLoading.value = false;
 
@@ -383,12 +387,11 @@ class AdminController extends GetxController {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.red,
-                  borderRadius: const BorderRadius.only(
+                  borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(4),
                     topRight: Radius.circular(4),
                   ),
@@ -414,19 +417,15 @@ class AdminController extends GetxController {
                   ],
                 ),
               ),
-              // Content
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Image Preview & Picker
                       Obx(() {
                         Widget imageWidget;
-
                         if (selectedImageFile.value != null) {
-                          // Tampilkan gambar dari file yang dipilih
                           imageWidget = Image.file(
                             selectedImageFile.value!,
                             height: 150,
@@ -434,7 +433,6 @@ class AdminController extends GetxController {
                             fit: BoxFit.cover,
                           );
                         } else if (imageUrlController.text.isNotEmpty) {
-                          // Tampilkan gambar dari URL (untuk edit)
                           imageWidget =
                               imageUrlController.text.startsWith('http')
                               ? Image.network(
@@ -445,10 +443,7 @@ class AdminController extends GetxController {
                                   errorBuilder: (_, __, ___) => Container(
                                     height: 150,
                                     color: Colors.grey[300],
-                                    child: const Icon(
-                                      Icons.broken_image,
-                                      size: 50,
-                                    ),
+                                    child: const Icon(Icons.broken_image),
                                   ),
                                 )
                               : Container(
@@ -457,7 +452,6 @@ class AdminController extends GetxController {
                                   child: const Icon(Icons.image, size: 50),
                                 );
                         } else {
-                          // Placeholder
                           imageWidget = SizedBox(
                             height: 120,
                             width: 120,
@@ -467,7 +461,6 @@ class AdminController extends GetxController {
                             ),
                           );
                         }
-
                         return Column(
                           children: [
                             ClipRRect(
@@ -475,28 +468,10 @@ class AdminController extends GetxController {
                               child: imageWidget,
                             ),
                             const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: showImageSourceDialog,
-                                    icon: const Icon(Icons.image),
-                                    label: const Text('Pilih Gambar'),
-                                  ),
-                                ),
-                                if (selectedImageFile.value != null) ...[
-                                  const SizedBox(width: 8),
-                                  IconButton(
-                                    onPressed: () =>
-                                        selectedImageFile.value = null,
-                                    icon: const Icon(
-                                      Icons.clear,
-                                      color: Colors.red,
-                                    ),
-                                    tooltip: 'Hapus gambar',
-                                  ),
-                                ],
-                              ],
+                            OutlinedButton.icon(
+                              onPressed: showImageSourceDialog,
+                              icon: const Icon(Icons.image),
+                              label: const Text('Pilih Gambar'),
                             ),
                           ],
                         );
@@ -504,26 +479,18 @@ class AdminController extends GetxController {
                       const SizedBox(height: 16),
                       TextField(
                         controller: titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Judul *',
-                          border: OutlineInputBorder(),
-                        ),
+                        decoration: const InputDecoration(labelText: 'Judul *'),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: priceController,
-                        decoration: const InputDecoration(
-                          labelText: 'Harga *',
-                          border: OutlineInputBorder(),
-                          hintText: 'e.g., 50.000/toples',
-                        ),
+                        decoration: const InputDecoration(labelText: 'Harga *'),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: locationController,
                         decoration: const InputDecoration(
                           labelText: 'Lokasi *',
-                          border: OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -532,7 +499,6 @@ class AdminController extends GetxController {
                         maxLines: 3,
                         decoration: const InputDecoration(
                           labelText: 'Deskripsi',
-                          border: OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -541,28 +507,19 @@ class AdminController extends GetxController {
                         maxLines: 2,
                         decoration: const InputDecoration(
                           labelText: 'Komposisi',
-                          border: OutlineInputBorder(),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              // Actions
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  border: Border(top: BorderSide(color: Colors.grey[300]!)),
-                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () {
-                        Get.back();
-                        clearForm();
-                      },
+                      onPressed: () => Get.back(),
                       child: const Text('Batal'),
                     ),
                     const SizedBox(width: 8),
@@ -575,29 +532,9 @@ class AdminController extends GetxController {
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
                         ),
-                        child: isLoading.value || isUploadingImage.value
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    isUploadingImage.value
-                                        ? 'Upload...'
-                                        : 'Menyimpan...',
-                                  ),
-                                ],
-                              )
-                            : const Text('Simpan'),
+                        child: Text(
+                          isUploadingImage.value ? 'Uploading...' : 'Simpan',
+                        ),
                       ),
                     ),
                   ],
@@ -610,7 +547,6 @@ class AdminController extends GetxController {
     );
   }
 
-  /// Tampilkan dialog pilihan: Manual atau dari MealDB
   void showAddProductOptionsDialog() {
     Get.dialog(
       AlertDialog(
@@ -633,8 +569,8 @@ class AdminController extends GetxController {
                 Icons.restaurant_menu,
                 color: Color(0xFFFE8C00),
               ),
-              title: const Text('Dari Otomatis'),
-              subtitle: const Text('Pilih dari database dessert'),
+              title: const Text('Dari Otomatis (TheMealDB)'),
+              subtitle: const Text('Import resep & nutrisi otomatis'),
               onTap: () {
                 Get.back();
                 showMealDBBrowser();
@@ -646,7 +582,6 @@ class AdminController extends GetxController {
     );
   }
 
-  /// Browse desserts dari MealDB API
   void showMealDBBrowser() async {
     try {
       Get.dialog(
@@ -673,7 +608,7 @@ class AdminController extends GetxController {
       );
 
       final desserts = await _mealDBProvider.getDesserts();
-      Get.back(); 
+      Get.back();
 
       if (desserts.isEmpty) {
         Get.snackbar(
@@ -777,7 +712,7 @@ class AdminController extends GetxController {
         ),
       );
     } catch (e) {
-      Get.back(); 
+      Get.back();
       Get.snackbar(
         'Error',
         'Gagal mengambil data: $e',
@@ -791,6 +726,7 @@ class AdminController extends GetxController {
   void selectMealFromDB(Meal meal) async {
     try {
       Get.back();
+
       Get.dialog(
         const Center(
           child: Card(
@@ -805,7 +741,7 @@ class AdminController extends GetxController {
                     ),
                   ),
                   SizedBox(height: 16),
-                  Text('Mengambil detail produk...'),
+                  Text('Menerjemahkan ke Bahasa Indonesia...'),
                 ],
               ),
             ),
@@ -854,11 +790,41 @@ class AdminController extends GetxController {
         print('⚠️ Failed to fetch nutrition: $e');
       }
 
-      Get.back();
+      String translatedDesc = mealDetail.strInstructions ?? '';
+      String translatedComp = mealDetail.compositionText;
 
-      showMealConfirmationForm(mealDetail, nutritionData);
+      try {
+        if (translatedDesc.isNotEmpty) {
+          final translation = await _translator.translate(
+            translatedDesc,
+            from: 'en',
+            to: 'id',
+          );
+          translatedDesc = translation.text;
+        }
+
+        if (translatedComp.isNotEmpty) {
+          final translation = await _translator.translate(
+            translatedComp,
+            from: 'en',
+            to: 'id',
+          );
+          translatedComp = translation.text;
+        }
+      } catch (e) {
+        print('❌ Translation error: $e');
+      }
+
+      Get.back(); // Tutup dialog loading
+
+      showMealConfirmationForm(
+        mealDetail,
+        nutritionData,
+        translatedDesc,
+        translatedComp,
+      );
     } catch (e) {
-      Get.back(); 
+      Get.back();
       Get.snackbar(
         'Error',
         'Terjadi kesalahan: $e',
@@ -869,13 +835,20 @@ class AdminController extends GetxController {
     }
   }
 
-  void showMealConfirmationForm(Meal meal, Map<String, dynamic>? nutrition) {
+  void showMealConfirmationForm(
+    Meal meal,
+    Map<String, dynamic>? nutrition,
+    String desc,
+    String comp,
+  ) {
     titleController.text = meal.strMeal;
     priceController.text = '100.000/kg';
     locationController.text = meal.strArea ?? 'International';
-    descriptionController.text =
-        meal.strInstructions ?? 'Dessert lezat dari TheMealDB';
-    compositionController.text = meal.compositionText;
+
+    // GUNAKAN HASIL TRANSLATE
+    descriptionController.text = desc;
+    compositionController.text = comp;
+
     imageUrlController.text = meal.strMealThumb;
 
     Get.dialog(
@@ -931,11 +904,6 @@ class AdminController extends GetxController {
                             height: 150,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              height: 150,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.broken_image, size: 50),
-                            ),
                           ),
                         ),
                       const SizedBox(height: 16),
@@ -948,20 +916,19 @@ class AdminController extends GetxController {
                             border: Border.all(color: Colors.green),
                           ),
                           child: Row(
-                            children: [
-                              const Icon(
+                            children: const [
+                              Icon(
                                 Icons.check_circle,
                                 color: Colors.green,
                                 size: 20,
                               ),
-                              const SizedBox(width: 12),
-                              const Expanded(
+                              SizedBox(width: 12),
+                              Expanded(
                                 child: Text(
                                   'Data nutrisi berhasil diambil dari USDA',
                                   style: TextStyle(
                                     color: Colors.green,
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 13,
                                   ),
                                 ),
                               ),
@@ -977,29 +944,26 @@ class AdminController extends GetxController {
                             border: Border.all(color: Colors.orange),
                           ),
                           child: Row(
-                            children: [
-                              const Icon(
+                            children: const [
+                              Icon(
                                 Icons.info_outline,
                                 color: Colors.orange,
                                 size: 20,
                               ),
-                              const SizedBox(width: 12),
-                              const Expanded(
+                              SizedBox(width: 12),
+                              Expanded(
                                 child: Text(
                                   'Data nutrisi tidak tersedia',
                                   style: TextStyle(
                                     color: Colors.orange,
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 13,
                                   ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-
                       const SizedBox(height: 16),
-
                       TextField(
                         controller: titleController,
                         decoration: const InputDecoration(
@@ -1027,10 +991,11 @@ class AdminController extends GetxController {
                       const SizedBox(height: 12),
                       TextField(
                         controller: descriptionController,
-                        maxLines: 3,
+                        maxLines: 6,
                         decoration: const InputDecoration(
-                          labelText: 'Deskripsi',
+                          labelText: 'Deskripsi (Bahasa Indonesia)',
                           border: OutlineInputBorder(),
+                          helperText: 'Otomatis diterjemahkan',
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -1038,16 +1003,15 @@ class AdminController extends GetxController {
                         controller: compositionController,
                         maxLines: 4,
                         decoration: const InputDecoration(
-                          labelText: 'Komposisi',
+                          labelText: 'Komposisi (Bahasa Indonesia)',
                           border: OutlineInputBorder(),
-                          helperText: 'Diambil otomatis dari TheMealDB',
+                          helperText: 'Otomatis diterjemahkan',
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              // Actions
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -1100,6 +1064,7 @@ class AdminController extends GetxController {
       ),
     );
   }
+
   Future<void> saveMealProduct(Map<String, dynamic>? nutrition) async {
     if (titleController.text.trim().isEmpty ||
         priceController.text.trim().isEmpty ||
@@ -1143,6 +1108,7 @@ class AdminController extends GetxController {
             ? null
             : compositionController.text.trim(),
         nutrition: nutrition,
+        // HAPUS CATEGORY (Error 4)
       );
 
       final result = await _productService.createProduct(product, userId);
@@ -1183,7 +1149,6 @@ class AdminController extends GetxController {
   String _improveMealNameForNutrition(String mealName) {
     final nameLower = mealName.toLowerCase();
     final Map<String, String> mappings = {
-
       'cake': 'cake',
       'chocolate cake': 'chocolate cake',
       'vanilla cake': 'vanilla cake',
@@ -1191,41 +1156,32 @@ class AdminController extends GetxController {
       'red velvet': 'red velvet cake',
       'cheesecake': 'cheesecake',
       'pound cake': 'pound cake',
-
-
       'pie': 'pie',
       'apple pie': 'apple pie',
       'pumpkin pie': 'pumpkin pie',
       'cherry pie': 'cherry pie',
       'pecan pie': 'pecan pie',
       'tart': 'tart',
-
-
       'cookie': 'cookie',
       'chocolate chip': 'chocolate chip cookie',
       'oatmeal cookie': 'oatmeal cookie',
       'sugar cookie': 'sugar cookie',
       'biscuit': 'cookie',
-
       'brownie': 'brownie',
       'blondie': 'blondie',
-
       'pudding': 'pudding',
       'custard': 'custard',
       'tiramisu': 'tiramisu',
       'mousse': 'chocolate mousse',
-
       'ice cream': 'ice cream',
       'sorbet': 'sorbet',
       'gelato': 'ice cream',
-
       'croissant': 'croissant',
       'danish': 'danish pastry',
       'eclair': 'eclair',
       'macaron': 'macaroon',
       'donut': 'doughnut',
       'doughnut': 'doughnut',
-
       'pancake': 'pancake',
       'waffle': 'waffle',
       'crepe': 'crepe',
