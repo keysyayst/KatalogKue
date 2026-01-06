@@ -11,6 +11,8 @@ import '../../../data/providers/mealdb_api_provider.dart';
 import '../../../data/providers/nutrition_api_provider.dart';
 import '../../../data/sources/products.dart';
 import '../../../data/services/auth_service.dart';
+import '../../../data/services/product_supabase_service.dart';
+import '../../favorite/controllers/favorite_controller.dart';
 
 class AdminController extends GetxController {
   final ProductService _productService = Get.find<ProductService>();
@@ -19,6 +21,8 @@ class AdminController extends GetxController {
   final MealDBApiProvider _mealDBProvider = MealDBApiProvider();
   final NutritionApiProvider _nutritionProvider = NutritionApiProvider();
   final ImagePicker _imagePicker = ImagePicker();
+  final ProductSupabaseService _productSupabaseService =
+      Get.find<ProductSupabaseService>();
 
   // Translator
   final GoogleTranslator _translator = GoogleTranslator();
@@ -52,6 +56,23 @@ class AdminController extends GetxController {
 
   Future<void> refreshProducts() async {
     await _productService.loadProducts();
+  }
+
+  Future<void> _syncProductData() async {
+    // Pastikan list produk/favorit lain ikut segar setelah create/update/delete
+    try {
+      await _productSupabaseService.loadProducts();
+    } catch (_) {
+      // ignore
+    }
+
+    if (Get.isRegistered<FavoriteController>()) {
+      try {
+        await Get.find<FavoriteController>().fetchFavorites();
+      } catch (_) {
+        // ignore
+      }
+    }
   }
 
   void clearForm() {
@@ -300,6 +321,7 @@ class AdminController extends GetxController {
       }
 
       if (result != null) {
+        await _syncProductData();
         Get.back();
         Get.snackbar(
           'Berhasil',
@@ -349,6 +371,7 @@ class AdminController extends GetxController {
               isLoading.value = false;
 
               if (success) {
+                await _syncProductData();
                 Get.snackbar(
                   'Berhasil',
                   'Produk "${product.title}" telah dihapus',
@@ -1114,6 +1137,7 @@ class AdminController extends GetxController {
       final result = await _productService.createProduct(product, userId);
 
       if (result != null) {
+        await _syncProductData();
         Get.back();
         Get.snackbar(
           'Berhasil',

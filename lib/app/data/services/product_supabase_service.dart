@@ -76,6 +76,11 @@ class ProductSupabaseService extends GetxService {
   Future<bool> deleteProduct(String id) async {
     try {
       isLoading.value = true;
+
+      // Hapus semua favorit produk ini terlebih dahulu
+      await _supabase.from('user_favorites').delete().eq('product_id', id);
+
+      // Kemudian hapus produk
       await _supabase.from('products').delete().eq('id', id);
       await loadProducts();
       return true;

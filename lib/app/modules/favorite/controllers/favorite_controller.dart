@@ -15,11 +15,23 @@ class FavoriteController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
 
   RxList<Product> favoriteProducts = <Product>[].obs;
+  late final Worker _productWatcher;
 
   @override
   void onInit() {
     super.onInit();
+    // Sinkronkan favorit setiap kali daftar produk berubah (mis. setelah delete)
+    _productWatcher = ever<List<Product>>(
+      _productService.products,
+      (_) => fetchFavorites(),
+    );
     fetchFavorites();
+  }
+
+  @override
+  void onClose() {
+    _productWatcher.dispose();
+    super.onClose();
   }
 
   Future<void> fetchFavorites() async {
@@ -32,17 +44,17 @@ class FavoriteController extends GetxController {
 
     for (final id in supabaseFavIds) {
       if (!localFavIds.contains(id)) {
-        await _favoriteHiveService.toggleFavorite(id); 
+        await _favoriteHiveService.toggleFavorite(id);
       }
     }
 
     for (final id in localFavIds) {
       if (!supabaseFavIds.contains(id)) {
-        await _favoriteHiveService.toggleFavorite(id); 
+        await _favoriteHiveService.toggleFavorite(id);
       }
     }
 
-    final allProducts = _productService.products; 
+    final allProducts = _productService.products;
     favoriteProducts.value = allProducts
         .where((p) => supabaseFavIds.contains(p.id))
         .toList();
